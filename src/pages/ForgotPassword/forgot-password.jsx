@@ -27,7 +27,7 @@ import loginBg from "../../assets/bg-image.png";
 import { toast } from "react-toastify";
 
 const ForgotPassword = () => {
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState(null);
   const navigate = useNavigate();
   const muiTheme = useTheme();
 
@@ -97,7 +97,8 @@ const ForgotPassword = () => {
                       variant="body1"
                       sx={{ color: muiTheme.palette.text.secondary, mb: 2 }}
                     >
-                      Provide an email associated with your account for verification.
+                      Provide an email associated with your account for
+                      verification.
                     </Typography>
                   </Box>
 
@@ -121,7 +122,9 @@ const ForgotPassword = () => {
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Email sx={{ color: muiTheme.palette.text.secondary }} />
+                            <Email
+                              sx={{ color: muiTheme.palette.text.secondary }}
+                            />
                           </InputAdornment>
                         ),
                       }}
@@ -149,12 +152,16 @@ const ForgotPassword = () => {
                       }}
                     >
                       {formik.isSubmitting ? (
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
                           <CircularProgress
                             size={20}
                             sx={{ color: muiTheme.palette.common.white }}
                           />
-                          <Typography color="inherit">Sending email...</Typography>
+                          <Typography color="inherit">
+                            Sending email...
+                          </Typography>
                         </Box>
                       ) : (
                         "Send Email"

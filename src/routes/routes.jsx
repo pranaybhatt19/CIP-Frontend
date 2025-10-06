@@ -14,8 +14,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/2" element={<CommunicationListDashboard />} />
-      <Route path="/1" element={<Dashboard />} />
+      <Route path="/" element={<LoginPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/otp-verification" element={<OtpVerification />} />
