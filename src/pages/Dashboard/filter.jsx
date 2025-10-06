@@ -51,11 +51,11 @@ export default function FilterDrawer({
             mb: 2,
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 500, color: "#1976d2" }}>
+          <Typography variant="h5" sx={{ fontWeight: 500, color: "#2a9d8f" }}>
             Filters
           </Typography>
           <IconButton onClick={onClose}>
-            <CloseIcon sx={{ color: "#1976d2" }} />
+            <CloseIcon sx={{ color: "#2a9d8f" }} />
           </IconButton>
         </Box>
 
@@ -65,7 +65,12 @@ export default function FilterDrawer({
           value={searchName}
           onChange={(e) => setSearchName(e.target.value)}
           fullWidth
-          sx={{ mb: 2 }}
+          sx={{
+            mb: 2,
+            "& .MuiOutlinedInput-root": {
+              backgroundColor: "transparent",
+            },
+          }}
         />
 
         {/* Designation filter */}
@@ -99,14 +104,6 @@ export default function FilterDrawer({
           </Select>
         </FormControl>
 
-        {/* Experience filter */}
-        <ScoreFilter
-          label="Experience (Years)"
-          value={selectedExperience.value}
-          type={selectedExperience.type}
-          onChange={(newFilter) => setSelectedExperience(newFilter)}
-        />
-
         {/* Reporting Person filter */}
         <FormControl fullWidth sx={{ mb: 2 }}>
           <InputLabel id="reporting-label">Reporting Person</InputLabel>
@@ -120,7 +117,7 @@ export default function FilterDrawer({
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.4 }}>
                 {selected.map((id) => {
                   const person = reportingPersonList.find(
-                    (item) => item.id === id
+                    (item) => item.user_id === id
                   );
                   return <Chip key={id} label={person?.name ?? id} />;
                 })}
@@ -133,15 +130,23 @@ export default function FilterDrawer({
             }}
           >
             {reportingPersonList.map((item) => (
-              <MenuItem key={item.id} value={item.id}>
+              <MenuItem key={item.user_id} value={item.user_id}>
                 {item.name}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
+        {/* Experience filter */}
+        <ScoreFilter
+          label="Experience (Years)"
+          value={selectedExperience.value}
+          type={selectedExperience.type}
+          onChange={(newFilter) => setSelectedExperience(newFilter)}
+        />
+
         {/* Attempts filter */}
-        <AttemptFilter
+        <ScoreFilter
           label="Total Attempts"
           value={selectedAttempts.value}
           type={selectedAttempts.type}
@@ -152,7 +157,7 @@ export default function FilterDrawer({
         <Box
           display="flex"
           justifyContent={"end"}
-          alignItems={"end"}
+          alignItems={"center"}
           gap={1}
           fullWidth
         >
@@ -161,8 +166,9 @@ export default function FilterDrawer({
           </Button>
           <Button
             variant="contained"
+            sx={{ marginLeft: 1 }}
             onClick={() => {
-              onApply?.();
+              onApply();
               onClose();
             }}
           >

@@ -129,7 +129,9 @@ export const LoginPage = () => {
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Email sx={{ color: muiTheme.palette.text.secondary }} />
+                            <Email
+                              sx={{ color: muiTheme.palette.text.secondary }}
+                            />
                           </InputAdornment>
                         ),
                       }}
@@ -143,14 +145,20 @@ export const LoginPage = () => {
                       value={formik.values.password}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      error={formik.touched.password && !!formik.errors.password}
-                      helperText={formik.touched.password && formik.errors.password}
+                      error={
+                        formik.touched.password && !!formik.errors.password
+                      }
+                      helperText={
+                        formik.touched.password && formik.errors.password
+                      }
                       margin="normal"
                       aria-label="Password"
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Lock sx={{ color: muiTheme.palette.text.secondary }} />
+                            <Lock
+                              sx={{ color: muiTheme.palette.text.secondary }}
+                            />
                           </InputAdornment>
                         ),
                         endAdornment: (
@@ -159,9 +167,15 @@ export const LoginPage = () => {
                               onClick={() => setShowPassword(!showPassword)}
                               edge="end"
                               sx={{ color: muiTheme.palette.text.secondary }}
-                              aria-label={showPassword ? "Hide password" : "Show password"}
+                              aria-label={
+                                showPassword ? "Hide password" : "Show password"
+                              }
                             >
-                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                              {showPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
                             </IconButton>
                           </InputAdornment>
                         ),
@@ -208,7 +222,9 @@ export const LoginPage = () => {
                       }}
                     >
                       {formik.isSubmitting ? (
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
                           <CircularProgress
                             size={20}
                             sx={{ color: muiTheme.palette.common.white }}

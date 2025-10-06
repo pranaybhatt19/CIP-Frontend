@@ -24,10 +24,15 @@ import Header from "../../components/header";
 import AddUserModal from "../../components/addUser";
 import FilterDrawer from "./filter";
 import { decodeToken } from "../../util/commonFunction";
-import { Roles } from "../../util/enum";
+import {
+  getDesignations,
+  getReportingPersons,
+  searchDashboard,
+} from "../../services/authentication";
 
 export const Dashboard = () => {
-  const theme = useTheme(); 
+  const theme = useTheme();
+  const [userDesignation, setUserDesignation] = useState("");
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("name");
   const [page, setPage] = useState(0);
@@ -51,56 +56,97 @@ export const Dashboard = () => {
   const [designationList, setDesignationList] = useState([]);
   const [reportingPersonList, setReportingPersonList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
-  const [role, setRole] = useState("");
   const navigate = useNavigate();
 
-  // Dummy data instead of API for now
+  const fetchDesignations = async () => {
+    try {
+      setLoading(true);
+      await getDesignations().then((res) => {
+        setDesignationList(res.data || []);
+      });
+    } catch (err) {
+      toast.error(err.message || "Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchReportingPersons = async () => {
+    try {
+      setLoading(true);
+      await getReportingPersons().then((res) => {
+        setReportingPersonList(res.data || []);
+      });
+    } catch (err) {
+      toast.error(err.message || "Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setRows([
-      {
-        user_id: 1,
-        name: "Alice Johnson",
-        designation: "Software Engineer",
-        experience: 3,
-        reporting_person: "Bob Manager",
-        total_attempts: 2,
-      },
-      {
-        user_id: 2,
-        name: "David Smith",
-        designation: "Senior Developer",
-        experience: 5,
-        reporting_person: "Carol Lead",
-        total_attempts: 4,
-      },
-      {
-        user_id: 3,
-        name: "Eva Brown",
-        designation: "UI/UX Designer",
-        experience: 2,
-        reporting_person: "Bob Manager",
-        total_attempts: 1,
-      },
-      {
-        user_id: 4,
-        name: "Frank Wilson",
-        designation: "QA Engineer",
-        experience: 4,
-        reporting_person: "Carol Lead",
-        total_attempts: 3,
-      },
-      {
-        user_id: 5,
-        name: "Grace Lee",
-        designation: "Project Manager",
-        experience: 7,
-        reporting_person: "-",
-        total_attempts: 5,
-      },
-    ]);
-    setTotalCount(5);
-    setLoading(false);
+    const decodedToken = decodeToken();
+    if (decodedToken?.designation)
+      setUserDesignation(decodedToken.designation?.name);
+    fetchDesignations();
+    fetchReportingPersons();
   }, []);
+
+  const fetchData = async () => {
+    try {
+      const payload = {
+        limit: rowsPerPage,
+        offset: page * rowsPerPage,
+        order: [[orderBy, order.toUpperCase()]],
+      };
+
+      if (searchName?.trim()) {
+        payload.name = searchName.trim();
+      }
+
+      if (selectedDesignation?.length > 0) {
+        payload.designation_ids = selectedDesignation;
+      }
+
+      if (selectedExperience?.value) {
+        payload.experience = {
+          type: selectedExperience.type,
+          value: selectedExperience.value,
+        };
+      }
+
+      if (selectedReportingPerson?.length > 0) {
+        payload.reporting_persons_ids = selectedReportingPerson;
+      }
+
+      if (selectedAttempts?.value) {
+        payload.attempts = {
+          type: selectedAttempts.type,
+          value: selectedAttempts.value,
+        };
+      }
+      setLoading(true);
+      await searchDashboard(payload).then((res) => {
+        setRows(res.data.data || []);
+        setTotalCount(res.data.total || 0);
+      });
+    } catch (err) {
+      toast.error(err.message || "Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (clearTriggered) {
+      fetchData();
+      setClearTriggered(false);
+    }
+  }, [clearTriggered]);
+
+  useEffect(() => {
+    fetchData();
+  }, [addUserModalOpen, order, orderBy, page, rowsPerPage]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -128,7 +174,7 @@ export const Dashboard = () => {
   };
 
   return (
-    <div style={{ width: "100%", padding: 2, overflow: "hidden" }}>
+    <div style={{ width: "100%", overflow: "hidden" }}>
       <Header />
 
       {/* Top Bar */}
@@ -149,29 +195,29 @@ export const Dashboard = () => {
           marginLeft={0}
           sx={{
             fontWeight: "bold",
-            color: theme.palette.primary.main
+            color: theme.palette.primary.main,
           }}
         >
           Dashboard
         </Typography>
 
         {/* Buttons */}
+
         <Box sx={{ display: "flex", gap: 1 }}>
-
-          <Button
-            variant="outlined"
-            sx={{
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              fontWeight: "bold",
-            }}
-            onClick={() => setAddUserModalOpen(true)}
-            startIcon={<PersonAddAltIcon color="primary" />}
-          >
-            Add User
-          </Button>
-
-
+          {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
+            <Button
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                fontWeight: "bold",
+              }}
+              onClick={() => setAddUserModalOpen(true)}
+              startIcon={<PersonAddAltIcon color="primary" />}
+            >
+              Add User
+            </Button>
+          )}
           <Button
             variant="outlined"
             sx={{
@@ -206,6 +252,9 @@ export const Dashboard = () => {
           designationList={designationList}
           reportingPersonList={reportingPersonList}
           onClear={handleClearFilters}
+          onApply={() => {
+            fetchData();
+          }}
         />
       </Box>
 
@@ -217,7 +266,7 @@ export const Dashboard = () => {
       />
 
       {/* Data Table */}
-      <Paper sx={{ width: "100%", p: 1 }}>
+      <Paper sx={{ width: "100%", mb: 2, p: 1, pb: 0 }}>
         <TableContainer>
           <Table sx={{ minWidth: 750 }}>
             <thead>
@@ -231,10 +280,14 @@ export const Dashboard = () => {
                 <TableCell onClick={(e) => handleRequestSort(e, "experience")}>
                   <b>Experience</b>
                 </TableCell>
-                <TableCell onClick={(e) => handleRequestSort(e, "reporting_person")}>
+                <TableCell
+                  onClick={(e) => handleRequestSort(e, "reporting_person")}
+                >
                   <b>Reporting Person</b>
                 </TableCell>
-                <TableCell onClick={(e) => handleRequestSort(e, "total_attempts")}>
+                <TableCell
+                  onClick={(e) => handleRequestSort(e, "total_attempts")}
+                >
                   <b>Attempts</b>
                 </TableCell>
                 <TableCell align="center">
@@ -246,17 +299,19 @@ export const Dashboard = () => {
               {rows.length > 0 ? (
                 rows.map((row, index) => (
                   <TableRow hover key={row.user_id ?? index}>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>{row.designation ?? "-"}</TableCell>
+                    <TableCell>{row.full_name}</TableCell>
+                    <TableCell>{row.designation?.name ?? "-"}</TableCell>
                     <TableCell>
                       {row.experience ? `${row.experience} Years` : "-"}
                     </TableCell>
-                    <TableCell>{row.reporting_person ?? "-"}</TableCell>
-                    <TableCell>{row.total_attempts ?? "-"}</TableCell>
+                    <TableCell>{row.reporting_person?.name ?? "-"}</TableCell>
+                    <TableCell>{row.attempts ?? "-"}</TableCell>
                     <TableCell align="center">
                       <IconButton
                         aria-label="view"
-                        onClick={() => navigate(`/user-test-dashboard/${row.user_id}`)}
+                        onClick={() =>
+                          navigate(`/user-practices/${row.user_id}`)
+                        }
                       >
                         <VisibilityIcon color="primary" />
                       </IconButton>
@@ -288,6 +343,18 @@ export const Dashboard = () => {
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            ".MuiTablePagination-selectLabel": {
+              marginTop: "auto",
+            },
+            ".MuiSelect-select": {
+              paddingTop: "4px",
+              paddingBottom: "4px",
+            },
+            ".MuiTablePagination-displayedRows": {
+              marginTop: "auto",
+            },
+          }}
         />
       </Paper>
     </div>
