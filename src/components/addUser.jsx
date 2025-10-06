@@ -23,10 +23,12 @@ import {
 } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { addUser } from "../services/authentication";
+import { addUser, getDesignations } from "../services/authentication";
+import { decodeToken } from "../util/commonFunction";
 import { toast } from "react-toastify";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useState } from "react";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { useEffect, useState } from "react";
 
 const scrollbarStyles = {
   px: 0,
@@ -61,68 +63,62 @@ const style = {
   borderRadius: "12px",
 };
 
-const designationList = ["TSE", "ASE", "SE", "SSE", "TL", "STL", "APM", "PM"];
-
 const validationSchema = Yup.object({
-  name: Yup.string().required("Name is required"),
+  firstName: Yup.string().required("First Name is required"),
+  middleName: Yup.string().required("Middle Name is required"),
+  lastName: Yup.string().required("Last Name is required"),
   email: Yup.string()
     .matches(
       /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
       "Please enter a valid email address"
     )
     .required("Email is required"),
-  designation: Yup.string().required("Designation is required"),
-  years: Yup.number()
-    .required("Years is required")
-    .min(0, "Years cannot be negative"),
-  months: Yup.number()
-    .min(0, "Months cannot be negative")
-    .when("years", {
-      is: 0,
-      then: (schema) =>
-        schema
-          .required("Months is required when years is 0")
-          .min(1, "Months must be greater than 0 when years is 0"),
-      otherwise: (schema) => schema.notRequired(),
-    }),
-  password: Yup.string()
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$/,
-      "Password must be at least 8 characters long, contain an uppercase, a lowercase, a number, and a special character"
-    )
-    .required("Password is required"),
-  role: Yup.string().required("Role is required"),
+  designation: Yup.number().required("Designation is required"),
+  experience: Yup.date().required("Joining Date is required"),
+  reportingPerson: Yup.number(),
 });
 
 export const AddUserModal = ({ open, onClose }) => {
-  const [showPassword, setShowPassword] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [designationList, setDesignationList] = useState([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const handleTogglePassword = () => {
     setShowPassword((prev) => !prev);
   };
 
+  const fetchDesignations = async () => {
+    try {
+      await getDesignations().then((res) => {
+        setDesignationList(res.data || []);
+      });
+    } catch (err) {
+      toast.error(err.message || "Failed to fetch data");
+    }
+  };
+
+  useEffect(() => {
+    const decodedToken = decodeToken();
+    fetchDesignations();
+    if (decodedToken?.sub) setUserId(decodedToken.sub);
+  }, []);
+
   const formik = useFormik({
     initialValues: {
-      name: "",
+      firstName: "",
+      middleName: "",
+      lastName: "",
       email: "",
-      password: "",
-      designation: "",
-      years: "",
-      months: "",
-      role: "developer",
+      designation: null,
+      experience: null,
+      reportingPerson: userId,
     },
     validationSchema,
     onSubmit: async (values, { resetForm, setSubmitting }) => {
-      const { years, months, ...restValues } = values;
-      const safeMonths = months ?? 0;
-      const formattedMonths = String(safeMonths).padStart(2, "0");
-      const experience = parseFloat(`${years}.${formattedMonths}`);
       try {
         const res = await addUser({
-          ...restValues,
-          experience: experience,
-          email: restValues.email.toLowerCase(),
+          ...values,
+          email: values.email.toLowerCase(),
         });
         toast.success("User added successfully!");
         resetForm();
@@ -139,7 +135,7 @@ export const AddUserModal = ({ open, onClose }) => {
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
-        <h3 style={{ color: "#1976d2", marginBottom: "1.5rem" }}>
+        <h3 style={{ color: "#2a9d8f", marginBottom: "1.5rem" }}>
           Add New User
         </h3>
 
@@ -147,13 +143,15 @@ export const AddUserModal = ({ open, onClose }) => {
           <Box sx={scrollbarStyles}>
             <TextField
               fullWidth
-              label="Name"
+              label="First Name"
               margin="normal"
-              name="name"
-              value={formik.values.name}
+              name="firstName"
+              value={formik.values.firstName}
               onChange={formik.handleChange}
-              error={formik.touched.name && Boolean(formik.errors.name)}
-              helperText={formik.touched.name && formik.errors.name}
+              error={
+                formik.touched.firstName && Boolean(formik.errors.firstName)
+              }
+              helperText={formik.touched.firstName && formik.errors.firstName}
               autoComplete="off"
               FormHelperTextProps={{
                 sx: {
@@ -161,6 +159,47 @@ export const AddUserModal = ({ open, onClose }) => {
                   marginRight: 0,
                 },
               }}
+              sx={{ marginBottom: 0 }}
+            />
+
+            <TextField
+              fullWidth
+              label="Middle Name"
+              margin="normal"
+              name="middleName"
+              value={formik.values.middleName}
+              onChange={formik.handleChange}
+              error={
+                formik.touched.middleName && Boolean(formik.errors.middleName)
+              }
+              helperText={formik.touched.middleName && formik.errors.middleName}
+              autoComplete="off"
+              FormHelperTextProps={{
+                sx: {
+                  marginLeft: 0,
+                  marginRight: 0,
+                },
+              }}
+              sx={{ marginBottom: 0 }}
+            />
+
+            <TextField
+              fullWidth
+              label="Last Name"
+              margin="normal"
+              name="lastName"
+              value={formik.values.lastName}
+              onChange={formik.handleChange}
+              error={formik.touched.lastName && Boolean(formik.errors.lastName)}
+              helperText={formik.touched.lastName && formik.errors.lastName}
+              autoComplete="off"
+              FormHelperTextProps={{
+                sx: {
+                  marginLeft: 0,
+                  marginRight: 0,
+                },
+              }}
+              sx={{ marginBottom: 0 }}
             />
 
             <TextField
@@ -180,42 +219,45 @@ export const AddUserModal = ({ open, onClose }) => {
                   marginRight: 0,
                 },
               }}
+              sx={{ marginBottom: 0 }}
             />
 
-            <TextField
-              fullWidth
-              label="Password"
-              margin="normal"
-              type={showPassword ? "text" : "password"}
-              name="password"
-              value={formik.values.password}
-              onChange={formik.handleChange}
-              error={formik.touched.password && Boolean(formik.errors.password)}
-              helperText={formik.touched.password && formik.errors.password}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleTogglePassword} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              autoComplete="new-password"
-              FormHelperTextProps={{
-                sx: {
-                  marginLeft: 0,
-                  marginRight: 0,
-                },
-              }}
-            />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="Joining Date"
+                format="DD/MM/YYYY"
+                onChange={(newValue) => {
+                  formik.setFieldValue(
+                    "experience",
+                    newValue ? newValue.format("YYYY-MM-DD HH:mm:ss") : ""
+                  );
+                }}
+                disableFuture
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    margin: "normal",
+                    error:
+                      formik.touched.experience &&
+                      Boolean(formik.errors.experience),
+                    helperText:
+                      formik.touched.experience && formik.errors.experience,
+                    sx: {
+                      "& .MuiFormHelperText-root": {
+                        marginLeft: 0,
+                        marginRight: 0,
+                      },
+                    },
+                  },
+                }}
+              />
+            </LocalizationProvider>
 
             <FormControl fullWidth margin="normal">
               <InputLabel id="designation-label">Designation</InputLabel>
               <Select
                 labelId="designation-label"
                 name="designation"
-                value={formik.values.designation || ""}
                 onChange={formik.handleChange}
                 error={
                   formik.touched.designation &&
@@ -231,8 +273,8 @@ export const AddUserModal = ({ open, onClose }) => {
                 }}
               >
                 {designationList.map((item) => (
-                  <MenuItem key={item} value={item}>
-                    {item}
+                  <MenuItem key={item.id} value={item.id}>
+                    {item.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -249,128 +291,12 @@ export const AddUserModal = ({ open, onClose }) => {
                 </Box>
               )}
             </FormControl>
-
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              {/* Group Label */}
-              <FormLabel
-                sx={{ mb: 0, mt: 1, fontWeight: 600, fontSize: "14px" }}
-              >
-                Experience
-              </FormLabel>
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <FormControl fullWidth>
-                  <InputLabel id="years-label">Years</InputLabel>
-                  <Select
-                    labelId="years-label"
-                    name="years"
-                    value={formik.values.years ?? ""}
-                    onChange={formik.handleChange}
-                    error={formik.touched.years && Boolean(formik.errors.years)}
-                    input={<OutlinedInput label="Years" />}
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: isMobile ? 250 : 250,
-                        },
-                      },
-                    }}
-                  >
-                    {[...Array(51).keys()].map((year) => (
-                      <MenuItem key={year} value={year}>
-                        {year}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {formik.touched.years && formik.errors.years && (
-                    <Box
-                      sx={{
-                        color: "#d32f2f",
-                        fontSize: 12,
-                        mt: 0.5,
-                        marginLeft: 0,
-                      }}
-                    >
-                      {formik.errors.years}
-                    </Box>
-                  )}
-                </FormControl>
-
-                {/* Months Dropdown */}
-                <FormControl fullWidth>
-                  <InputLabel id="months-label">Months</InputLabel>
-                  <Select
-                    labelId="months-label"
-                    name="months"
-                    value={formik.values.months ?? ""}
-                    onChange={formik.handleChange}
-                    error={
-                      formik.touched.months && Boolean(formik.errors.months)
-                    }
-                    input={<OutlinedInput label="Months" />}
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: isMobile ? 250 : 250,
-                        },
-                      },
-                    }}
-                  >
-                    {[...Array(12).keys()].map((month) => (
-                      <MenuItem key={month} value={month}>
-                        {month}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {formik.touched.months && formik.errors.months && (
-                    <Box
-                      sx={{
-                        color: "#d32f2f",
-                        fontSize: 12,
-                        mt: 0.5,
-                        marginLeft: 0,
-                      }}
-                    >
-                      {formik.errors.months}
-                    </Box>
-                  )}
-                </FormControl>
-              </Box>
-            </Box>
-
-            {/* Role Selection */}
-            <Paper
-              variant="outlined"
-              sx={{ p: 2, mt: 2, borderRadius: 2, borderColor: "grey.300" }}
-            >
-              <FormLabel component="legend" sx={{ mb: 1, fontWeight: 600 }}>
-                Select Role
-              </FormLabel>
-              <RadioGroup
-                name="role"
-                value={formik.values.role}
-                onChange={formik.handleChange}
-              >
-                <FormControlLabel
-                  value="manager"
-                  control={<Radio />}
-                  label="Manager"
-                />
-                <FormControlLabel
-                  value="developer"
-                  control={<Radio />}
-                  label="Developer"
-                />
-              </RadioGroup>
-              {formik.touched.role && formik.errors.role && (
-                <Box sx={{ color: "red", fontSize: 12, mt: 1 }}>
-                  {formik.errors.role}
-                </Box>
-              )}
-            </Paper>
           </Box>
 
           <Box mt={4} display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={onClose}>Cancel</Button>
+            <Button onClick={onClose} variant="outlined">
+              Cancel
+            </Button>
             {/* <Button variant="contained" type="submit">
               Save
             </Button> */}
@@ -379,7 +305,6 @@ export const AddUserModal = ({ open, onClose }) => {
               variant="contained"
               disabled={formik.isSubmitting}
               aria-label="Save"
-              sx={{ mt: 2, mb: 3 }}
             >
               {formik.isSubmitting ? (
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

@@ -28,7 +28,7 @@ const ScoreFilter = ({ label, value, type, onChange }) => {
 
     // Allow only numbers with up to 2 decimals
     if (/^\d*\.?\d{0,2}$/.test(val)) {
-      if (val === "" || (parseFloat(val) >= 1 && parseFloat(val) <= 5)) {
+      if (val === "" || parseFloat(val) >= 0) {
         setLocalValue(val);
 
         onChange({
@@ -52,7 +52,12 @@ const ScoreFilter = ({ label, value, type, onChange }) => {
   return (
     <TextField
       fullWidth
-      sx={{ mb: 2 }}
+      sx={{
+        mb: 2,
+        "& .MuiOutlinedInput-root": {
+          backgroundColor: "transparent",
+        },
+      }}
       type="text"
       label={label}
       value={localValue}
