@@ -5,17 +5,17 @@ import ForgotPassword from "../pages/ForgotPassword/forgot-password";
 import Profile from "../pages/Profile/profile";
 import ResetPassword from "../pages/ResetPassword/reset-password";
 import Dashboard from "../pages/Dashboard/dashboard";
-import TestDetailView from "../pages/TestDetailView/test-detail-view";
-import UserTestDashboard from "../pages/UserTestTable/user-test-list";
 import NotFound from "../pages/NotFound/not-found";
 import ProtectedRoute from "./protected-route";
 import OtpVerification from "../pages/OtpVerification/otp-verification";
+import CommunicationListDashboard from "../pages/CommunicationList/communication-list-dashboard";
 
 const AppRoutes = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/2" element={<CommunicationListDashboard />} />
+      <Route path="/1" element={<Dashboard />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/otp-verification" element={<OtpVerification />} />
@@ -35,22 +35,6 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/test-detail-view/:id"
-        element={
-          <ProtectedRoute>
-            <TestDetailView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/user-test-dashboard/:id"
-        element={
-          <ProtectedRoute>
-            <UserTestDashboard />
           </ProtectedRoute>
         }
       />

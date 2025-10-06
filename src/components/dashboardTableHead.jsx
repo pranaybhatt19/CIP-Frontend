@@ -9,54 +9,29 @@ import Box from "@mui/material/Box";
 const headCells = [
   { id: "name", numeric: false, disablePadding: false, label: "Name" },
   {
-    id: "skills",
+    id: "designation",
     numeric: false,
     disablePadding: false,
-    label: "Skills",
+    label: "Designation",
   },
   {
-    id: "total_attempts",
+    id: "experience",
+    numeric: false,
+    disablePadding: false,
+    label: "Experience",
+  },
+  {
+    id: "reporting_person",
+    numeric: false,
+    disablePadding: false,
+    label: "Reporting Person",
+  },
+  {
+    id: "attempts",
     numeric: false,
     disablePadding: false,
     label: "Attempts",
   },
-  {
-    id: "technical_score",
-    numeric: false,
-    disablePadding: false,
-    label: "Technical",
-  },
-  {
-    id: "problem_solving_score",
-    numeric: false,
-    disablePadding: false,
-    label: "Problem Solving",
-  },
-  {
-    id: "project_domain_score",
-    numeric: false,
-    disablePadding: false,
-    label: "Project Domain",
-  },
-  {
-    id: "communication_score",
-    numeric: false,
-    disablePadding: false,
-    label: "Communication",
-  },
-  {
-    id: "soft_skill_score",
-    numeric: false,
-    disablePadding: false,
-    label: "Soft Skills",
-  },
-  {
-    id: "overall_score",
-    numeric: false,
-    disablePadding: false,
-    label: "Overall Score",
-  },
-  { id: "status", numeric: false, disablePadding: false, label: "Status" },
   { id: "actions", numeric: false, disablePadding: false, label: "Actions" },
 ];
 
@@ -74,7 +49,7 @@ export function DashboardTableHead(props) {
           <TableCell
             key={headCell.id}
             align={
-              headCell.id === "actions" || headCell.id === "status"
+              headCell.id === "actions"
                 ? "center"
                 : headCell.numeric
                 ? "right"
@@ -87,10 +62,9 @@ export function DashboardTableHead(props) {
               fontWeight: "bold",
               fontSize: "16px",
               ...(headCell.id === "name" && { width: 260 }),
-              ...(headCell.id === "skills" && { width: 180 }),
             }}
           >
-            {headCell.id === "actions" || headCell.id === "skills" ? (
+            {headCell.id === "actions" ? (
               headCell.label
             ) : (
               <TableSortLabel
@@ -100,9 +74,7 @@ export function DashboardTableHead(props) {
                 sx={{
                   display: "flex",
                   justifyContent:
-                    headCell.id === "status" || headCell.id === "actions"
-                      ? "center"
-                      : "flex-start",
+                    headCell.id === "actions" ? "center" : "flex-start",
                   "& .MuiTableSortLabel-icon": {
                     opacity: 0.3,
                   },
