@@ -58,3 +58,15 @@ export const getTestDetailById = async (id) => {
 export const deleteTestById = async (id) => {
   return api.patch(`/api/auth/users/delete-test/${id}`);
 };
+
+export const getPracticeDetailsByUserId = async (details) => {
+  return api.post("/api/auth/users/user-practices", details);
+}
+
+export const addPractice = async (details) => {
+  return api.post("/api/auth/users/add-practice", details)
+}
+
+export const deletePractice = async (id) => {
+  return api.patch(`/api/auth/users/delete-practice/${id}`);
+}

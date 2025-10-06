@@ -28,9 +28,9 @@ import logo from "../../assets/logo.png";
 
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState(null);
   const navigate = useNavigate();
-  const muiTheme = useTheme(); // Get theme
+  const muiTheme = useTheme(); 
 
   const formik = useFormik({
     initialValues: {
