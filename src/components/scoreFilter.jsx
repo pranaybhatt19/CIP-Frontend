@@ -77,15 +77,6 @@ const ScoreFilter = ({ label, value, type, onChange }) => {
             </Select>
           </InputAdornment>
         ),
-        endAdornment: (
-          <InputAdornment position="end">
-            <Tooltip title="Allowed values: 1 to 5 (up to 2 decimals)">
-              <IconButton size="small" edge="end" color="info">
-                <InfoOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </InputAdornment>
-        ),
       }}
     />
   );

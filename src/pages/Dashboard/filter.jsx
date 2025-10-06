@@ -8,47 +8,31 @@ import {
   MenuItem,
   OutlinedInput,
   Chip,
-  ListItemText,
   Button,
   IconButton,
-  Tooltip,
-  Divider,
-  InputAdornment,
+  Typography,
   useMediaQuery,
   useTheme,
-  Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import ScoreFilter from "../../components/scoreFilter";
-import { useEffect } from "react";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { ColorBasedText } from "./Enum/enum";
 import AttemptFilter from "../../components/attemptFilter";
+import ScoreFilter from "../../components/scoreFilter";
 
 export default function FilterDrawer({
   open,
   onClose,
   searchName,
   setSearchName,
-  selectedSkills,
-  setSelectedSkills,
+  selectedDesignation,
+  setSelectedDesignation,
+  selectedExperience,
+  setSelectedExperience,
+  selectedReportingPerson,
+  setSelectedReportingPerson,
   selectedAttempts,
   setSelectedAttempts,
-  selectedTechnical,
-  setSelectedTechnical,
-  selectedSoftSkills,
-  setSelectedSoftSkills,
-  selectedProblemSolving,
-  setSelectedProblemSolving,
-  selectedCommunication,
-  setSelectedCommunication,
-  selectedProjectDomain,
-  setSelectedProjectDomain,
-  selectedOverall,
-  setSelectedOverall,
-  selectedStatus,
-  setSelectedStatus,
-  techStackList,
+  designationList,
+  reportingPersonList,
   onClear,
   onApply,
 }) {
@@ -58,6 +42,7 @@ export default function FilterDrawer({
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
       <Box sx={{ width: 350, p: 2 }}>
+        {/* Header */}
         <Box
           sx={{
             display: "flex",
@@ -74,7 +59,7 @@ export default function FilterDrawer({
           </IconButton>
         </Box>
 
-        {/* Username */}
+        {/* Name filter */}
         <TextField
           label="Name"
           value={searchName}
@@ -83,117 +68,85 @@ export default function FilterDrawer({
           sx={{ mb: 2 }}
         />
 
+        {/* Designation filter */}
         <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="skills-label">Skills</InputLabel>
+          <InputLabel id="designation-label">Designation</InputLabel>
           <Select
-            labelId="skills-label"
+            labelId="designation-label"
             multiple
-            value={selectedSkills}
-            onChange={(e) => setSelectedSkills(e.target.value)}
-            input={<OutlinedInput label="Skills" />}
+            value={selectedDesignation}
+            onChange={(e) => setSelectedDesignation(e.target.value)}
+            input={<OutlinedInput label="Designation" />}
             renderValue={(selected) => (
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.4 }}>
                 {selected.map((id) => {
-                  const skill = techStackList.find((item) => item.id === id);
-                  return <Chip key={id} label={skill?.name} />;
+                  const d = designationList.find((item) => item.id === id);
+                  return <Chip key={id} label={d?.name ?? id} />;
                 })}
               </Box>
             )}
             MenuProps={{
               PaperProps: {
-                style: {
-                  maxHeight: isMobile ? 250 : 300,
-                },
+                style: { maxHeight: isMobile ? 250 : 300 },
               },
             }}
           >
-            {techStackList.map((item) => (
+            {designationList.map((item) => (
               <MenuItem key={item.id} value={item.id}>
-                <ListItemText primary={item.name} />
+                {item.name}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
+        {/* Experience filter */}
+        <ScoreFilter
+          label="Experience (Years)"
+          value={selectedExperience.value}
+          type={selectedExperience.type}
+          onChange={(newFilter) => setSelectedExperience(newFilter)}
+        />
+
+        {/* Reporting Person filter */}
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel id="reporting-label">Reporting Person</InputLabel>
+          <Select
+            labelId="reporting-label"
+            multiple
+            value={selectedReportingPerson}
+            onChange={(e) => setSelectedReportingPerson(e.target.value)}
+            input={<OutlinedInput label="Reporting Person" />}
+            renderValue={(selected) => (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.4 }}>
+                {selected.map((id) => {
+                  const person = reportingPersonList.find(
+                    (item) => item.id === id
+                  );
+                  return <Chip key={id} label={person?.name ?? id} />;
+                })}
+              </Box>
+            )}
+            MenuProps={{
+              PaperProps: {
+                style: { maxHeight: isMobile ? 250 : 300 },
+              },
+            }}
+          >
+            {reportingPersonList.map((item) => (
+              <MenuItem key={item.id} value={item.id}>
+                {item.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Attempts filter */}
         <AttemptFilter
           label="Total Attempts"
           value={selectedAttempts.value}
           type={selectedAttempts.type}
           onChange={(newFilter) => setSelectedAttempts(newFilter)}
         />
-
-        <ScoreFilter
-          label="Technical Score"
-          value={selectedTechnical.value}
-          type={selectedTechnical.type}
-          onChange={(newFilter) => setSelectedTechnical(newFilter)}
-        />
-
-        <ScoreFilter
-          label="Problem Solving Score"
-          value={selectedProblemSolving.value}
-          type={selectedProblemSolving.type}
-          onChange={(newFilter) => setSelectedProblemSolving(newFilter)}
-        />
-
-        <ScoreFilter
-          label="Project Domain Score"
-          value={selectedProjectDomain.value}
-          type={selectedProjectDomain.type}
-          onChange={(newFilter) => setSelectedProjectDomain(newFilter)}
-        />
-
-        <ScoreFilter
-          label="Communication Score"
-          value={selectedCommunication.value}
-          type={selectedCommunication.type}
-          onChange={(newFilter) => setSelectedCommunication(newFilter)}
-        />
-
-        <ScoreFilter
-          label="Soft Skills Score"
-          value={selectedSoftSkills.value}
-          type={selectedSoftSkills.type}
-          onChange={(newFilter) => setSelectedSoftSkills(newFilter)}
-        />
-
-        <ScoreFilter
-          label="Overall Score"
-          value={selectedOverall.value}
-          type={selectedOverall.type}
-          onChange={(newFilter) => setSelectedOverall(newFilter)}
-        />
-
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="status-label">Status</InputLabel>
-          <Select
-            labelId="status-label"
-            multiple
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            input={<OutlinedInput label="Status" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.4 }}>
-                {selected.map((key) => (
-                  <Chip key={key} label={ColorBasedText[key]} />
-                ))}
-              </Box>
-            )}
-            MenuProps={{
-              PaperProps: {
-                style: {
-                  maxHeight: isMobile ? 250 : 300,
-                },
-              },
-            }}
-          >
-            {Object.entries(ColorBasedText).map(([key, label]) => (
-              <MenuItem key={key} value={key}>
-                <ListItemText primary={label} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
 
         {/* Buttons */}
         <Box
@@ -209,7 +162,7 @@ export default function FilterDrawer({
           <Button
             variant="contained"
             onClick={() => {
-              onApply();
+              onApply?.();
               onClose();
             }}
           >

@@ -29,7 +29,7 @@ import {
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
-import AddTestModal from "../../components/addTest";
+import AddTestModal from "../../components/addCommunicationPractice";
 import { UserTestTableHead } from "../../components/userTestsTableHead";
 import Header from "../../components/header";
 import { Roles } from "../../util/enum";
