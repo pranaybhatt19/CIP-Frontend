@@ -13,10 +13,10 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import {
-  Forum as ForumIcon,
   Person as PersonIcon,
   Logout as LogoutIcon,
 } from "@mui/icons-material";
+import HeadsetMicIcon from '@mui/icons-material/HeadsetMic';
 import { decodeToken } from "../util/commonFunction";
 import { useState, useEffect } from "react";
 import { useTheme } from "@mui/material/styles";
@@ -42,7 +42,6 @@ export const Header = () => {
   const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
   const handleCloseUserMenu = () => setAnchorElUser(null);
 
-  // ✅ Generate initials from first + last name
   const getInitials = (name) => {
     if (!name) return "U";
     const parts = name.trim().split(" ");
@@ -66,7 +65,7 @@ export const Header = () => {
             }}
             onClick={() => navigate("/dashboard")}
           >
-            <ForumIcon sx={{ fontSize: 40, color: theme.palette.common.white }} />
+            <HeadsetMicIcon sx={{ fontSize: 40, color: theme.palette.common.white }} />
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.common.white }}>
                 CommunicationAce

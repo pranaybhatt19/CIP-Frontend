@@ -36,9 +36,6 @@ export const getReportingPersons = async () => {
   return api.get("api/auth/users/get-reporting-persons");
 };
 
-export const addTest = async (details) => {
-  return api.post("api/auth/users/add-test", details);
-};
 
 export const resetPassword = async (details) => {
   return api.post("api/reset-password", details);
