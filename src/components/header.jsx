@@ -24,7 +24,7 @@ import { useTheme } from "@mui/material/styles";
 export const Header = () => {
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [username, setUsername] = useState("");
-  const [userRole, setUserRole] = useState("");
+  const [userDesignation, setUserDesignation] = useState("");
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -36,7 +36,7 @@ export const Header = () => {
       const lastName = fullName.length > 1 ? fullName[fullName.length - 1] : "";
       setUsername(`${firstName} ${lastName}`.trim());
     }
-    if (decodedToken?.role) setUserRole(decodedToken.role);
+    if (decodedToken?.designation) setUserDesignation(decodedToken.designation.name);
   }, []);
 
   const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
@@ -82,7 +82,7 @@ export const Header = () => {
               <Typography sx={{ color: theme.palette.common.white, fontWeight: 500 }}>
                 {username || "User"}
               </Typography>
-              {userRole && (
+              {userDesignation && (
                 <Typography
                   sx={{
                     color: theme.palette.grey[200],
@@ -90,7 +90,7 @@ export const Header = () => {
                     textTransform: "capitalize",
                   }}
                 >
-                  {userRole}
+                  {userDesignation}
                 </Typography>
               )}
             </Box>
@@ -110,12 +110,12 @@ export const Header = () => {
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                   {username || "User"}
                 </Typography>
-                {userRole && (
+                {userDesignation && (
                   <Typography
                     variant="body2"
                     sx={{ color: theme.palette.text.secondary, textTransform: "capitalize" }}
                   >
-                    {userRole}
+                    {userDesignation}
                   </Typography>
                 )}
               </Box>
