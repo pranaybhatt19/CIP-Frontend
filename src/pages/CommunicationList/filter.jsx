@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  Drawer,
-  IconButton,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Drawer, IconButton, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -60,11 +54,11 @@ export default function PracticeFilterDrawer({
             mb: 3,
           }}
         >
-          <Typography variant="h5" sx={{ color: "#1976d2", fontWeight: "bold" }}>
+          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
             Filters
           </Typography>
           <IconButton onClick={onClose}>
-            <CloseIcon sx={{ color: "#1976d2" }} />
+            <CloseIcon />
           </IconButton>
         </Box>
 
@@ -74,7 +68,9 @@ export default function PracticeFilterDrawer({
             label="Exact Date"
             format="DD/MM/YYYY"
             value={localExactDate ? dayjs(localExactDate) : null}
-            onChange={(newValue) => setLocalExactDate(newValue?.toISOString() || null)}
+            onChange={(newValue) =>
+              setLocalExactDate(newValue?.toISOString() || null)
+            }
             slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
             maxDate={dayjs()}
           />
@@ -82,7 +78,9 @@ export default function PracticeFilterDrawer({
             label="From Date"
             format="DD/MM/YYYY"
             value={localFromDate ? dayjs(localFromDate) : null}
-            onChange={(newValue) => setLocalFromDate(newValue?.toISOString() || null)}
+            onChange={(newValue) =>
+              setLocalFromDate(newValue?.toISOString() || null)
+            }
             slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
             maxDate={localToDate ? dayjs(localToDate) : dayjs()}
           />
@@ -90,7 +88,9 @@ export default function PracticeFilterDrawer({
             label="To Date"
             format="DD/MM/YYYY"
             value={localToDate ? dayjs(localToDate) : null}
-            onChange={(newValue) => setLocalToDate(newValue?.toISOString() || null)}
+            onChange={(newValue) =>
+              setLocalToDate(newValue?.toISOString() || null)
+            }
             slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
             minDate={localFromDate ? dayjs(localFromDate) : undefined}
             maxDate={dayjs()}
@@ -98,7 +98,9 @@ export default function PracticeFilterDrawer({
         </LocalizationProvider>
 
         {/* Action Buttons */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: 2 }}
+        >
           <Button
             variant="outlined"
             color="primary"

@@ -175,8 +175,6 @@ export const Dashboard = () => {
 
   return (
     <div style={{ width: "100%", overflow: "hidden" }}>
-      <Header />
-
       {/* Top Bar */}
       <Box
         sx={{
