@@ -311,7 +311,7 @@ export const AddUserModal = ({ open, onClose }) => {
             <FormControl fullWidth margin="normal">
               <InputLabel
                 id="reporting-person-label"
-                shrink={Boolean(formik.values.reportingPerson)} // 👈 key line
+                shrink={Boolean(formik.values.reportingPerson)}
               >
                 Reporting Person
               </InputLabel>

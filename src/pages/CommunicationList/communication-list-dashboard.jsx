@@ -294,7 +294,7 @@ export const CommunicationListDashboard = () => {
       </Box>
 
       {/* Data Table */}
-      <Paper sx={{ width: "100%", p: 1 }}>
+      <Paper sx={{ width: "100%", p: 1, pb: 0 }}>
         <TableContainer>
           <Table sx={{ minWidth: 750 }}>
             <thead>
@@ -372,6 +372,18 @@ export const CommunicationListDashboard = () => {
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            ".MuiTablePagination-selectLabel": {
+              marginTop: "auto",
+            },
+            ".MuiSelect-select": {
+              paddingTop: "4px",
+              paddingBottom: "4px",
+            },
+            ".MuiTablePagination-displayedRows": {
+              marginTop: "auto",
+            },
+          }}
         />
       </Paper>
       <AddPracticeModal
@@ -386,7 +398,7 @@ export const CommunicationListDashboard = () => {
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteOpen} onClose={handleDeleteClose}>
         <DialogTitle sx={{ fontWeight: "bold" }}>
-          <h3 style={{ color: "#1976d2", marginBottom: 0 }}>
+          <h3 style={{ color: "#2a9d8f", marginBottom: 0 }}>
             Delete Confirmation
           </h3>
         </DialogTitle>
@@ -406,7 +418,7 @@ export const CommunicationListDashboard = () => {
             sx={{ textAlign: "center" }}
           >
             <InfoOutlinedIcon
-              sx={{ fontSize: 80, fontWeight: 300, color: "#1976d2" }}
+              sx={{ fontSize: 80, fontWeight: 300, color: "#2a9d8f" }}
             />
             <DialogContentText sx={{ fontSize: "1.1rem", fontWeight: 500 }}>
               Are you sure you want to delete this practice record? <br />

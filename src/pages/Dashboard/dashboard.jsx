@@ -12,15 +12,14 @@ import {
   TablePagination,
   TableRow,
   Typography,
+  Switch,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useTheme } from "@mui/material/styles"; // ✅ import theme hook
-
-import Header from "../../components/header";
+import { useTheme } from "@mui/material/styles";
 import AddUserModal from "../../components/addUser";
 import FilterDrawer from "./filter";
 import { decodeToken } from "../../util/commonFunction";
@@ -33,6 +32,7 @@ import { DashboardTableHead } from "../../components/dashboardTableHead";
 
 export const Dashboard = () => {
   const theme = useTheme();
+  // const [isTreeView, setIsTreeView] = useState(true);
   const [userDesignation, setUserDesignation] = useState("");
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("name");
@@ -96,6 +96,7 @@ export const Dashboard = () => {
   const fetchData = async () => {
     try {
       const payload = {
+        isTreeView: false,
         limit: rowsPerPage,
         offset: page * rowsPerPage,
         order: [[orderBy, order.toUpperCase()]],
@@ -201,6 +202,29 @@ export const Dashboard = () => {
         </Typography>
 
         {/* Buttons */}
+        {/* 
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: 200,
+            p: 2,
+            border: "1px solid #ccc",
+            borderRadius: 2,
+            backgroundColor: "#f9f9f9",
+          }}
+        >
+          <Typography variant="body1">Tree View</Typography>
+          <Switch
+            checked={isTreeView}
+            onChange={(event) => {
+              setIsTreeView(event.target.checked);
+            }}
+            color="secondary"
+          />
+          <Typography variant="body1">List View</Typography>
+        </Box> */}
 
         <Box sx={{ display: "flex", gap: 1 }}>
           {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
@@ -265,7 +289,7 @@ export const Dashboard = () => {
       />
 
       {/* Data Table */}
-      <Paper sx={{ width: "100%", mb: 2, pb: 0 }}>
+      <Paper sx={{ width: "100%", mb: 2, p: 1, pb: 0 }}>
         <TableContainer>
           <Table sx={{ minWidth: 750 }}>
             <DashboardTableHead
