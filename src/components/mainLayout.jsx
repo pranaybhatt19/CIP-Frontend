@@ -8,8 +8,8 @@ const MainLayout = () => {
   return (
     <Box>
       <Header />
-      <Box component="main" sx={{ p: 3 }}>
-        <Outlet /> 
+      <Box component="main">
+        <Outlet />
       </Box>
     </Box>
   );
