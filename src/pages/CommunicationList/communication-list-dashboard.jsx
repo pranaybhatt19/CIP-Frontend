@@ -37,6 +37,7 @@ import {
   getPracticeDetailsByUserId,
 } from "../../services/authentication";
 import AddPracticeModal from "../../components/addPractice";
+import CommunicationTableHead from "../../components/communicationListTableHead";
 
 // ---------------- Helper renderers ----------------
 const renderWithTooltip = (text, limit = 40) => {
@@ -109,8 +110,9 @@ export const CommunicationListDashboard = () => {
       const payload = {
         id: +id,
         ...filters,
+        ...(filters.order ? {} : { order: [["date", order.toUpperCase()]] }),
       };
-
+      
       const response = await getPracticeDetailsByUserId(payload);
       if (response?.payload?.practices) {
         const { practices, total } = response.payload;
@@ -141,9 +143,18 @@ export const CommunicationListDashboard = () => {
 
   // Sorting, pagination handlers
   const handleRequestSort = (event, property) => {
+    if (property !== "date_of_practice") return; // only allow sorting by date
+
     const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
+    const newOrder = isAsc ? "desc" : "asc";
+    setOrder(newOrder);
     setOrderBy(property);
+
+    // Call API with sorting info
+    const sortPayload = {
+      order: [["date", newOrder.toUpperCase()]],
+    };
+    fetchData(sortPayload);
   };
 
   const handleChangePage = (event, newPage) => setPage(newPage);
@@ -297,34 +308,12 @@ export const CommunicationListDashboard = () => {
       <Paper sx={{ width: "100%", p: 1, pb: 0 }}>
         <TableContainer>
           <Table sx={{ minWidth: 750 }}>
-            <thead>
-              <TableRow>
-                <TableCell
-                  onClick={(e) => handleRequestSort(e, "date_of_practice")}
-                  sx={{ cursor: "pointer" }}
-                >
-                  <b>Date</b>
-                </TableCell>
-                <TableCell
-                  onClick={(e) => handleRequestSort(e, "date_of_practice")}
-                  sx={{ cursor: "pointer" }}
-                >
-                  <b>Time</b>
-                </TableCell>
-                <TableCell>
-                  <b>Link</b>
-                </TableCell>
-                <TableCell
-                  onClick={(e) => handleRequestSort(e, "feedback")}
-                  sx={{ cursor: "pointer" }}
-                >
-                  <b>Feedback</b>
-                </TableCell>
-                <TableCell align="center">
-                  <b>Actions</b>
-                </TableCell>
-              </TableRow>
-            </thead>
+            <CommunicationTableHead
+              order={order}
+              orderBy={orderBy}
+              onRequestSort={handleRequestSort}
+              setPage={setPage}
+            />
             <TableBody>
               {sortedRows.length > 0 ? (
                 sortedRows.map((row) => (
