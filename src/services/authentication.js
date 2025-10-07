@@ -15,6 +15,7 @@ export const forgotPassword = async (details) => {
 export const resendOTP = async (details) => {
   return api.post("api/resend-otp", details);
 };
+
 export const verifyOtpToken = async (details) => {
   return api.post("api/verify-otp-token", details);
 };
@@ -27,8 +28,12 @@ export const updateUser = async (details) => {
   return api.post("api/auth/users/update-user-details", details);
 };
 
-export const getSkills = async () => {
-  return api.get("api/auth/users/skills");
+export const getDesignations = async () => {
+  return api.get("api/auth/users/get-designations");
+};
+
+export const getReportingPersons = async () => {
+  return api.get("api/auth/users/get-reporting-persons");
 };
 
 export const addTest = async (details) => {
@@ -39,22 +44,10 @@ export const resetPassword = async (details) => {
   return api.post("api/reset-password", details);
 };
 
-export const getUserTests = async (details) => {
-  return api.post("/api/auth/users/user-tests", details);
-};
-
 export const getUserInfo = async (id) => {
   return api.get(`/api/auth/users/user-info/${id}`);
 };
 
 export const searchDashboard = async (details) => {
-  return api.post("/api/auth/users/search", details);
-};
-
-export const getTestDetailById = async (id) => {
-  return api.get(`api/auth/users/test-detail/${id}`);
-};
-
-export const deleteTestById = async (id) => {
-  return api.patch(`/api/auth/users/delete-test/${id}`);
+  return api.post("/api/auth/users/searchUsers", details);
 };

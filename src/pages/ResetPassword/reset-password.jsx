@@ -1,3 +1,4 @@
+// src/pages/auth/ResetPassword.js
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -17,9 +18,9 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff, Lock } from "@mui/icons-material";
 import { useFormik } from "formik";
-import { theme } from "../../styles/login-theme";
+import theme from "../../components/theme";
 import { ResetPasswordValidationSchema } from "../../util/validationSchema";
-import loginBg from "../../assets/images/bg-image.png";
+import loginBg from "../../assets/bg-image.png";
 import { resetPassword, verifyOtpToken } from "../../services/authentication";
 import { toast } from "react-toastify";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
@@ -39,14 +40,10 @@ const ResetPassword = () => {
     if (!storedToken) navigate("/forgot-password");
     verifyOtpToken({ otp: storedToken })
       .then((res) => {
-        if (!res.valid) {
-          navigate("/forgot-password");
-        }
+        if (!res.valid) navigate("/forgot-password");
       })
-      .catch((e) => {
-        navigate("/forgot-password");
-      });
-  }, []);
+      .catch(() => navigate("/forgot-password"));
+  }, [navigate]);
 
   const formik = useFormik({
     initialValues: {
@@ -80,7 +77,6 @@ const ResetPassword = () => {
       <Box
         sx={{
           minHeight: "100vh",
-          background: "#ffffff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -92,42 +88,18 @@ const ResetPassword = () => {
       >
         <Container maxWidth="sm" sx={{ py: 4 }}>
           <Grid container justifyContent="center" alignItems="center">
-            <Grid component="div" item xs={12}>
-              <Card
-                sx={{
-                  maxWidth: 480,
-                  mx: "auto",
-                  animation: "fadeIn 0.5s ease-in",
-                }}
-              >
+            <Grid item xs={12}>
+              <Card>
                 <CardContent sx={{ p: { xs: 4, sm: 6 } }}>
                   <Box sx={{ textAlign: "center", mb: 2 }}>
-                    <Typography
-                      variant="h3"
-                      component="h3"
-                      sx={{
-                        fontWeight: 700,
-                        fontSize: "32px",
-                        color: "#1a4571",
-                        mb: 2,
-                      }}
-                    >
-                      Reset Password
-                    </Typography>
-
-                    <Typography
-                      variant="body1"
-                      sx={{ color: "text.secondary", mb: 2 }}
-                    >
+                    <Typography variant="h3">Reset Password</Typography>
+                    <Typography variant="body1">
                       Enter your new password below
                     </Typography>
                   </Box>
 
-                  <Box
-                    component="form"
-                    onSubmit={formik.handleSubmit}
-                    sx={{ mt: 3 }}
-                  >
+                  <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 3 }}>
+                    {/* New Password */}
                     <TextField
                       fullWidth
                       label="New Password"
@@ -136,19 +108,13 @@ const ResetPassword = () => {
                       value={formik.values.new_password}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      error={
-                        formik.touched.new_password &&
-                        !!formik.errors.new_password
-                      }
-                      helperText={
-                        formik.touched.new_password &&
-                        formik.errors.new_password
-                      }
+                      error={formik.touched.new_password && !!formik.errors.new_password}
+                      helperText={formik.touched.new_password && formik.errors.new_password}
                       margin="normal"
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Lock sx={{ color: "text.secondary" }} />
+                            <Lock />
                           </InputAdornment>
                         ),
                         endAdornment: (
@@ -156,13 +122,8 @@ const ResetPassword = () => {
                             <IconButton
                               onClick={() => setShowPassword(!showPassword)}
                               edge="end"
-                              sx={{ color: "text.secondary" }}
                             >
-                              {showPassword ? (
-                                <VisibilityOff />
-                              ) : (
-                                <Visibility />
-                              )}
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
                             </IconButton>
                           </InputAdornment>
                         ),
@@ -179,68 +140,39 @@ const ResetPassword = () => {
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       error={
-                        formik.touched.confirm_password &&
-                        !!formik.errors.confirm_password
+                        formik.touched.confirm_password && !!formik.errors.confirm_password
                       }
                       helperText={
-                        formik.touched.confirm_password &&
-                        formik.errors.confirm_password
+                        formik.touched.confirm_password && formik.errors.confirm_password
                       }
                       margin="normal"
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Lock sx={{ color: "text.secondary" }} />
+                            <Lock />
                           </InputAdornment>
                         ),
                         endAdornment: (
                           <InputAdornment position="end">
                             <IconButton
-                              onClick={() =>
-                                setShowConfirmPassword(!showConfirmPassword)
-                              }
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                               edge="end"
-                              sx={{ color: "text.secondary" }}
                             >
-                              {showConfirmPassword ? (
-                                <VisibilityOff />
-                              ) : (
-                                <Visibility />
-                              )}
+                              {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                             </IconButton>
                           </InputAdornment>
                         ),
                       }}
                     />
 
-                    {apiError && (
-                      <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
-                        {apiError}
-                      </Alert>
-                    )}
+                    {apiError && <Alert severity="error" sx={{ mt: 2, mb: 2 }}>{apiError}</Alert>}
 
-                    <Button
-                      fullWidth
-                      type="submit"
-                      variant="contained"
-                      sx={{ mt: 3, mb: 1 }}
-                    >
+                    <Button fullWidth type="submit" variant="contained" sx={{ mt: 3, mb: 1 }}>
                       Reset Password
                     </Button>
+
                     <Box sx={{ textAlign: "center", mt: 2 }}>
-                      <Link
-                        component={RouterLink}
-                        to="/"
-                        sx={{
-                          color: "primary.main",
-                          textDecoration: "none",
-                          fontWeight: 500,
-                          "&:hover": {
-                            textDecoration: "underline",
-                            color: "primary.dark",
-                          },
-                        }}
-                      >
+                      <Link component={RouterLink} to="/">
                         Back to login
                       </Link>
                     </Box>

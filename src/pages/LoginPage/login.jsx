@@ -15,6 +15,7 @@ import {
   Link,
   CircularProgress,
   Alert,
+  useTheme,
 } from "@mui/material";
 import { Visibility, VisibilityOff, Email, Lock } from "@mui/icons-material";
 import { useFormik } from "formik";
@@ -22,12 +23,15 @@ import { loginUser } from "../../services/authentication";
 import { theme } from "../../styles/login-theme";
 import { LoginvalidationSchema } from "../../util/validationSchema";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import loginBg from "../../assets/images/bg-image.png";
-import logo from "../../assets/images/logo.png";
+import loginBg from "../../assets/bg-image.png";
+import logo from "../../assets/logo.png";
+
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState(null);
   const navigate = useNavigate();
+  const muiTheme = useTheme(); // Get theme
+
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -57,13 +61,13 @@ export const LoginPage = () => {
   useEffect(() => {
     localStorage.clear();
   }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box
         sx={{
           minHeight: "100vh",
-          background: "#ffffff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -75,12 +79,13 @@ export const LoginPage = () => {
       >
         <Container maxWidth="sm" sx={{ py: 4 }}>
           <Grid container justifyContent="center" alignItems="center">
-            <Grid component="div" item xs={12}>
+            <Grid item xs={12}>
               <Card
                 sx={{
                   maxWidth: 480,
                   mx: "auto",
                   animation: "fadeIn 0.5s ease-in",
+                  backgroundColor: muiTheme.palette.background.paper,
                 }}
               >
                 <CardContent sx={{ p: { xs: 4, sm: 6 } }}>
@@ -124,11 +129,14 @@ export const LoginPage = () => {
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Email sx={{ color: "text.secondary" }} />
+                            <Email
+                              sx={{ color: muiTheme.palette.text.secondary }}
+                            />
                           </InputAdornment>
                         ),
                       }}
                     />
+
                     <TextField
                       fullWidth
                       label="Password"
@@ -148,7 +156,9 @@ export const LoginPage = () => {
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Lock sx={{ color: "text.secondary" }} />
+                            <Lock
+                              sx={{ color: muiTheme.palette.text.secondary }}
+                            />
                           </InputAdornment>
                         ),
                         endAdornment: (
@@ -156,7 +166,7 @@ export const LoginPage = () => {
                             <IconButton
                               onClick={() => setShowPassword(!showPassword)}
                               edge="end"
-                              sx={{ color: "text.secondary" }}
+                              sx={{ color: muiTheme.palette.text.secondary }}
                               aria-label={
                                 showPassword ? "Hide password" : "Show password"
                               }
@@ -183,25 +193,33 @@ export const LoginPage = () => {
                         component={RouterLink}
                         to="/forgot-password"
                         sx={{
-                          color: "primary.main",
+                          color: muiTheme.palette.primary.main,
                           textDecoration: "none",
                           fontWeight: 500,
                           "&:hover": {
                             textDecoration: "underline",
-                            color: "primary.dark",
+                            color: muiTheme.palette.primary.dark,
                           },
                         }}
                       >
                         Forgot your password?
                       </Link>
                     </Box>
+
                     <Button
                       fullWidth
                       type="submit"
                       variant="contained"
                       disabled={formik.isSubmitting}
                       aria-label="Sign In"
-                      sx={{ mt: 2, mb: 3 }}
+                      sx={{
+                        mt: 2,
+                        mb: 3,
+                        backgroundColor: muiTheme.palette.primary.main,
+                        "&:hover": {
+                          backgroundColor: muiTheme.palette.primary.dark,
+                        },
+                      }}
                     >
                       {formik.isSubmitting ? (
                         <Box
@@ -209,9 +227,9 @@ export const LoginPage = () => {
                         >
                           <CircularProgress
                             size={20}
-                            sx={{ color: "text.secondary" }}
+                            sx={{ color: muiTheme.palette.common.white }}
                           />
-                          <Typography>Signing In...</Typography>
+                          <Typography color="inherit">Signing In...</Typography>
                         </Box>
                       ) : (
                         "Sign In"

@@ -5,11 +5,10 @@ import ForgotPassword from "../pages/ForgotPassword/forgot-password";
 import Profile from "../pages/Profile/profile";
 import ResetPassword from "../pages/ResetPassword/reset-password";
 import Dashboard from "../pages/Dashboard/dashboard";
-import TestDetailView from "../pages/TestDetailView/test-detail-view";
-import UserTestDashboard from "../pages/UserTestTable/user-test-list";
 import NotFound from "../pages/NotFound/not-found";
 import ProtectedRoute from "./protected-route";
 import OtpVerification from "../pages/OtpVerification/otp-verification";
+import CommunicationListDashboard from "../pages/CommunicationList/communication-list-dashboard";
 
 const AppRoutes = () => {
   return (
@@ -35,22 +34,6 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/test-detail-view/:id"
-        element={
-          <ProtectedRoute>
-            <TestDetailView />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/user-test-dashboard/:id"
-        element={
-          <ProtectedRoute>
-            <UserTestDashboard />
           </ProtectedRoute>
         }
       />

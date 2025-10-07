@@ -15,18 +15,22 @@ import {
   Link,
   CircularProgress,
   Alert,
+  useTheme,
 } from "@mui/material";
 import { Email } from "@mui/icons-material";
 import { useFormik } from "formik";
-import { forgotPassword, loginUser } from "../../services/authentication";
+import { forgotPassword } from "../../services/authentication";
 import { theme } from "../../styles/login-theme";
 import { ForgotPasswordvalidationSchema } from "../../util/validationSchema";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import loginBg from "../../assets/images/bg-image.png";
+import loginBg from "../../assets/bg-image.png";
 import { toast } from "react-toastify";
+
 const ForgotPassword = () => {
   const [apiError, setApiError] = useState(null);
   const navigate = useNavigate();
+  const muiTheme = useTheme();
+
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -55,7 +59,6 @@ const ForgotPassword = () => {
       <Box
         sx={{
           minHeight: "100vh",
-          background: "#ffffff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -67,12 +70,13 @@ const ForgotPassword = () => {
       >
         <Container maxWidth="sm" sx={{ py: 4 }}>
           <Grid container justifyContent="center" alignItems="center">
-            <Grid component="div" item xs={12}>
+            <Grid item xs={12}>
               <Card
                 sx={{
                   maxWidth: 480,
                   mx: "auto",
                   animation: "fadeIn 0.5s ease-in",
+                  backgroundColor: muiTheme.palette.background.paper,
                 }}
               >
                 <CardContent sx={{ p: { xs: 4, sm: 6 } }}>
@@ -83,7 +87,7 @@ const ForgotPassword = () => {
                       sx={{
                         fontWeight: 700,
                         fontSize: "32px",
-                        color: "#1a4571",
+                        color: muiTheme.palette.primary.main,
                         mb: 2,
                       }}
                     >
@@ -91,7 +95,7 @@ const ForgotPassword = () => {
                     </Typography>
                     <Typography
                       variant="body1"
-                      sx={{ color: "text.secondary", mb: 2 }}
+                      sx={{ color: muiTheme.palette.text.secondary, mb: 2 }}
                     >
                       Provide an email associated with your account for
                       verification.
@@ -118,7 +122,9 @@ const ForgotPassword = () => {
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Email sx={{ color: "text.secondary" }} />
+                            <Email
+                              sx={{ color: muiTheme.palette.text.secondary }}
+                            />
                           </InputAdornment>
                         ),
                       }}
@@ -136,7 +142,14 @@ const ForgotPassword = () => {
                       variant="contained"
                       disabled={formik.isSubmitting}
                       aria-label="Send email"
-                      sx={{ mt: 3, mb: 3 }}
+                      sx={{
+                        mt: 3,
+                        mb: 3,
+                        backgroundColor: muiTheme.palette.primary.main,
+                        "&:hover": {
+                          backgroundColor: muiTheme.palette.primary.dark,
+                        },
+                      }}
                     >
                       {formik.isSubmitting ? (
                         <Box
@@ -144,9 +157,11 @@ const ForgotPassword = () => {
                         >
                           <CircularProgress
                             size={20}
-                            sx={{ color: "text.secondary" }}
+                            sx={{ color: muiTheme.palette.common.white }}
                           />
-                          <Typography>Sending email...</Typography>
+                          <Typography color="inherit">
+                            Sending email...
+                          </Typography>
                         </Box>
                       ) : (
                         "Send Email"
@@ -158,12 +173,12 @@ const ForgotPassword = () => {
                         component={RouterLink}
                         to="/"
                         sx={{
-                          color: "primary.main",
+                          color: muiTheme.palette.primary.main,
                           textDecoration: "none",
                           fontWeight: 500,
                           "&:hover": {
                             textDecoration: "underline",
-                            color: "primary.dark",
+                            color: muiTheme.palette.primary.dark,
                           },
                         }}
                       >
