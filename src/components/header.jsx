@@ -30,20 +30,32 @@ export const Header = () => {
 
   useEffect(() => {
     const decodedToken = decodeToken();
-    if (decodedToken?.name) setUsername(decodedToken.name);
+    if (decodedToken?.name) {
+      const fullName = decodedToken.name.trim().split(" ");
+      const firstName = fullName[0];
+      const lastName = fullName.length > 1 ? fullName[fullName.length - 1] : "";
+      setUsername(`${firstName} ${lastName}`.trim());
+    }
     if (decodedToken?.role) setUserRole(decodedToken.role);
   }, []);
 
-  const handleOpenUserMenu = (event) =>
-    setAnchorElUser(event.currentTarget);
+  const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
   const handleCloseUserMenu = () => setAnchorElUser(null);
+
+  // ✅ Generate initials from first + last name
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const parts = name.trim().split(" ");
+    const first = parts[0]?.[0] || "";
+    const last = parts.length > 1 ? parts[parts.length - 1]?.[0] : "";
+    return (first + last).toUpperCase();
+  };
 
   return (
     <AppBar position="sticky" elevation={2} color="primary">
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ justifyContent: "space-between", minHeight: 64 }}>
-          
-          {/* Logo & Portal Name */}
+          {/* Logo & Title */}
           <Box
             sx={{
               display: "flex",
@@ -72,14 +84,20 @@ export const Header = () => {
                 {username || "User"}
               </Typography>
               {userRole && (
-                <Typography sx={{ color: theme.palette.grey[200], fontSize: "0.75rem", textTransform: "capitalize" }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.grey[200],
+                    fontSize: "0.75rem",
+                    textTransform: "capitalize",
+                  }}
+                >
                   {userRole}
                 </Typography>
               )}
             </Box>
 
             <IconButton onClick={handleOpenUserMenu}>
-              <Avatar>{username ? username.charAt(0).toUpperCase() : "U"}</Avatar>
+              <Avatar>{getInitials(username)}</Avatar>
             </IconButton>
 
             <Menu
@@ -94,7 +112,10 @@ export const Header = () => {
                   {username || "User"}
                 </Typography>
                 {userRole && (
-                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, textTransform: "capitalize" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: theme.palette.text.secondary, textTransform: "capitalize" }}
+                  >
                     {userRole}
                   </Typography>
                 )}
@@ -102,14 +123,25 @@ export const Header = () => {
 
               <Divider />
 
-              <MenuItem onClick={() => { handleCloseUserMenu(); navigate("/profile"); }}>
+              <MenuItem
+                onClick={() => {
+                  handleCloseUserMenu();
+                  navigate("/profile");
+                }}
+              >
                 <PersonIcon sx={{ mr: 2, color: theme.palette.text.secondary }} />
                 Profile
               </MenuItem>
 
               <Divider />
 
-              <MenuItem onClick={() => { localStorage.removeItem("token"); navigate("/"); handleCloseUserMenu(); }}>
+              <MenuItem
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  navigate("/");
+                  handleCloseUserMenu();
+                }}
+              >
                 <LogoutIcon sx={{ mr: 2, color: theme.palette.error.main }} />
                 <Typography sx={{ color: theme.palette.error.main }}>Sign Out</Typography>
               </MenuItem>

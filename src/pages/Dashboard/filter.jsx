@@ -51,11 +51,11 @@ export default function FilterDrawer({
             mb: 2,
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 500, color: "#2a9d8f" }}>
+          <Typography variant="h5" sx={{ fontWeight: 500 }}>
             Filters
           </Typography>
           <IconButton onClick={onClose}>
-            <CloseIcon sx={{ color: "#2a9d8f" }} />
+            <CloseIcon />
           </IconButton>
         </Box>
 

@@ -1,17 +1,10 @@
 // src/theme.ts
 import { createTheme } from "@mui/material/styles";
-import { deepPurple } from "@mui/material/colors";
 
 const theme = createTheme({
   palette: {
     primary: {
       main: "#2a9d8f",
-    },
-    secondary: {
-      main: "#9c27b0",
-    },
-    success: {
-      main: "#4caf50",
     },
     error: {
       main: "#f44336",
@@ -26,12 +19,18 @@ const theme = createTheme({
       default: "#f5f5f5",
     },
   },
+
   typography: {
     fontFamily: "Poppins, Arial, sans-serif",
     h3: {
       fontWeight: 700,
       fontSize: "32px",
-      color: "#1a4571",
+      color: "#2a9d8f",
+    },
+    h5: {
+      fontWeight: 700,
+      fontSize: "20px",
+      color: "#2a9d8f",
     },
     body1: {
       color: "#6c757d",
@@ -41,6 +40,7 @@ const theme = createTheme({
       textTransform: "none",
     },
   },
+
   components: {
     MuiCard: {
       styleOverrides: {
@@ -51,6 +51,7 @@ const theme = createTheme({
         },
       },
     },
+
     MuiTextField: {
       styleOverrides: {
         root: {
@@ -60,6 +61,7 @@ const theme = createTheme({
         },
       },
     },
+
     MuiButton: {
       styleOverrides: {
         contained: {
@@ -70,6 +72,7 @@ const theme = createTheme({
         },
       },
     },
+
     MuiLink: {
       styleOverrides: {
         root: {
@@ -82,6 +85,7 @@ const theme = createTheme({
         },
       },
     },
+
     MuiInputAdornment: {
       styleOverrides: {
         root: {
@@ -89,6 +93,7 @@ const theme = createTheme({
         },
       },
     },
+
     MuiAvatar: {
       styleOverrides: {
         root: {
@@ -96,12 +101,14 @@ const theme = createTheme({
           height: 40,
           fontSize: "1rem",
           fontWeight: 600,
-          backgroundColor: deepPurple[500],
           color: "#fff",
+          background: "linear-gradient(135deg, #2a9d8f, #21867a)",
           border: "2px solid rgba(255,255,255,0.2)",
+          boxShadow: "0 3px 6px rgba(0, 0, 0, 0.15)",
         },
       },
     },
+
     MuiMenu: {
       styleOverrides: {
         paper: {
@@ -112,14 +119,27 @@ const theme = createTheme({
         },
       },
     },
+
     MuiMenuItem: {
       styleOverrides: {
         root: {
-          py: 1.5,
-          px: 3,
+          paddingTop: "12px",
+          paddingBottom: "12px",
+          paddingLeft: "24px",
+          paddingRight: "24px",
           "&:hover": {
             backgroundColor: "rgba(0,0,0,0.04)",
           },
+        },
+      },
+    },
+
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: {
+          color: "#2a9d8f",
+          fontWeight: 700,
+          fontFamily: "Poppins, Arial, sans-serif",
         },
       },
     },
