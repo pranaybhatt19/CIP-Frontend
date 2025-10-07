@@ -7,27 +7,27 @@ import { visuallyHidden } from "@mui/utils";
 import Box from "@mui/material/Box";
 
 const headCells = [
-  { id: "name", numeric: false, disablePadding: false, label: "Name" },
+  { id: "full_name", numeric: false, disablePadding: false, label: "Name" },
   {
-    id: "designation",
+    id: "designation_name",
     numeric: false,
     disablePadding: false,
     label: "Designation",
   },
   {
-    id: "experience",
+    id: "experience_years",
     numeric: false,
     disablePadding: false,
     label: "Experience",
   },
   {
-    id: "reporting_person",
+    id: "reporting_person_name",
     numeric: false,
     disablePadding: false,
     label: "Reporting Person",
   },
   {
-    id: "attempts",
+    id: "attempts_count",
     numeric: false,
     disablePadding: false,
     label: "Attempts",
@@ -61,7 +61,7 @@ export function DashboardTableHead(props) {
               padding: "5px",
               fontWeight: "bold",
               fontSize: "16px",
-              ...(headCell.id === "name" && { width: 260 }),
+              ...(headCell.id === "full_name" && { width: 260 }),
             }}
           >
             {headCell.id === "actions" ? (

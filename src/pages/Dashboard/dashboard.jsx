@@ -29,6 +29,7 @@ import {
   getReportingPersons,
   searchDashboard,
 } from "../../services/authentication";
+import { DashboardTableHead } from "../../components/dashboardTableHead";
 
 export const Dashboard = () => {
   const theme = useTheme();
@@ -128,7 +129,7 @@ export const Dashboard = () => {
       setLoading(true);
       await searchDashboard(payload).then((res) => {
         setRows(res.data.data || []);
-        setTotalCount(res.data.total || 0);
+        setTotalCount(res.data.totalCount || 0);
       });
     } catch (err) {
       toast.error(err.message || "Failed to fetch data");
@@ -269,43 +270,31 @@ export const Dashboard = () => {
       <Paper sx={{ width: "100%", mb: 2, p: 1, pb: 0 }}>
         <TableContainer>
           <Table sx={{ minWidth: 750 }}>
-            <thead>
-              <TableRow>
-                <TableCell onClick={(e) => handleRequestSort(e, "name")}>
-                  <b>Name</b>
-                </TableCell>
-                <TableCell onClick={(e) => handleRequestSort(e, "designation")}>
-                  <b>Designation</b>
-                </TableCell>
-                <TableCell onClick={(e) => handleRequestSort(e, "experience")}>
-                  <b>Experience</b>
-                </TableCell>
-                <TableCell
-                  onClick={(e) => handleRequestSort(e, "reporting_person")}
-                >
-                  <b>Reporting Person</b>
-                </TableCell>
-                <TableCell
-                  onClick={(e) => handleRequestSort(e, "total_attempts")}
-                >
-                  <b>Attempts</b>
-                </TableCell>
-                <TableCell align="center">
-                  <b>Actions</b>
-                </TableCell>
-              </TableRow>
-            </thead>
+            <DashboardTableHead
+              order={order}
+              orderBy={orderBy}
+              onRequestSort={handleRequestSort}
+              setPage={setPage}
+            />
             <TableBody>
               {rows.length > 0 ? (
                 rows.map((row, index) => (
                   <TableRow hover key={row.user_id ?? index}>
-                    <TableCell>{row.full_name}</TableCell>
-                    <TableCell>{row.designation?.name ?? "-"}</TableCell>
-                    <TableCell>
+                    <TableCell align="left" sx={{ pl: "5px" }}>
+                      {row.full_name}
+                    </TableCell>
+                    <TableCell sx={{ pl: "5px" }}>
+                      {row.designation?.name ?? "-"}
+                    </TableCell>
+                    <TableCell sx={{ pl: "5px" }}>
                       {row.experience ? `${row.experience} Years` : "-"}
                     </TableCell>
-                    <TableCell>{row.reporting_person?.name ?? "-"}</TableCell>
-                    <TableCell>{row.attempts ?? "-"}</TableCell>
+                    <TableCell sx={{ pl: "5px" }}>
+                      {row.reporting_person?.name ?? "-"}
+                    </TableCell>
+                    <TableCell sx={{ pl: "5px" }}>
+                      {row.attempts ?? "-"}
+                    </TableCell>
                     <TableCell align="center">
                       <IconButton
                         aria-label="view"
