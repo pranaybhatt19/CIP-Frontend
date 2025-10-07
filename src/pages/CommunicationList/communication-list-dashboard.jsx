@@ -212,6 +212,7 @@ export const CommunicationListDashboard = () => {
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
+          padding: 2,
         }}
       >
         <Box
