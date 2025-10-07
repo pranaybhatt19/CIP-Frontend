@@ -17,6 +17,7 @@ import dayjs from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { useParams } from "react-router-dom";
 
 const modalStyle = {
     position: "absolute",
@@ -51,7 +52,7 @@ const validationSchema = Yup.object({
 
 const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
     const [initialDateTime] = useState(dayjs().subtract(5, "minute"));
-
+    const { id } = useParams();
     const formik = useFormik({
         initialValues: {
             datetime: initialDateTime,
@@ -63,7 +64,7 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
             try {
                 const datetimeISO = dayjs(values.datetime).toISOString();
                 await addPractice({
-                    id: 2,
+                    id : +id,
                     date: datetimeISO,
                     link: values.link,
                     feedback: values.feedback,
@@ -88,7 +89,7 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
             <Box sx={modalStyle}>
                 <Typography
                     variant="h3"
-                    sx={{  mb: 3, fontWeight: 700, textAlign: "left" }}
+                    sx={{ mb: 3, fontWeight: 700, textAlign: "left" }}
                 >
                     Add Practice
                 </Typography>

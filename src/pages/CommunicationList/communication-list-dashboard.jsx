@@ -112,6 +112,7 @@ export const CommunicationListDashboard = () => {
       };
 
       const response = await getPracticeDetailsByUserId(payload);
+      console.log(response);
       if (response?.payload?.practices) {
         const { practices, total } = response.payload;
         const formatted = practices.map((p) => ({
@@ -372,6 +373,18 @@ export const CommunicationListDashboard = () => {
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          sx={{
+            ".MuiTablePagination-selectLabel": {
+              marginTop: "auto",
+            },
+            ".MuiSelect-select": {
+              paddingTop: "4px",
+              paddingBottom: "4px",
+            },
+            ".MuiTablePagination-displayedRows": {
+              marginTop: "auto",
+            },
+          }}
         />
       </Paper>
       <AddPracticeModal
