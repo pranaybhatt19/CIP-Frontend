@@ -175,9 +175,7 @@ export const Dashboard = () => {
   };
 
   return (
-    <div style={{ width: "100%", overflow: "hidden" }}>
-      <Header />
-
+    <div style={{ width: "100%", overflow: "hidden", margin: 0 }}>
       {/* Top Bar */}
       <Box
         sx={{
@@ -267,7 +265,7 @@ export const Dashboard = () => {
       />
 
       {/* Data Table */}
-      <Paper sx={{ width: "100%", mb: 2, p: 1, pb: 0 }}>
+      <Paper sx={{ width: "100%", mb: 2, pb: 0 }}>
         <TableContainer>
           <Table sx={{ minWidth: 750 }}>
             <DashboardTableHead
