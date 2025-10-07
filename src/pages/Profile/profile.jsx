@@ -161,8 +161,14 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 6 } }}>
-        <Card elevation={2} sx={{ borderRadius: 2, maxWidth: 1400, mx: "auto" }}>
+      <Container
+        maxWidth="xl"
+        sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 6 } }}
+      >
+        <Card
+          elevation={2}
+          sx={{ borderRadius: 2, maxWidth: 1400, mx: "auto" }}
+        >
           <CardContent sx={{ p: { xs: 3, sm: 4, md: 5 } }}>
             <Stack direction="row" spacing={3} sx={{ mb: 4 }}>
               <Skeleton variant="circular" width={80} height={80} />
@@ -180,7 +186,10 @@ const Profile = () => {
 
   if (error) {
     return (
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 6 } }}>
+      <Container
+        maxWidth="xl"
+        sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 6 } }}
+      >
         <Alert severity="error">{error}</Alert>
       </Container>
     );
