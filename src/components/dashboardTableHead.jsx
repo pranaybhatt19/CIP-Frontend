@@ -32,6 +32,12 @@ const headCells = [
     disablePadding: false,
     label: "Attempts",
   },
+  {
+    id: "last_communication_date",
+    numeric: false,
+    disablePadding: false,
+    label: "Last Attempted Date",
+  },
   { id: "actions", numeric: false, disablePadding: false, label: "Actions" },
 ];
 
@@ -52,8 +58,8 @@ export function DashboardTableHead(props) {
               headCell.id === "actions"
                 ? "center"
                 : headCell.numeric
-                ? "right"
-                : "left"
+                  ? "right"
+                  : "left"
             }
             padding={headCell.disablePadding ? "none" : "normal"}
             sortDirection={orderBy === headCell.id ? order : false}
@@ -79,9 +85,9 @@ export function DashboardTableHead(props) {
                     opacity: 0.3,
                   },
                   "&:hover .MuiTableSortLabel-icon, &.Mui-active .MuiTableSortLabel-icon":
-                    {
-                      opacity: 1,
-                    },
+                  {
+                    opacity: 1,
+                  },
                 }}
               >
                 {headCell.label}

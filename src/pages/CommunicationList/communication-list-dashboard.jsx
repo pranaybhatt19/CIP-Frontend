@@ -112,7 +112,7 @@ export const CommunicationListDashboard = () => {
         ...filters,
         ...(filters.order ? {} : { order: [["date", order.toUpperCase()]] }),
       };
-      
+
       const response = await getPracticeDetailsByUserId(payload);
       if (response?.payload?.practices) {
         const { practices, total } = response.payload;
@@ -157,10 +157,27 @@ export const CommunicationListDashboard = () => {
     fetchData(sortPayload);
   };
 
-  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+
+    // Fetch new page data from API
+    fetchData({
+      offset: newPage * rowsPerPage,
+      limit: rowsPerPage,
+      order: [[orderBy, order.toUpperCase()]],
+    });
+  };
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
     setPage(0);
+
+    // Fetch first page of new page size
+    fetchData({
+      offset: 0,
+      limit: newRowsPerPage,
+      order: [[orderBy, order.toUpperCase()]],
+    });
   };
 
   // Delete logic
@@ -305,7 +322,7 @@ export const CommunicationListDashboard = () => {
       </Box>
 
       {/* Data Table */}
-      <Paper sx={{ width: "100%", p: 1, pb: 0 }}>
+      <Paper sx={{ width: "100%", p: "8px 16px", pb: 0 }}>
         <TableContainer>
           <Table sx={{ minWidth: 750 }}>
             <CommunicationTableHead
@@ -317,7 +334,14 @@ export const CommunicationListDashboard = () => {
             <TableBody>
               {sortedRows.length > 0 ? (
                 sortedRows.map((row) => (
-                  <TableRow hover key={row.id}>
+                  <TableRow hover key={row.id}
+                    sx={{
+                      height: "60px",
+                      "& .MuiTableCell-root": {
+                        py: 1,
+                      },
+                    }}
+                  >
                     <TableCell>
                       {dayjs(row.date_of_practice).format("DD/MM/YYYY")}
                     </TableCell>
@@ -356,7 +380,7 @@ export const CommunicationListDashboard = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={sortedRows.length}
+          count={totalCount}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -433,7 +457,7 @@ export const CommunicationListDashboard = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </div >
   );
 };
 
