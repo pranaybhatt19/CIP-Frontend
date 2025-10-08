@@ -98,6 +98,7 @@ export const CommunicationListDashboard = () => {
   const [exactDate, setExactDate] = useState(null);
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
+  const [clearTriggered, setClearTriggered] = useState(false);
 
   // Delete dialog
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -110,7 +111,7 @@ export const CommunicationListDashboard = () => {
       const payload = {
         id: +id,
         ...filters,
-        ...(filters.order ? {} : { order: [["date", order.toUpperCase()]] }),
+        ...(filters.order ? {} : { order: [["date", order.toUpperCase()]]  }),
       };
 
       const response = await getPracticeDetailsByUserId(payload);
@@ -209,6 +210,21 @@ export const CommunicationListDashboard = () => {
   };
   const handleOpenModal = () => setAddModalOpen(true);
 
+  useEffect(() => {
+    if (clearTriggered) {
+      fetchData();
+      setClearTriggered(false);
+    }
+  }, [clearTriggered]);
+
+  const handleClearFilters = () => {
+    setExactDate(null);
+    setToDate(null);
+    setFromDate(null);
+    setPage(0);
+    setClearTriggered(true);
+  };
+
   // Filtering and sorting
   const filteredRows = rows.filter((row) => {
     const rowDate = dayjs(row.date_of_practice);
@@ -304,6 +320,7 @@ export const CommunicationListDashboard = () => {
           setFromDate={setFromDate}
           toDate={toDate}
           setToDate={setToDate}
+          onClear={handleClearFilters}
           onApply={(filters) => {
             const { exactDate, fromDate, toDate } = filters;
             setExactDate(exactDate);
@@ -334,7 +351,9 @@ export const CommunicationListDashboard = () => {
             <TableBody>
               {sortedRows.length > 0 ? (
                 sortedRows.map((row) => (
-                  <TableRow hover key={row.id}
+                  <TableRow
+                    hover
+                    key={row.id}
                     sx={{
                       height: "60px",
                       "& .MuiTableCell-root": {
@@ -386,15 +405,23 @@ export const CommunicationListDashboard = () => {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
           sx={{
-            ".MuiTablePagination-selectLabel": {
-              marginTop: "auto",
+            "& .MuiTablePagination-toolbar": {
+              minHeight: "60px",
             },
-            ".MuiSelect-select": {
+            "& .MuiTablePagination-selectLabel": {
+              marginTop: "0",
+              fontSize: "0.9rem",
+            },
+            "& .MuiTablePagination-displayedRows": {
+              marginTop: "0",
+              fontSize: "0.9rem",
+            },
+            "& .MuiTablePagination-select": {
               paddingTop: "4px",
               paddingBottom: "4px",
             },
-            ".MuiTablePagination-displayedRows": {
-              marginTop: "auto",
+            "& .MuiInputBase-root": {
+              fontSize: "0.9rem",
             },
           }}
         />
@@ -457,7 +484,7 @@ export const CommunicationListDashboard = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </div >
+    </div>
   );
 };
 
