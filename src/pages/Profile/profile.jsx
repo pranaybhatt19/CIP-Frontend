@@ -46,10 +46,6 @@ const Profile = () => {
     newPassword: "",
     confirmPassword: "",
   });
-  const [passwordErrors, setPasswordErrors] = useState({});
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
@@ -61,8 +57,7 @@ const Profile = () => {
         setError("");
 
         const decodedToken = decodeToken();
-        console.log("Decoded Token:", decodedToken);
-
+        console.log(decodedToken)
         if (!decodedToken) {
           throw new Error("Unable to decode token");
         }
@@ -78,6 +73,7 @@ const Profile = () => {
           firstName,
           lastName,
           fullName,
+          reportingPerson: decodedToken.reportingPerson,
           email: decodedToken.email || "",
           designation: decodedToken.designation?.name || "",
           experience: `${decodedToken.experience} Years` || "N/A",
@@ -333,7 +329,7 @@ const Profile = () => {
                 />
               </Box>
             </Box>
-            <Box>
+            {userInfo?.reportingPerson && <Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
                 <SupervisorIcon color="primary" />
                 <Typography variant="h6" fontWeight="600">
@@ -371,7 +367,7 @@ const Profile = () => {
                   }}
                 />
               </Box>
-            </Box>
+            </Box>}
           </CardContent>
         </Card>
       </Fade>
