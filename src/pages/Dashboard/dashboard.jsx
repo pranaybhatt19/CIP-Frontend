@@ -207,26 +207,37 @@ export const Dashboard = () => {
           Dashboard
         </Typography>
 
-        {/* Tabs for View Selection */}
-        <Tabs
-          value={isTreeView ? 1 : 0}
-          onChange={(e, newValue) => setIsTreeView(newValue === 1)}
-          textColor="primary"
-          indicatorColor="primary"
-          sx={{
-            minHeight: 44,
-            "& .MuiTab-root": {
-              fontWeight: "bold",
-              textTransform: "none",
-              fontSize: "1rem",
-            },
-          }}
-        >
-          <Tab label="List View" sx={{ minHeight: 44 }} />
-          <Tab label="Tree View" sx={{ minHeight: 44 }} />
-        </Tabs>
-
         <Box sx={{ display: "flex", gap: 1 }}>
+          <Tabs
+            value={isTreeView ? 1 : 0}
+            onChange={(e, newValue) => setIsTreeView(newValue === 1)}
+            textColor="inherit"
+            indicatorColor="none"
+            sx={{
+              minHeight: 36,
+              border: "1px solid #2a9d8f",
+              borderRadius: 1,
+              "& .MuiTab-root": {
+                textTransform: "none",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                minHeight: 36,
+                flex: 1,
+                color: "#2a9d8f",
+                // borderRadius: 4,
+                whiteSpace: "nowrap",
+                padding: "0 12px",
+                "&.Mui-selected": {
+                  color: "#fff",
+                  backgroundColor: "#2a9d8f",
+                },
+              },
+            }}
+          >
+            <Tab label="List View" />
+            <Tab label="Tree View" />
+          </Tabs>
+
           {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
             <Button
               variant="outlined"
