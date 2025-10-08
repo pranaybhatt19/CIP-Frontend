@@ -68,7 +68,7 @@ export const Header = () => {
             <HeadsetMicIcon sx={{ fontSize: 40, color: theme.palette.common.white }} />
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.common.white }}>
-                CommunicationAce
+                Communication Ace
               </Typography>
               <Typography variant="caption" sx={{ color: theme.palette.grey[200], display: "block" }}>
                 Communication Improvement Portal
