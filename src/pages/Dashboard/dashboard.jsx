@@ -34,7 +34,7 @@ import { DashboardTableHead } from "../../components/dashboardTableHead";
 import { Tooltip } from "@mui/material";
 import UserTreeView from "../../components/userTreeView";
 import dayjs from "dayjs";
-
+ 
 export const Dashboard = () => {
   const theme = useTheme();
   const [isTreeView, setIsTreeView] = useState(true);
@@ -48,10 +48,10 @@ export const Dashboard = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-
+ 
   const [filterOpen, setFilterOpen] = useState(false);
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
-
+ 
   // Filters
   const [searchName, setSearchName] = useState("");
   const [selectedDesignation, setSelectedDesignation] = useState([]);
@@ -64,27 +64,27 @@ export const Dashboard = () => {
     type: "EQUALS",
     value: "",
   });
-
+ 
   const [lastAttemptedDate, setLastAttemptedDate] = useState({
     exactDate: null,
     fromDate: null,
     toDate: null,
   });
-
+ 
   const [designationList, setDesignationList] = useState([]);
   const [reportingPersonList, setReportingPersonList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
-
+ 
   // ====================== Effects ======================
   useEffect(() => {
     const decodedToken = decodeToken();
     if (decodedToken?.designation)
       setUserDesignation(decodedToken.designation?.name);
-
+ 
     fetchDesignations();
     fetchReportingPersons();
   }, []);
-
+ 
   // ====================== API Calls ======================
   const fetchDesignations = async () => {
     try {
@@ -94,7 +94,7 @@ export const Dashboard = () => {
       toast.error(err.message || "Failed to fetch designations");
     }
   };
-
+ 
   const fetchReportingPersons = async () => {
     try {
       const res = await getReportingPersons();
@@ -103,7 +103,7 @@ export const Dashboard = () => {
       toast.error(err.message || "Failed to fetch reporting persons");
     }
   };
-
+ 
   const fetchData = async () => {
     try {
       const payload = {
@@ -112,7 +112,7 @@ export const Dashboard = () => {
         offset: page * rowsPerPage,
         order: [[orderBy, order.toUpperCase()]],
       };
-
+ 
       if (searchName?.trim()) payload.name = searchName.trim();
       if (selectedDesignation?.length > 0)
         payload.designation_ids = selectedDesignation;
@@ -120,12 +120,12 @@ export const Dashboard = () => {
       if (selectedReportingPerson?.length > 0)
         payload.reporting_persons_ids = selectedReportingPerson;
       if (selectedAttempts?.value) payload.attempts = selectedAttempts;
-
+ 
       const dateFilter = lastAttemptedDate;
       if (dateFilter?.exactDate || dateFilter?.fromDate || dateFilter?.toDate) {
         payload.last_communication_date = dateFilter;
       }
-
+ 
       setLoading(true);
       await searchDashboard(payload).then((res) => {
         setRows(res.data.data || []);
@@ -142,31 +142,31 @@ export const Dashboard = () => {
       setLoading(false);
     }
   };
-
+ 
   useEffect(() => {
     if (clearTriggered) {
       fetchData();
       setClearTriggered(false);
     }
   }, [clearTriggered]);
-
+ 
   useEffect(() => {
     fetchData();
   }, [addUserModalOpen, order, orderBy, page, rowsPerPage, isTreeView]);
-
+ 
   // ====================== Handlers ======================
   const handleRequestSort = (_, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
-
+ 
   const handleChangePage = (_, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
+ 
   const handleClearFilters = () => {
     setSearchName("");
     setSelectedDesignation([]);
@@ -181,7 +181,7 @@ export const Dashboard = () => {
     setPage(0);
     setClearTriggered(true);
   };
-
+ 
   // ====================== Render ======================
   return (
     <div style={{ width: "100%", overflow: "hidden", margin: 0 }}>
@@ -206,7 +206,6 @@ export const Dashboard = () => {
         >
           Dashboard
         </Typography>
-
         <Box sx={{ display: "flex", gap: 1 }}>
           <Tabs
             value={isTreeView ? 1 : 0}
@@ -265,7 +264,7 @@ export const Dashboard = () => {
             Filters
           </Button>
         </Box>
-
+ 
         <FilterDrawer
           open={filterOpen}
           onClose={() => {
@@ -290,14 +289,14 @@ export const Dashboard = () => {
           onApply={fetchData}
         />
       </Box>
-
+ 
       {/* Add User Modal */}
       <AddUserModal
         key={addUserModalOpen ? "open" : "closed"}
         open={addUserModalOpen}
         onClose={() => setAddUserModalOpen(false)}
       />
-
+ 
       {openTreeView ? (
         <UserTreeView treeData={Array.isArray(rows) ? rows : [rows]} />
       ) : (
@@ -444,5 +443,5 @@ export const Dashboard = () => {
     </div>
   );
 };
-
+ 
 export default Dashboard;

@@ -78,7 +78,7 @@ export default function FilterDrawer({
             mb: 2,
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 500 }}>
+          <Typography variant="h3" sx={{ fontWeight: 500 }}>
             Filters
           </Typography>
           <IconButton onClick={onClose}>
@@ -181,13 +181,11 @@ export default function FilterDrawer({
         />
 
         {/* Last Attempted Date Filter */}
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
-            Last Attempted Date
-          </Typography>
+        <Box sx={{ mt: 0 }}>
+
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
-              label="Exact Date"
+              label="Exact Date (Last Attempt)"
               format="DD/MM/YYYY"
               value={
                 safeLastAttemptedDate.exactDate
@@ -199,7 +197,7 @@ export default function FilterDrawer({
               maxDate={dayjs()}
             />
             <DatePicker
-              label="From Date"
+              label="From Date (Last Attempt)"
               format="DD/MM/YYYY"
               value={
                 safeLastAttemptedDate.toDate
@@ -215,7 +213,7 @@ export default function FilterDrawer({
               }
             />
             <DatePicker
-              label="To Date"
+              label="To Date (Last Attempt)"
               format="DD/MM/YYYY"
               value={
                 safeLastAttemptedDate.fromDate

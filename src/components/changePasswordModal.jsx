@@ -88,7 +88,7 @@ const ChangePasswordDialog = ({ open, onClose }) => {
       fullWidth
       PaperProps={{ sx: { borderRadius: 2 } }}
     >
-      <DialogTitle sx={{ pb: 1 , mb:2.5}}>
+      <DialogTitle sx={{ pb: 1, mb: 2.5 }}>
         <Box
           sx={{
             display: "flex",
@@ -108,7 +108,7 @@ const ChangePasswordDialog = ({ open, onClose }) => {
         </Box>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3, pb: 2 }}>
+      <DialogContent sx={{ pt: "3 !important" }}>
         <Stack spacing={3}>
           {/* New Password */}
           <FormControl variant="outlined" fullWidth error={Boolean(passwordErrors.newPassword)}>
