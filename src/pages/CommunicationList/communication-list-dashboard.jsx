@@ -89,7 +89,7 @@ export const CommunicationListDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
-  const [order, setOrder] = useState("asc");
+  const [order, setOrder] = useState("desc");
   const [orderBy, setOrderBy] = useState("date");
   const [filterOpen, setFilterOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
