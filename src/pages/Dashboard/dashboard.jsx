@@ -348,7 +348,7 @@ export const Dashboard = () => {
                         {row.designation?.name ?? "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>
-                        {row.experience ? `${row.experience} Years` : "-"}
+                        {row.experience ?? "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>
                         {row.reporting_person?.name

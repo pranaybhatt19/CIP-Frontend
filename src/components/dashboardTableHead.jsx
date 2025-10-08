@@ -70,7 +70,10 @@ export function DashboardTableHead(props) {
               ...(headCell.id === "full_name" && { width: 260 }),
             }}
           >
-            {headCell.id === "actions" ? (
+            {headCell.id === "actions" ||
+            headCell.id === "full_name" ||
+            headCell.id === "designation_name" ||
+            headCell.id === "reporting_person_name" ? (
               headCell.label
             ) : (
               <TableSortLabel
