@@ -15,7 +15,10 @@ import {
   useTheme,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import AttemptFilter from "../../components/attemptFilter";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
 import ScoreFilter from "../../components/scoreFilter";
 
 export default function FilterDrawer({
@@ -31,6 +34,8 @@ export default function FilterDrawer({
   setSelectedReportingPerson,
   selectedAttempts,
   setSelectedAttempts,
+  lastAttemptedDate,
+  setLastAttemptedDate,
   designationList,
   reportingPersonList,
   onClear,
@@ -38,6 +43,28 @@ export default function FilterDrawer({
 }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const safeLastAttemptedDate = lastAttemptedDate || {};
+  // Handlers for the date picker
+  const handleDateChange = (key, value) => {
+    setLastAttemptedDate((prev) => ({
+      ...prev,
+      [key]: value ? value.toISOString() : null,
+    }));
+  };
+
+  const handleApply = () => {
+    // prepare payload
+    const payload = {
+      searchName,
+      selectedDesignation,
+      selectedExperience,
+      selectedReportingPerson,
+      selectedAttempts,
+      last_communication_date: lastAttemptedDate,
+    };
+    onApply(payload);
+    onClose();
+  };
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
@@ -153,6 +180,60 @@ export default function FilterDrawer({
           onChange={(newFilter) => setSelectedAttempts(newFilter)}
         />
 
+        {/* Last Attempted Date Filter */}
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
+            Last Attempted Date
+          </Typography>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Exact Date"
+              format="DD/MM/YYYY"
+              value={
+                safeLastAttemptedDate.exactDate
+                  ? dayjs(safeLastAttemptedDate.exactDate)
+                  : null
+              }
+              onChange={(val) => handleDateChange("exactDate", val)}
+              slotProps={{ textField: { fullWidth: true, sx: { mb: 2 } } }}
+              maxDate={dayjs()}
+            />
+            <DatePicker
+              label="From Date"
+              format="DD/MM/YYYY"
+              value={
+                safeLastAttemptedDate.toDate
+                  ? dayjs(safeLastAttemptedDate.toDate)
+                  : null
+              }
+              onChange={(val) => handleDateChange("toDate", val)}
+              slotProps={{ textField: { fullWidth: true, sx: { mb: 2 } } }}
+              maxDate={
+                safeLastAttemptedDate.toDate
+                  ? dayjs(lastAttemptedDate.toDate)
+                  : dayjs()
+              }
+            />
+            <DatePicker
+              label="To Date"
+              format="DD/MM/YYYY"
+              value={
+                safeLastAttemptedDate.fromDate
+                  ? dayjs(safeLastAttemptedDate.fromDate)
+                  : null
+              }
+              onChange={(val) => handleDateChange("fromDate", val)}
+              slotProps={{ textField: { fullWidth: true, sx: { mb: 2 } } }}
+              minDate={
+                safeLastAttemptedDate.fromDate
+                  ? dayjs(lastAttemptedDate.fromDate)
+                  : undefined
+              }
+              maxDate={dayjs()}
+            />
+          </LocalizationProvider>
+        </Box>
+
         {/* Buttons */}
         <Box
           display="flex"
@@ -167,10 +248,7 @@ export default function FilterDrawer({
           <Button
             variant="contained"
             sx={{ marginLeft: 1 }}
-            onClick={() => {
-              onApply();
-              onClose();
-            }}
+            onClick={handleApply}
           >
             Apply
           </Button>

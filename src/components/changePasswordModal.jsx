@@ -88,7 +88,7 @@ const ChangePasswordDialog = ({ open, onClose }) => {
       fullWidth
       PaperProps={{ sx: { borderRadius: 2 } }}
     >
-      <DialogTitle sx={{ pb: 1 }}>
+      <DialogTitle sx={{ pb: 1 , mb:2.5}}>
         <Box
           sx={{
             display: "flex",

@@ -12,6 +12,7 @@ export default function PracticeFilterDrawer({
   exactDate,
   fromDate,
   toDate,
+  onClear,
   onApply, // function to trigger API call
 }) {
   // Local state inside drawer
@@ -25,12 +26,6 @@ export default function PracticeFilterDrawer({
     setLocalFromDate(fromDate);
     setLocalToDate(toDate);
   }, [exactDate, fromDate, toDate]);
-
-  const handleClear = () => {
-    setLocalExactDate(null);
-    setLocalFromDate(null);
-    setLocalToDate(null);
-  };
 
   const handleApply = () => {
     // Call parent onApply with local values only when Apply clicked
@@ -104,7 +99,7 @@ export default function PracticeFilterDrawer({
           <Button
             variant="outlined"
             color="primary"
-            onClick={handleClear}
+            onClick={onClear}
             sx={{ fontWeight: "bold" }}
           >
             Clear
