@@ -11,10 +11,22 @@ const { Column, HeaderCell, Cell } = Table;
 // Recursive transformer
 const transformToTree = (node) => ({
   id: node.user_id,
-  label: node.full_name,
+  label: node.full_name
+    ? node.full_name
+        .split(" ")
+        .map((word, idx, arr) =>
+          idx > 0 && idx < arr.length - 1 ? word[0] : word
+        )
+        .join(" ")
+    : "-",
   designation: node.designation?.name ?? "-",
   experience: node.experience ?? "-",
-  reporting_person: node.reporting_person?.name ?? "-",
+  reporting_person: node.reporting_person?.name
+    ? node.reporting_person?.name
+        .split(" ")
+        .map((word, idx, arr) => (idx > 0 && idx < arr.length - 1 ? "" : word))
+        .join(" ")
+    : "-",
   last_attempt_date: node.last_communication_date
     ? dayjs(node.last_communication_date).format("DD/MM/YYYY")
     : "-",
