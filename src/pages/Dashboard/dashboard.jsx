@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  Divider,
   IconButton,
   Paper,
   Table,
@@ -12,7 +13,6 @@ import {
   TablePagination,
   TableRow,
   Typography,
-  Switch,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
@@ -29,10 +29,15 @@ import {
   searchDashboard,
 } from "../../services/authentication";
 import { DashboardTableHead } from "../../components/dashboardTableHead";
+import { Tooltip } from "@mui/material";
+
+
 
 export const Dashboard = () => {
   const theme = useTheme();
-  // const [isTreeView, setIsTreeView] = useState(true);
+  const navigate = useNavigate();
+
+  // ====================== State ======================
   const [userDesignation, setUserDesignation] = useState("");
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("name");
@@ -40,7 +45,12 @@ export const Dashboard = () => {
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [totalCount, setTotalCount] = useState(0);
   const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [filterOpen, setFilterOpen] = useState(false);
+  const [addUserModalOpen, setAddUserModalOpen] = useState(false);
+
+  // Filters
   const [searchName, setSearchName] = useState("");
   const [selectedDesignation, setSelectedDesignation] = useState([]);
   const [selectedExperience, setSelectedExperience] = useState({
@@ -52,46 +62,45 @@ export const Dashboard = () => {
     type: "EQUALS",
     value: "",
   });
-  const [loading, setLoading] = useState(true);
-  const [addUserModalOpen, setAddUserModalOpen] = useState(false);
+
+  const [lastAttemptedDate, setLastAttemptedDate] = useState({
+    exactDate: null,
+    fromDate: null,
+    toDate: null,
+  });
+
   const [designationList, setDesignationList] = useState([]);
   const [reportingPersonList, setReportingPersonList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
-  const navigate = useNavigate();
 
+  // ====================== Effects ======================
+  useEffect(() => {
+    const decodedToken = decodeToken();
+    if (decodedToken?.designation)
+      setUserDesignation(decodedToken.designation?.name);
+
+    fetchDesignations();
+    fetchReportingPersons();
+  }, []);
+
+  // ====================== API Calls ======================
   const fetchDesignations = async () => {
     try {
-      setLoading(true);
-      await getDesignations().then((res) => {
-        setDesignationList(res.data || []);
-      });
+      const res = await getDesignations();
+      setDesignationList(res.data || []);
     } catch (err) {
-      toast.error(err.message || "Failed to fetch data");
-    } finally {
-      setLoading(false);
+      toast.error(err.message || "Failed to fetch designations");
     }
   };
 
   const fetchReportingPersons = async () => {
     try {
-      setLoading(true);
-      await getReportingPersons().then((res) => {
-        setReportingPersonList(res.data || []);
-      });
+      const res = await getReportingPersons();
+      setReportingPersonList(res.data || []);
     } catch (err) {
-      toast.error(err.message || "Failed to fetch data");
-    } finally {
-      setLoading(false);
+      toast.error(err.message || "Failed to fetch reporting persons");
     }
   };
-
-  useEffect(() => {
-    const decodedToken = decodeToken();
-    if (decodedToken?.designation)
-      setUserDesignation(decodedToken.designation?.name);
-    fetchDesignations();
-    fetchReportingPersons();
-  }, []);
 
   const fetchData = async () => {
     try {
@@ -102,36 +111,28 @@ export const Dashboard = () => {
         order: [[orderBy, order.toUpperCase()]],
       };
 
-      if (searchName?.trim()) {
-        payload.name = searchName.trim();
-      }
-
-      if (selectedDesignation?.length > 0) {
+      if (searchName?.trim()) payload.name = searchName.trim();
+      if (selectedDesignation?.length > 0)
         payload.designation_ids = selectedDesignation;
-      }
-
-      if (selectedExperience?.value) {
-        payload.experience = {
-          type: selectedExperience.type,
-          value: selectedExperience.value,
-        };
-      }
-
-      if (selectedReportingPerson?.length > 0) {
+      if (selectedExperience?.value)
+        payload.experience = selectedExperience;
+      if (selectedReportingPerson?.length > 0)
         payload.reporting_persons_ids = selectedReportingPerson;
+      if (selectedAttempts?.value) payload.attempts = selectedAttempts;
+
+      const dateFilter = lastAttemptedDate;
+      if (
+        dateFilter?.exactDate ||
+        dateFilter?.fromDate ||
+        dateFilter?.toDate
+      ) {
+        payload.last_communication_date = dateFilter;
       }
 
-      if (selectedAttempts?.value) {
-        payload.attempts = {
-          type: selectedAttempts.type,
-          value: selectedAttempts.value,
-        };
-      }
       setLoading(true);
-      await searchDashboard(payload).then((res) => {
-        setRows(res.data.data || []);
-        setTotalCount(res.data.totalCount || 0);
-      });
+      const res = await searchDashboard(payload);
+      setRows(res.data.data || []);
+      setTotalCount(res.data.totalCount || 0);
     } catch (err) {
       toast.error(err.message || "Failed to fetch data");
     } finally {
@@ -150,16 +151,14 @@ export const Dashboard = () => {
     fetchData();
   }, [addUserModalOpen, order, orderBy, page, rowsPerPage]);
 
-  const handleRequestSort = (event, property) => {
+  // ====================== Handlers ======================
+  const handleRequestSort = (_, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
+  const handleChangePage = (_, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -171,10 +170,16 @@ export const Dashboard = () => {
     setSelectedExperience({ type: "EQUALS", value: "" });
     setSelectedReportingPerson([]);
     setSelectedAttempts({ type: "EQUALS", value: "" });
+    setLastAttemptedDate({
+      exactDate: null,
+      fromDate: null,
+      toDate: null,
+    });
     setPage(0);
     setClearTriggered(true);
   };
 
+  // ====================== Render ======================
   return (
     <div style={{ width: "100%", overflow: "hidden", margin: 0 }}>
       {/* Top Bar */}
@@ -182,49 +187,18 @@ export const Dashboard = () => {
         sx={{
           margin: "1rem",
           marginLeft: 2,
-          // marginBottom: 2,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
         }}
       >
-        {/* Title with theme color */}
         <Typography
           variant="h4"
-          marginLeft={0}
-          sx={{
-            fontWeight: "bold",
-            color: theme.palette.primary.main,
-          }}
+          sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
         >
           Dashboard
         </Typography>
-
-        {/* Buttons */}
-        {/* 
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            width: 200,
-            p: 2,
-            border: "1px solid #ccc",
-            borderRadius: 2,
-            backgroundColor: "#f9f9f9",
-          }}
-        >
-          <Typography variant="body1">Tree View</Typography>
-          <Switch
-            checked={isTreeView}
-            onChange={(event) => {
-              setIsTreeView(event.target.checked);
-            }}
-            color="secondary"
-          />
-          <Typography variant="body1">List View</Typography>
-        </Box> */}
 
         <Box sx={{ display: "flex", gap: 1 }}>
           {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
@@ -255,7 +229,6 @@ export const Dashboard = () => {
           </Button>
         </Box>
 
-        {/* Filter Drawer */}
         <FilterDrawer
           open={filterOpen}
           onClose={() => {
@@ -272,12 +245,12 @@ export const Dashboard = () => {
           setSelectedReportingPerson={setSelectedReportingPerson}
           selectedAttempts={selectedAttempts}
           setSelectedAttempts={setSelectedAttempts}
+          lastAttemptedDate={lastAttemptedDate}
+          setLastAttemptedDate={setLastAttemptedDate}
           designationList={designationList}
           reportingPersonList={reportingPersonList}
           onClear={handleClearFilters}
-          onApply={() => {
-            fetchData();
-          }}
+          onApply={fetchData}
         />
       </Box>
 
@@ -289,7 +262,7 @@ export const Dashboard = () => {
       />
 
       {/* Data Table */}
-      <Paper sx={{ width: "100%", mb: 2, p: 1, pb: 0 }}>
+      <Paper sx={{ width: "100%", mb: 2, p: "8px 16px", pb: 0 }}>
         <TableContainer>
           <Table sx={{ minWidth: 750 }}>
             <DashboardTableHead
@@ -301,22 +274,66 @@ export const Dashboard = () => {
             <TableBody>
               {rows.length > 0 ? (
                 rows.map((row, index) => (
-                  <TableRow hover key={row.user_id ?? index}>
+                  <TableRow hover key={row.user_id ?? index} 
+                  sx={{
+                    height: "60px",
+                    "& .MuiTableCell-root": {
+                      py: 1,
+                    },
+                  }}
+                  >
                     <TableCell align="left" sx={{ pl: "5px" }}>
-                      {row.full_name}
+                      <Tooltip
+                        title={
+                          <div style={{ fontSize: "0.8rem" }}>
+                            <div><strong>Full Name:</strong> {row.full_name}</div>
+                            <Divider sx={{ my: 0.5, backgroundColor: "white" }} />
+                            <div><strong>Email:</strong> {row.email}</div>
+                          </div>
+                        }
+                        arrow
+                        placement="right"
+                      >
+                        <span style={{ cursor: "pointer" }}>
+                          {row.full_name
+                            ? row.full_name
+                              .split(" ")
+                              .map((word, idx, arr) =>
+                                idx > 0 && idx < arr.length - 1 ? word[0] : word
+                              )
+                              .join(" ")
+                            : "-"}
+                        </span>
+                      </Tooltip>
                     </TableCell>
                     <TableCell sx={{ pl: "5px" }}>
                       {row.designation?.name ?? "-"}
                     </TableCell>
                     <TableCell sx={{ pl: "5px" }}>
-                      {row.experience ? `${row.experience} Years` : "-"}
+                      {row.experience ? `${row.experience} ` : "-"}
                     </TableCell>
                     <TableCell sx={{ pl: "5px" }}>
-                      {row.reporting_person?.name ?? "-"}
+                      {row.reporting_person?.name ? row.reporting_person?.name
+                        .split(" ")
+                        .map((word, idx, arr) =>
+                          idx > 0 && idx < arr.length - 1 ? '' : word
+                        )
+                        .join(" ")
+
+                        : "-"}
                     </TableCell>
                     <TableCell sx={{ pl: "5px" }}>
                       {row.attempts ?? "-"}
                     </TableCell>
+
+                    <TableCell sx={{ pl: "5px" }}>
+                      {row.last_communication_date
+                        ? new Date(
+                          row.last_communication_date
+                        ).toLocaleDateString()
+                        : "-"}
+                    </TableCell>
+
                     <TableCell align="center">
                       <IconButton
                         aria-label="view"
@@ -331,7 +348,7 @@ export const Dashboard = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
                     {loading ? (
                       <CircularProgress
                         size="2rem"
