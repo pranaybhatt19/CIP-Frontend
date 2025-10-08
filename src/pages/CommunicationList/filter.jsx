@@ -12,7 +12,7 @@ export default function PracticeFilterDrawer({
   exactDate,
   fromDate,
   toDate,
-  onApply, // function to trigger API call
+  onApply, 
 }) {
   // Local state inside drawer
   const [localExactDate, setLocalExactDate] = useState(exactDate);
@@ -54,7 +54,7 @@ export default function PracticeFilterDrawer({
             mb: 3,
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+          <Typography variant="h3" sx={{ fontWeight: "bold" }}>
             Filters
           </Typography>
           <IconButton onClick={onClose}>

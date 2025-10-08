@@ -274,13 +274,13 @@ export const Dashboard = () => {
             <TableBody>
               {rows.length > 0 ? (
                 rows.map((row, index) => (
-                  <TableRow hover key={row.user_id ?? index} 
-                  sx={{
-                    height: "60px",
-                    "& .MuiTableCell-root": {
-                      py: 1,
-                    },
-                  }}
+                  <TableRow hover key={row.user_id ?? index}
+                    sx={{
+                      height: "60px",
+                      "& .MuiTableCell-root": {
+                        py: 1,
+                      },
+                    }}
                   >
                     <TableCell align="left" sx={{ pl: "5px" }}>
                       <Tooltip
