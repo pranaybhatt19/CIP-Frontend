@@ -27,6 +27,12 @@ const headCells = [
     label: "Reporting Person",
   },
   {
+    id: "last_communication_date",
+    numeric: false,
+    disablePadding: false,
+    label: "Last Attempt Date",
+  },
+  {
     id: "attempts_count",
     numeric: false,
     disablePadding: false,

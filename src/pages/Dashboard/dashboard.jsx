@@ -12,7 +12,8 @@ import {
   TablePagination,
   TableRow,
   Typography,
-  Switch,
+  Tab,
+  Tabs,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
@@ -29,10 +30,13 @@ import {
   searchDashboard,
 } from "../../services/authentication";
 import { DashboardTableHead } from "../../components/dashboardTableHead";
+import UserTreeView from "../../components/userTreeView";
+import dayjs from "dayjs";
 
 export const Dashboard = () => {
   const theme = useTheme();
-  // const [isTreeView, setIsTreeView] = useState(true);
+  const [isTreeView, setIsTreeView] = useState(true);
+  const [openTreeView, setOpenTreeView] = useState(false);
   const [userDesignation, setUserDesignation] = useState("");
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("name");
@@ -96,7 +100,7 @@ export const Dashboard = () => {
   const fetchData = async () => {
     try {
       const payload = {
-        isTreeView: false,
+        isTreeView: isTreeView,
         limit: rowsPerPage,
         offset: page * rowsPerPage,
         order: [[orderBy, order.toUpperCase()]],
@@ -130,6 +134,11 @@ export const Dashboard = () => {
       setLoading(true);
       await searchDashboard(payload).then((res) => {
         setRows(res.data.data || []);
+        if (isTreeView) {
+          setOpenTreeView(true);
+        } else {
+          setOpenTreeView(false);
+        }
         setTotalCount(res.data.totalCount || 0);
       });
     } catch (err) {
@@ -148,7 +157,7 @@ export const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, [addUserModalOpen, order, orderBy, page, rowsPerPage]);
+  }, [addUserModalOpen, order, orderBy, page, rowsPerPage, isTreeView]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -182,17 +191,16 @@ export const Dashboard = () => {
         sx={{
           margin: "1rem",
           marginLeft: 2,
-          // marginBottom: 2,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
+          gap: 2,
         }}
       >
-        {/* Title with theme color */}
+        {/* Title */}
         <Typography
           variant="h4"
-          marginLeft={0}
           sx={{
             fontWeight: "bold",
             color: theme.palette.primary.main,
@@ -201,30 +209,24 @@ export const Dashboard = () => {
           Dashboard
         </Typography>
 
-        {/* Buttons */}
-        {/* 
-        <Box
+        {/* Tabs for View Selection */}
+        <Tabs
+          value={isTreeView ? 1 : 0}
+          onChange={(e, newValue) => setIsTreeView(newValue === 1)}
+          textColor="primary"
+          indicatorColor="primary"
           sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            width: 200,
-            p: 2,
-            border: "1px solid #ccc",
-            borderRadius: 2,
-            backgroundColor: "#f9f9f9",
+            minHeight: 44,
+            "& .MuiTab-root": {
+              fontWeight: "bold",
+              textTransform: "none",
+              fontSize: "1rem",
+            },
           }}
         >
-          <Typography variant="body1">Tree View</Typography>
-          <Switch
-            checked={isTreeView}
-            onChange={(event) => {
-              setIsTreeView(event.target.checked);
-            }}
-            color="secondary"
-          />
-          <Typography variant="body1">List View</Typography>
-        </Box> */}
+          <Tab label="List View" sx={{ minHeight: 44 }} />
+          <Tab label="Tree View" sx={{ minHeight: 44 }} />
+        </Tabs>
 
         <Box sx={{ display: "flex", gap: 1 }}>
           {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
@@ -255,7 +257,6 @@ export const Dashboard = () => {
           </Button>
         </Box>
 
-        {/* Filter Drawer */}
         <FilterDrawer
           open={filterOpen}
           onClose={() => {
@@ -288,86 +289,113 @@ export const Dashboard = () => {
         onClose={() => setAddUserModalOpen(false)}
       />
 
-      {/* Data Table */}
-      <Paper sx={{ width: "100%", mb: 2, p: 1, pb: 0 }}>
-        <TableContainer>
-          <Table sx={{ minWidth: 750 }}>
-            <DashboardTableHead
-              order={order}
-              orderBy={orderBy}
-              onRequestSort={handleRequestSort}
-              setPage={setPage}
-            />
-            <TableBody>
-              {rows.length > 0 ? (
-                rows.map((row, index) => (
-                  <TableRow hover key={row.user_id ?? index}>
-                    <TableCell align="left" sx={{ pl: "5px" }}>
-                      {row.full_name}
-                    </TableCell>
-                    <TableCell sx={{ pl: "5px" }}>
-                      {row.designation?.name ?? "-"}
-                    </TableCell>
-                    <TableCell sx={{ pl: "5px" }}>
-                      {row.experience ? `${row.experience} Years` : "-"}
-                    </TableCell>
-                    <TableCell sx={{ pl: "5px" }}>
-                      {row.reporting_person?.name ?? "-"}
-                    </TableCell>
-                    <TableCell sx={{ pl: "5px" }}>
-                      {row.attempts ?? "-"}
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        aria-label="view"
-                        onClick={() =>
-                          navigate(`/user-practices/${row.user_id}`)
-                        }
-                      >
-                        <VisibilityIcon color="primary" />
-                      </IconButton>
+      {openTreeView ? (
+        <UserTreeView treeData={Array.isArray(rows) ? rows : [rows]} />
+      ) : (
+        <Paper sx={{ width: "100%", mb: 2, p: 1, pb: 0 }}>
+          <TableContainer>
+            <Table sx={{ minWidth: 750 }}>
+              <DashboardTableHead
+                order={order}
+                orderBy={orderBy}
+                onRequestSort={handleRequestSort}
+                setPage={setPage}
+              />
+              <TableBody>
+                {rows.length > 0 ? (
+                  rows.map((row, index) => (
+                    <TableRow
+                      hover
+                      key={row.user_id ?? index}
+                      sx={{
+                        height: "60px",
+                        "& .MuiTableCell-root": {
+                          py: 1,
+                        },
+                      }}
+                    >
+                      <TableCell align="left" sx={{ pl: "5px" }}>
+                        {row.full_name}
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px" }}>
+                        {row.designation?.name ?? "-"}
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px" }}>
+                        {row.experience ? `${row.experience} Years` : "-"}
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px" }}>
+                        {row.reporting_person?.name ?? "-"}
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px" }}>
+                        {row.last_communication_date
+                          ? dayjs(row.last_communication_date).format(
+                              "DD/MM/YYYY"
+                            )
+                          : "-"}
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px" }}>
+                        {row.attempts ?? "-"}
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          aria-label="view"
+                          onClick={() =>
+                            navigate(`/user-practices/${row.user_id}`)
+                          }
+                        >
+                          <VisibilityIcon color="primary" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                      {loading ? (
+                        <CircularProgress
+                          size="2rem"
+                          sx={{ color: theme.palette.primary.main }}
+                        />
+                      ) : (
+                        "No data found"
+                      )}
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                    {loading ? (
-                      <CircularProgress
-                        size="2rem"
-                        sx={{ color: theme.palette.primary.main }}
-                      />
-                    ) : (
-                      "No data found"
-                    )}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={totalCount}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          sx={{
-            ".MuiTablePagination-selectLabel": {
-              marginTop: "auto",
-            },
-            ".MuiSelect-select": {
-              paddingTop: "4px",
-              paddingBottom: "4px",
-            },
-            ".MuiTablePagination-displayedRows": {
-              marginTop: "auto",
-            },
-          }}
-        />
-      </Paper>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={totalCount}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            sx={{
+              "& .MuiTablePagination-toolbar": {
+                minHeight: "60px",
+              },
+              "& .MuiTablePagination-selectLabel": {
+                marginTop: "0",
+                fontSize: "0.9rem",
+              },
+              "& .MuiTablePagination-displayedRows": {
+                marginTop: "0",
+                fontSize: "0.9rem",
+              },
+              "& .MuiTablePagination-select": {
+                paddingTop: "4px",
+                paddingBottom: "4px",
+              },
+              "& .MuiInputBase-root": {
+                fontSize: "0.9rem",
+              },
+            }}
+          />
+        </Paper>
+      )}
     </div>
   );
 };
