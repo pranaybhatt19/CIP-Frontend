@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -29,9 +29,9 @@ import LinkSharpIcon from "@mui/icons-material/LinkSharp";
 import { useTheme } from "@mui/material/styles";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
-import Header from "../../components/header";
-import PracticeFilterDrawer from "./filter";
 import dayjs from "dayjs";
+
+import PracticeFilterDrawer from "./filter";
 import {
   deletePractice,
   getPracticeDetailsByUserId,
@@ -39,7 +39,6 @@ import {
 import AddPracticeModal from "../../components/addPractice";
 import CommunicationTableHead from "../../components/communicationListTableHead";
 
-// ---------------- Helper renderers ----------------
 const renderWithTooltip = (text, limit = 40) => {
   if (!text) return "—";
   const isTruncated = text.length > limit;
@@ -67,7 +66,7 @@ const renderLink = (url) => {
       underline="hover"
       sx={{ display: "flex", alignItems: "center", gap: "6px" }}
     >
-      <LinkSharpIcon fontSize="small" color="#1976d2" />
+      <LinkSharpIcon fontSize="small" />
       {isTruncated ? (
         <Tooltip title={url} placement="bottom-start" arrow>
           <span>{displayText}</span>
@@ -79,7 +78,7 @@ const renderLink = (url) => {
   );
 };
 
-export const CommunicationListDashboard = () => {
+const CommunicationListDashboard = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -87,31 +86,35 @@ export const CommunicationListDashboard = () => {
   const [rows, setRows] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [order, setOrder] = useState("desc");
   const [orderBy, setOrderBy] = useState("date");
+
   const [filterOpen, setFilterOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  // Filter state
   const [exactDate, setExactDate] = useState(null);
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
-  const [clearTriggered, setClearTriggered] = useState(false);
 
-  // Delete dialog
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedDeleteId, setSelectedDeleteId] = useState(null);
 
-  const fetchData = useCallback(async (filters = {}) => {
+  // ------------------ FETCH DATA ------------------
+  const fetchData = async () => {
     try {
       setLoading(true);
-
+      
       const payload = {
         id: +id,
-        ...filters,
-        ...(filters.order ? {} : { order: [["date", order.toUpperCase()]]  }),
+        offset: page * rowsPerPage,
+        limit: rowsPerPage,
+        order: [[orderBy, order.toUpperCase()]],
+        ...(exactDate && { dateExact: exactDate }),
+        ...(fromDate && { dateFrom: fromDate }),
+        ...(toDate && { dateTo: toDate }),
       };
 
       const response = await getPracticeDetailsByUserId(payload);
@@ -124,10 +127,10 @@ export const CommunicationListDashboard = () => {
           feedback: p.feedback || "—",
         }));
         setRows(formatted);
-        setTotalCount(total || formatted.length);
+        setTotalCount(total ?? formatted.length);
       } else {
-        toast.info("No communication practices found.");
         setRows([]);
+        setTotalCount(0);
       }
     } catch (err) {
       console.error(err);
@@ -135,53 +138,31 @@ export const CommunicationListDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  // Initial load
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [id, page, rowsPerPage, order, orderBy, exactDate, fromDate, toDate]);
 
-  // Sorting, pagination handlers
+  // ------------------ SORTING ------------------
   const handleRequestSort = (event, property) => {
-    if (property !== "date_of_practice") return; // only allow sorting by date
-
     const isAsc = orderBy === property && order === "asc";
-    const newOrder = isAsc ? "desc" : "asc";
-    setOrder(newOrder);
+    setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
-
-    // Call API with sorting info
-    const sortPayload = {
-      order: [["date", newOrder.toUpperCase()]],
-    };
-    fetchData(sortPayload);
   };
 
+  // ------------------ PAGINATION ------------------
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
-
-    // Fetch new page data from API
-    fetchData({
-      offset: newPage * rowsPerPage,
-      limit: rowsPerPage,
-      order: [[orderBy, order.toUpperCase()]],
-    });
   };
+
   const handleChangeRowsPerPage = (event) => {
     const newRowsPerPage = parseInt(event.target.value, 10);
     setRowsPerPage(newRowsPerPage);
     setPage(0);
-
-    // Fetch first page of new page size
-    fetchData({
-      offset: 0,
-      limit: newRowsPerPage,
-      order: [[orderBy, order.toUpperCase()]],
-    });
   };
 
-  // Delete logic
+  // ------------------ DELETE HANDLERS ------------------
   const handleDeleteOpen = (id) => {
     setSelectedDeleteId(id);
     setDeleteOpen(true);
@@ -194,61 +175,37 @@ export const CommunicationListDashboard = () => {
 
   const handleDeleteConfirm = async () => {
     try {
-      if (selectedDeleteId) {
-        await deletePractice(selectedDeleteId);
-
-        setRows((prev) => prev.filter((row) => row.id !== selectedDeleteId));
-        setTotalCount((prev) => prev - 1);
-
-        toast.success("Practice deleted successfully!");
-      }
+      if (!selectedDeleteId) return;
+      await deletePractice(selectedDeleteId);
+      toast.success("Practice deleted successfully!");
+      await fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to delete practice");
+      toast.error(err?.response?.data?.message || "Failed to delete practice");
     } finally {
       handleDeleteClose();
     }
   };
-  const handleOpenModal = () => setAddModalOpen(true);
 
-  useEffect(() => {
-    if (clearTriggered) {
-      fetchData();
-      setClearTriggered(false);
-    }
-  }, [clearTriggered]);
-
+  // ------------------ FILTERS ------------------
   const handleClearFilters = () => {
     setExactDate(null);
-    setToDate(null);
     setFromDate(null);
+    setToDate(null);
     setPage(0);
-    setClearTriggered(true);
   };
 
-  // Filtering and sorting
-  const filteredRows = rows.filter((row) => {
-    const rowDate = dayjs(row.date_of_practice);
-    if (exactDate && !rowDate.isSame(dayjs(exactDate), "day")) return false;
-    if (fromDate && rowDate.isBefore(dayjs(fromDate), "day")) return false;
-    if (toDate && rowDate.isAfter(dayjs(toDate), "day")) return false;
-    return true;
-  });
+  const handleApplyFilters = (filters) => {
+    const { exactDate: e, fromDate: f, toDate: t } = filters;
+    setExactDate(e ?? null);
+    setFromDate(f ?? null);
+    setToDate(t ?? null);
+    setPage(0);
+  };
 
-  const sortedRows = [...filteredRows].sort((a, b) => {
-    let comparison = 0;
-    if (orderBy === "date" || orderBy === "date_of_practice") {
-      comparison =
-        new Date(a.date_of_practice).getTime() -
-        new Date(b.date_of_practice).getTime();
-    } else if (orderBy === "feedback") {
-      comparison = a.feedback.localeCompare(b.feedback);
-    }
-    return order === "asc" ? comparison : -comparison;
-  });
-
+  // ------------------ UI ------------------
   return (
     <div style={{ width: "100%" }}>
-      {/* Top Bar */}
+      {/* Header */}
       <Box
         sx={{
           display: "flex",
@@ -258,19 +215,12 @@ export const CommunicationListDashboard = () => {
           padding: 2,
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+        <Box sx={{ display: "flex", alignItems: "center" }}>
           <ArrowBackIosIcon
             onClick={() => navigate(-1)}
             sx={{
               fontSize: "1.8rem",
               height: 48,
-              fontWeight: "bold",
               cursor: "pointer",
               color: theme.palette.primary.main,
             }}
@@ -290,7 +240,7 @@ export const CommunicationListDashboard = () => {
               color: theme.palette.primary.main,
               fontWeight: "bold",
             }}
-            onClick={handleOpenModal}
+            onClick={() => setAddModalOpen(true)}
           >
             Add Practice
           </Button>
@@ -301,19 +251,16 @@ export const CommunicationListDashboard = () => {
               color: theme.palette.primary.main,
               fontWeight: "bold",
             }}
-            startIcon={<FilterListIcon color="primary" />}
+            startIcon={<FilterListIcon />}
             onClick={() => setFilterOpen(true)}
           >
             Filters
           </Button>
         </Box>
 
-        {/* Fixed Filter Drawer usage */}
         <PracticeFilterDrawer
           open={filterOpen}
-          onClose={() => {
-            setFilterOpen(false);
-          }}
+          onClose={() => setFilterOpen(false)}
           exactDate={exactDate}
           setExactDate={setExactDate}
           fromDate={fromDate}
@@ -321,24 +268,11 @@ export const CommunicationListDashboard = () => {
           toDate={toDate}
           setToDate={setToDate}
           onClear={handleClearFilters}
-          onApply={(filters) => {
-            const { exactDate, fromDate, toDate } = filters;
-            setExactDate(exactDate);
-            setFromDate(fromDate);
-            setToDate(toDate);
-
-            const payload = {};
-            if (exactDate) payload.exactDate = exactDate;
-            if (fromDate) payload.fromDate = fromDate;
-            if (toDate) payload.toDate = toDate;
-
-            fetchData(payload);
-            setFilterOpen(false);
-          }}
+          onApply={handleApplyFilters}
         />
       </Box>
 
-      {/* Data Table */}
+      {/* Table */}
       <Paper sx={{ width: "100%", p: "8px 16px", pb: 0 }}>
         <TableContainer>
           <Table sx={{ minWidth: 750 }}>
@@ -346,21 +280,20 @@ export const CommunicationListDashboard = () => {
               order={order}
               orderBy={orderBy}
               onRequestSort={handleRequestSort}
-              setPage={setPage}
             />
             <TableBody>
-              {sortedRows.length > 0 ? (
-                sortedRows.map((row) => (
-                  <TableRow
-                    hover
-                    key={row.id}
-                    sx={{
-                      height: "60px",
-                      "& .MuiTableCell-root": {
-                        py: 1,
-                      },
-                    }}
-                  >
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                    <CircularProgress
+                      size="2rem"
+                      sx={{ color: theme.palette.primary.main }}
+                    />
+                  </TableCell>
+                </TableRow>
+              ) : rows.length > 0 ? (
+                rows.map((row) => (
+                  <TableRow key={row.id} hover>
                     <TableCell>
                       {dayjs(row.date_of_practice).format("DD/MM/YYYY")}
                     </TableCell>
@@ -382,20 +315,14 @@ export const CommunicationListDashboard = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
-                    {loading ? (
-                      <CircularProgress
-                        size="2rem"
-                        sx={{ color: theme.palette.primary.main }}
-                      />
-                    ) : (
-                      "No data found"
-                    )}
+                    No data found
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
+
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
@@ -404,38 +331,16 @@ export const CommunicationListDashboard = () => {
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          sx={{
-            "& .MuiTablePagination-toolbar": {
-              minHeight: "60px",
-            },
-            "& .MuiTablePagination-selectLabel": {
-              marginTop: "0",
-              fontSize: "0.9rem",
-            },
-            "& .MuiTablePagination-displayedRows": {
-              marginTop: "0",
-              fontSize: "0.9rem",
-            },
-            "& .MuiTablePagination-select": {
-              paddingTop: "4px",
-              paddingBottom: "4px",
-            },
-            "& .MuiInputBase-root": {
-              fontSize: "0.9rem",
-            },
-          }}
         />
       </Paper>
+
       <AddPracticeModal
         open={addModalOpen}
         onClose={() => setAddModalOpen(false)}
-        onSubmitSuccess={() => {
-          fetchData();
-          setAddModalOpen(false);
-        }}
+        onSubmitSuccess={fetchData} // simply call the single fetchData function
       />
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <Dialog open={deleteOpen} onClose={handleDeleteClose}>
         <DialogTitle sx={{ fontWeight: "bold" }}>
           <h3 style={{ color: "#2a9d8f", marginBottom: 0 }}>
@@ -443,31 +348,19 @@ export const CommunicationListDashboard = () => {
           </h3>
         </DialogTitle>
 
-        <Divider
-          sx={{ borderColor: "rgba(0,0,0,0.6)", borderBottomWidth: 1 }}
-        />
+        <Divider sx={{ borderColor: "rgba(0,0,0,0.6)", borderBottomWidth: 1 }} />
 
-        <DialogContent
-          sx={{ borderRadius: 0, p: 3, m: 2, fontFamily: "Roboto" }}
-        >
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            gap={2}
-            sx={{ textAlign: "center" }}
-          >
-            <InfoOutlinedIcon
-              sx={{ fontSize: 80, fontWeight: 300, color: "#2a9d8f" }}
-            />
-            <DialogContentText sx={{ fontSize: "1.1rem", fontWeight: 500 }}>
-              Are you sure you want to delete this practice record? <br />
-              This action cannot be undone.
-            </DialogContentText>
-          </Box>
+        <DialogContent sx={{ p: 3, m: 2, textAlign: "center" }}>
+          <InfoOutlinedIcon
+            sx={{ fontSize: 80, fontWeight: 300, color: "#2a9d8f" }}
+          />
+          <DialogContentText sx={{ fontSize: "1.1rem", fontWeight: 500 }}>
+            Are you sure you want to delete this practice record? <br />
+            This action cannot be undone.
+          </DialogContentText>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2, display: "flex", justifyContent: "center" }}>
+        <DialogActions sx={{ p: 2, justifyContent: "center" }}>
           <Button
             onClick={handleDeleteConfirm}
             color="primary"

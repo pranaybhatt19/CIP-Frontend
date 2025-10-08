@@ -27,6 +27,11 @@ const theme = createTheme({
       fontSize: "32px",
       color: "#2a9d8f",
     },
+    h4: {
+      fontWeight: 700,
+      fontSize: "26px",
+      color: "#2a9d8f",
+    },
     h5: {
       fontWeight: 700,
       fontSize: "20px",
@@ -38,6 +43,7 @@ const theme = createTheme({
     button: {
       fontWeight: 600,
       textTransform: "none",
+      fontSize: "0.95rem"
     },
   },
 
@@ -69,6 +75,7 @@ const theme = createTheme({
           "&:hover": {
             background: "linear-gradient(45deg, #21867a, #1a8578)",
           },
+          fontSize: "0.95rem"
         },
       },
     },

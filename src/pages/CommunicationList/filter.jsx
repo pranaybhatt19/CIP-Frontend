@@ -2,9 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Box, Button, Drawer, IconButton, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+
+dayjs.extend(utc);
 
 export default function PracticeFilterDrawer({
   open,
@@ -28,6 +31,11 @@ export default function PracticeFilterDrawer({
   }, [exactDate, fromDate, toDate]);
 
   const handleApply = () => {
+    console.log({
+      exactDate: localExactDate,
+      fromDate: localFromDate,
+      toDate: localToDate,
+    })
     // Call parent onApply with local values only when Apply clicked
     onApply({
       exactDate: localExactDate,
@@ -49,7 +57,7 @@ export default function PracticeFilterDrawer({
             mb: 3,
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+          <Typography variant="h3" sx={{ fontWeight: "bold" }}>
             Filters
           </Typography>
           <IconButton onClick={onClose}>
@@ -64,7 +72,7 @@ export default function PracticeFilterDrawer({
             format="DD/MM/YYYY"
             value={localExactDate ? dayjs(localExactDate) : null}
             onChange={(newValue) =>
-              setLocalExactDate(newValue?.toISOString() || null)
+              setLocalExactDate(newValue ? dayjs(newValue).utc().startOf('day').toISOString() : null)
             }
             slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
             maxDate={dayjs()}
@@ -74,7 +82,7 @@ export default function PracticeFilterDrawer({
             format="DD/MM/YYYY"
             value={localFromDate ? dayjs(localFromDate) : null}
             onChange={(newValue) =>
-              setLocalFromDate(newValue?.toISOString() || null)
+              setLocalFromDate(newValue ? dayjs(newValue).utc().startOf('day').toISOString() : null)
             }
             slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
             maxDate={localToDate ? dayjs(localToDate) : dayjs()}
@@ -84,7 +92,7 @@ export default function PracticeFilterDrawer({
             format="DD/MM/YYYY"
             value={localToDate ? dayjs(localToDate) : null}
             onChange={(newValue) =>
-              setLocalToDate(newValue?.toISOString() || null)
+              setLocalToDate(newValue ? dayjs(newValue).utc().startOf('day').toISOString() : null)
             }
             slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
             minDate={localFromDate ? dayjs(localFromDate) : undefined}
