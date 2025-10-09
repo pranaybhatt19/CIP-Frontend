@@ -1,4 +1,3 @@
-// src/pages/auth/ResetPassword.js
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -15,10 +14,11 @@ import {
   CssBaseline,
   Alert,
   Link,
+  CircularProgress,
 } from "@mui/material";
 import { Visibility, VisibilityOff, Lock } from "@mui/icons-material";
 import { useFormik } from "formik";
-import theme from "../../components/theme";
+import { theme } from "../../styles/login-theme"; 
 import { ResetPasswordValidationSchema } from "../../util/validationSchema";
 import loginBg from "../../assets/bg-image.png";
 import { resetPassword, verifyOtpToken } from "../../services/authentication";
@@ -30,9 +30,7 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-  const resetToken = new URLSearchParams(useLocation().search).get(
-    "resetToken"
-  );
+  const resetToken = new URLSearchParams(useLocation().search).get("resetToken");
 
   useEffect(() => {
     const storedToken = localStorage.getItem("resetToken");
@@ -56,6 +54,7 @@ const ResetPassword = () => {
         password: values.new_password,
         token: resetToken,
       };
+      setApiError(null);
       resetPassword(data)
         .then(() => {
           localStorage.clear();
@@ -89,11 +88,32 @@ const ResetPassword = () => {
         <Container maxWidth="sm" sx={{ py: 4 }}>
           <Grid container justifyContent="center" alignItems="center">
             <Grid item xs={12}>
-              <Card>
+              <Card
+                sx={{
+                  maxWidth: 480,
+                  mx: "auto",
+                  animation: "fadeIn 0.5s ease-in",
+                  backgroundColor: theme.palette.background.paper,
+                }}
+              >
                 <CardContent sx={{ p: { xs: 4, sm: 6 } }}>
                   <Box sx={{ textAlign: "center", mb: 2 }}>
-                    <Typography variant="h3">Reset Password</Typography>
-                    <Typography variant="body1">
+                    <Typography
+                      variant="h3"
+                      component="h3"
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: "32px",
+                        color: theme.palette.primary.main,
+                        mb: 2,
+                      }}
+                    >
+                      Reset Password
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{ color: theme.palette.text.secondary, mb: 2 }}
+                    >
                       Enter your new password below
                     </Typography>
                   </Box>
@@ -114,7 +134,7 @@ const ResetPassword = () => {
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Lock />
+                            <Lock sx={{ color: theme.palette.text.secondary }} />
                           </InputAdornment>
                         ),
                         endAdornment: (
@@ -140,39 +160,86 @@ const ResetPassword = () => {
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       error={
-                        formik.touched.confirm_password && !!formik.errors.confirm_password
+                        formik.touched.confirm_password &&
+                        !!formik.errors.confirm_password
                       }
                       helperText={
-                        formik.touched.confirm_password && formik.errors.confirm_password
+                        formik.touched.confirm_password &&
+                        formik.errors.confirm_password
                       }
                       margin="normal"
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Lock />
+                            <Lock sx={{ color: theme.palette.text.secondary }} />
                           </InputAdornment>
                         ),
                         endAdornment: (
                           <InputAdornment position="end">
                             <IconButton
-                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              onClick={() =>
+                                setShowConfirmPassword(!showConfirmPassword)
+                              }
                               edge="end"
                             >
-                              {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                              {showConfirmPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
                             </IconButton>
                           </InputAdornment>
                         ),
                       }}
                     />
 
-                    {apiError && <Alert severity="error" sx={{ mt: 2, mb: 2 }}>{apiError}</Alert>}
+                    {apiError && (
+                      <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
+                        {apiError}
+                      </Alert>
+                    )}
 
-                    <Button fullWidth type="submit" variant="contained" sx={{ mt: 3, mb: 1 }}>
-                      Reset Password
+                    <Button
+                      fullWidth
+                      type="submit"
+                      variant="contained"
+                      disabled={formik.isSubmitting}
+                      sx={{
+                        mt: 3,
+                        mb: 3,
+                        backgroundColor: theme.palette.primary.main,
+                        "&:hover": {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                    >
+                      {formik.isSubmitting ? (
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <CircularProgress
+                            size={20}
+                            sx={{ color: theme.palette.common.white }}
+                          />
+                          <Typography color="inherit">Resetting...</Typography>
+                        </Box>
+                      ) : (
+                        "Reset Password"
+                      )}
                     </Button>
 
-                    <Box sx={{ textAlign: "center", mt: 2 }}>
-                      <Link component={RouterLink} to="/">
+                    <Box sx={{ textAlign: "center" }}>
+                      <Link
+                        component={RouterLink}
+                        to="/"
+                        sx={{
+                          color: theme.palette.primary.main,
+                          textDecoration: "none",
+                          fontWeight: 500,
+                          "&:hover": {
+                            textDecoration: "underline",
+                            color: theme.palette.primary.dark,
+                          },
+                        }}
+                      >
                         Back to login
                       </Link>
                     </Box>
