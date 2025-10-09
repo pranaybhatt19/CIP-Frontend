@@ -49,7 +49,7 @@ export default function FilterDrawer({
   const handleDateChange = (key, value) => {
     setLastAttemptedDate((prev) => ({
       ...prev,
-      [key]: value ? value.toISOString() : null,
+      [key]: value ? dayjs(value).utc(true).startOf('day').toISOString() : null,
     }));
   };
 
@@ -202,11 +202,11 @@ export default function FilterDrawer({
               label="From Date (Last Attempt)"
               format="DD/MM/YYYY"
               value={
-                safeLastAttemptedDate.toDate
-                  ? dayjs(safeLastAttemptedDate.toDate)
+                safeLastAttemptedDate.fromDate
+                  ? dayjs(safeLastAttemptedDate.fromDate)
                   : null
               }
-              onChange={(val) => handleDateChange("toDate", val)}
+              onChange={(val) => handleDateChange("fromDate", val)}
               slotProps={{ textField: { fullWidth: true, sx: { mb: 2 } } }}
               maxDate={
                 safeLastAttemptedDate.toDate
@@ -218,11 +218,11 @@ export default function FilterDrawer({
               label="To Date (Last Attempt)"
               format="DD/MM/YYYY"
               value={
-                safeLastAttemptedDate.fromDate
-                  ? dayjs(safeLastAttemptedDate.fromDate)
+                safeLastAttemptedDate.toDate
+                  ? dayjs(safeLastAttemptedDate.toDate)
                   : null
               }
-              onChange={(val) => handleDateChange("fromDate", val)}
+              onChange={(val) => handleDateChange("toDate", val)}
               slotProps={{ textField: { fullWidth: true, sx: { mb: 2 } } }}
               minDate={
                 safeLastAttemptedDate.fromDate

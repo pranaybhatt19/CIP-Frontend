@@ -35,6 +35,7 @@ import { Tooltip } from "@mui/material";
 import UserTreeView from "../../components/userTreeView";
 import dayjs from "dayjs";
 
+
 export const Dashboard = () => {
   const theme = useTheme();
   const [isTreeView, setIsTreeView] = useState(true);
@@ -110,6 +111,7 @@ export const Dashboard = () => {
       const payload = {
         isTreeView: isTreeView,
       };
+
 
       if (!isTreeView) {
         payload.limit = rowsPerPage;
@@ -357,13 +359,13 @@ export const Dashboard = () => {
                           <span style={{ cursor: "pointer" }}>
                             {row.full_name
                               ? row.full_name
-                                  .split(" ")
-                                  .map((word, idx, arr) =>
-                                    idx > 0 && idx < arr.length - 1
-                                      ? word[0]
-                                      : word
-                                  )
-                                  .join(" ")
+                                .split(" ")
+                                .map((word, idx, arr) =>
+                                  idx > 0 && idx < arr.length - 1
+                                    ? word[0]
+                                    : word
+                                )
+                                .join(" ")
                               : "-"}
                           </span>
                         </Tooltip>
@@ -377,18 +379,18 @@ export const Dashboard = () => {
                       <TableCell sx={{ pl: "5px" }}>
                         {row.reporting_person?.name
                           ? row.reporting_person?.name
-                              .split(" ")
-                              .map((word, idx, arr) =>
-                                idx > 0 && idx < arr.length - 1 ? "" : word
-                              )
-                              .join(" ")
+                            .split(" ")
+                            .map((word, idx, arr) =>
+                              idx > 0 && idx < arr.length - 1 ? "" : word
+                            )
+                            .join(" ")
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>
                         {row.last_communication_date
                           ? dayjs(row.last_communication_date).format(
-                              "DD/MM/YYYY"
-                            )
+                            "DD/MM/YYYY"
+                          )
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>

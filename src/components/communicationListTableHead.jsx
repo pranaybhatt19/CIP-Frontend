@@ -7,7 +7,7 @@ import { visuallyHidden } from "@mui/utils";
 import Box from "@mui/material/Box";
 
 const headCells = [
-  { id: "date_of_practice", label: "Date", sortable: true },
+  { id: "date", label: "Date", sortable: true },
   { id: "time", label: "Time" },
   { id: "link", label: "Link" },
   { id: "feedback", label: "Feedback" },

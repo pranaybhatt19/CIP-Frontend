@@ -87,7 +87,7 @@ const CommunicationListDashboard = () => {
   const [rows, setRows] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
-
+  const [user, setUser] = useState({})
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [order, setOrder] = useState("desc");
@@ -120,7 +120,7 @@ const CommunicationListDashboard = () => {
 
       const response = await getPracticeDetailsByUserId(payload);
       if (response?.payload?.practices) {
-        const { practices, total } = response.payload;
+        const { practices, total, user } = response.payload;
         const formatted = practices.map((p) => ({
           id: +p.id,
           date_of_practice: p.date,
@@ -128,6 +128,7 @@ const CommunicationListDashboard = () => {
           feedback: p.feedback || "—",
         }));
         setRows(formatted);
+        setUser(user);
         setTotalCount(total ?? formatted.length);
       } else {
         setRows([]);
@@ -230,11 +231,20 @@ const CommunicationListDashboard = () => {
             variant="h4"
             sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
           >
-            Communication List
+            {`Communication List - ${user.name
+              ? user.name
+                .split(" ")
+                .map((word, idx, arr) =>
+                  idx > 0 && idx < arr.length - 1
+                    ? word[0]
+                    : word
+                )
+                .join(" ")
+              : "-"}`}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 2 }}>
-          {decodedToken.sub === id ? <Button
+          {decodedToken.sub === +id ? <Button
             variant="outlined"
             sx={{
               borderColor: theme.palette.primary.main,
@@ -281,6 +291,7 @@ const CommunicationListDashboard = () => {
               order={order}
               orderBy={orderBy}
               onRequestSort={handleRequestSort}
+              setPage={setPage}
             />
             <TableBody>
               {loading ? (
