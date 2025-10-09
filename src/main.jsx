@@ -6,10 +6,12 @@ import { ThemeProvider } from "@mui/material/styles";
 import "rsuite/dist/rsuite.min.css";
 import theme from "../src/components/theme";
 import App from "./App";
+import { CssBaseline } from "@mui/material";
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <App />
     </ThemeProvider>
   </BrowserRouter>

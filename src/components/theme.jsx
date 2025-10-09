@@ -48,6 +48,16 @@ const theme = createTheme({
   },
 
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        "input::-ms-reveal": {
+          display: "none",
+        },
+        "input::-ms-clear": {
+          display: "none",
+        },
+      },
+    },
     MuiCard: {
       styleOverrides: {
         root: {

@@ -30,6 +30,7 @@ import { useTheme } from "@mui/material/styles";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
+import AssignmentAddIcon from '@mui/icons-material/AssignmentAdd';
 
 import PracticeFilterDrawer from "./filter";
 import {
@@ -252,6 +253,7 @@ const CommunicationListDashboard = () => {
               fontWeight: "bold",
             }}
             onClick={() => setAddModalOpen(true)}
+            startIcon={<AssignmentAddIcon />}
           >
             Add Practice
           </Button> : ""}
@@ -362,9 +364,9 @@ const CommunicationListDashboard = () => {
       {/* Delete Dialog */}
       <Dialog open={deleteOpen} onClose={handleDeleteClose}>
         <DialogTitle sx={{ fontWeight: "bold" }}>
-          <h3 style={{ color: "#2a9d8f", marginBottom: 0 }}>
+          <Typography variant="h3" style={{ marginBottom: 0 }}>
             Delete Confirmation
-          </h3>
+          </Typography>
         </DialogTitle>
 
         <Divider sx={{ borderColor: "rgba(0,0,0,0.6)", borderBottomWidth: 1 }} />
@@ -396,7 +398,7 @@ const CommunicationListDashboard = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </div >
   );
 };
 
