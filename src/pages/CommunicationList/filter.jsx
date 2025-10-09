@@ -15,8 +15,8 @@ export default function PracticeFilterDrawer({
   exactDate,
   fromDate,
   toDate,
-  onClear, // parent clear handler
-  onApply, // parent apply handler (fetch data)
+  onClear, 
+  onApply, 
 }) {
   // Local state inside drawer
   const [localExactDate, setLocalExactDate] = useState(exactDate);
@@ -91,7 +91,7 @@ export default function PracticeFilterDrawer({
             format="DD/MM/YYYY"
             value={localFromDate ? dayjs(localFromDate) : null}
             onChange={(newValue) =>
-              setLocalFromDate(newValue ? dayjs(newValue).toISOString() : null)
+              setLocalFromDate(newValue ? dayjs(newValue).utc(true).startOf('day').toISOString() : null)
             }
             slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
             maxDate={localToDate ? dayjs(localToDate) : dayjs()}
@@ -101,7 +101,7 @@ export default function PracticeFilterDrawer({
             format="DD/MM/YYYY"
             value={localToDate ? dayjs(localToDate) : null}
             onChange={(newValue) =>
-              setLocalToDate(newValue ? dayjs(newValue).toISOString() : null)
+              setLocalToDate(newValue ? dayjs(newValue).utc(true).startOf('day').toISOString() : null)
             }
             slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
             minDate={localFromDate ? dayjs(localFromDate) : undefined}
