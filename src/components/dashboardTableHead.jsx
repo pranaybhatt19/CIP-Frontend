@@ -24,7 +24,7 @@ const headCells = [
     id: "reporting_person_name",
     numeric: false,
     disablePadding: false,
-    label: "Reporting Person",
+    label: "Reporting Manager",
   },
   {
     id: "last_communication_date",
@@ -72,7 +72,6 @@ export function DashboardTableHead(props) {
           >
             {headCell.id === "actions" ||
             headCell.id === "full_name" ||
-            headCell.id === "designation_name" ||
             headCell.id === "reporting_person_name" ? (
               headCell.label
             ) : (

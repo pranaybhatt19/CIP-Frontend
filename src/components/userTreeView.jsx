@@ -160,7 +160,7 @@ export default function UserTreeView({ treeData }) {
               fontSize: "16px",
             }}
           >
-            Reporting Person
+            Reporting Manager
           </HeaderCell>
           <Cell
             dataKey="reporting_person"
@@ -200,7 +200,6 @@ export default function UserTreeView({ treeData }) {
               fontWeight: "bold",
               color: "#333",
               fontSize: "16px",
-              textAlign: "center",
             }}
           >
             Attempts
@@ -209,8 +208,9 @@ export default function UserTreeView({ treeData }) {
             dataKey="attempts"
             style={{
               padding: "16px 8px",
-              textAlign: "center",
-              fontWeight: 500,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           />
         </Column>

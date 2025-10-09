@@ -79,7 +79,7 @@ const validationSchema = Yup.object({
     .required("Email is required"),
   designation: Yup.number().required("Designation is required"),
   experience: Yup.date().required("Joining Date is required"),
-  reportingPerson: Yup.number().required("Reporting Person is required"),
+  reportingPerson: Yup.number().required("Reporting Manager is required"),
 });
 
 export const AddUserModal = ({ open, onClose }) => {
@@ -98,7 +98,9 @@ export const AddUserModal = ({ open, onClose }) => {
         setDesignationList(res.data || []);
       });
     } catch (err) {
-      toast.error(err.message || "Failed to fetch data");
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch data");
+      }
     }
   };
 
@@ -108,7 +110,9 @@ export const AddUserModal = ({ open, onClose }) => {
         setReportingPersonList(res.data || []);
       });
     } catch (err) {
-      toast.error(err.message || "Failed to fetch data");
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch data");
+      }
     }
   };
 
@@ -313,7 +317,7 @@ export const AddUserModal = ({ open, onClose }) => {
                 id="reporting-person-label"
                 shrink={Boolean(formik.values.reportingPerson)}
               >
-                Reporting Person
+                Reporting Manager
               </InputLabel>
 
               <Select
@@ -327,7 +331,7 @@ export const AddUserModal = ({ open, onClose }) => {
                 }
                 input={
                   <OutlinedInput
-                    label="Reporting Person"
+                    label="Reporting Manager"
                     notched={Boolean(formik.values.reportingPerson)}
                   />
                 }
