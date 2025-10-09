@@ -35,6 +35,7 @@ import { Tooltip } from "@mui/material";
 import UserTreeView from "../../components/userTreeView";
 import dayjs from "dayjs";
 
+
 export const Dashboard = () => {
   const theme = useTheme();
   const [isTreeView, setIsTreeView] = useState(true);
@@ -42,7 +43,7 @@ export const Dashboard = () => {
   const navigate = useNavigate();
   const [userDesignation, setUserDesignation] = useState("");
   const [order, setOrder] = useState("asc");
-  const [orderBy, setOrderBy] = useState("name");
+  const [orderBy, setOrderBy] = useState("full_name");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [totalCount, setTotalCount] = useState(0);
@@ -108,12 +109,16 @@ export const Dashboard = () => {
     try {
       const payload = {
         isTreeView: isTreeView,
-        limit: rowsPerPage,
-        offset: page * rowsPerPage,
-        order: [[orderBy, order.toUpperCase()]],
       };
 
-      if (searchName?.trim()) payload.name = searchName.trim();
+
+      if (!isTreeView) {
+        payload.limit = rowsPerPage;
+        payload.offset = page * rowsPerPage;
+        payload.order = [[orderBy, order.toUpperCase()]];
+      }
+
+      if (searchName?.trim()) payload.full_name = searchName.trim();
       if (selectedDesignation?.length > 0)
         payload.designation_ids = selectedDesignation;
       if (selectedExperience?.value) payload.experience = selectedExperience;
@@ -188,8 +193,7 @@ export const Dashboard = () => {
       {/* Top Bar */}
       <Box
         sx={{
-          margin: "1rem",
-          marginLeft: 2,
+          padding: "1rem",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -216,7 +220,7 @@ export const Dashboard = () => {
               minHeight: 36,
               border: "1px solid #2a9d8f",
               borderRadius: 1,
-              overflow: "hidden", // ensures selected background stays inside rounded border
+              overflow: "hidden",
               "& .MuiTabs-flexContainer": {
                 height: "100%",
               },

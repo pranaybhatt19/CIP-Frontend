@@ -62,7 +62,6 @@ export default function UserTreeView({ treeData }) {
     >
       <Table
         isTree
-        defaultExpandAllRows
         rowKey="id"
         data={tableData}
         autoHeight
@@ -91,7 +90,7 @@ export default function UserTreeView({ treeData }) {
         <Column flexGrow={1.2}>
           <HeaderCell
             style={{
-              padding: "5px 5px 5px 5px !important",
+              padding: "5px",
               fontWeight: "bold",
               color: "#333",
               fontSize: "16px",
