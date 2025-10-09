@@ -92,13 +92,11 @@ const Profile = () => {
   const handleOpenPasswordModal = () => {
     setOpenPasswordModal(true);
     setPasswordData({ newPassword: "", confirmPassword: "" });
-    setPasswordErrors({});
   };
 
   const handleClosePasswordModal = () => {
     setOpenPasswordModal(false);
     setPasswordData({ newPassword: "", confirmPassword: "" });
-    setPasswordErrors({});
   };
 
 
@@ -110,49 +108,6 @@ const Profile = () => {
     return (first + last).toUpperCase();
   };
 
-  const validatePassword = () => {
-    const errors = {};
-
-    if (!passwordData.newPassword) {
-      errors.newPassword = "New password is required";
-    } else if (passwordData.newPassword.length < 6) {
-      errors.newPassword = "Password must be at least 6 characters long";
-    }
-
-    if (!passwordData.confirmPassword) {
-      errors.confirmPassword = "Confirm password is required";
-    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-      errors.confirmPassword = "Passwords do not match";
-    }
-
-    return errors;
-  };
-
-  const handlePasswordSubmit = async () => {
-    const errors = validatePassword();
-
-    if (Object.keys(errors).length > 0) {
-      setPasswordErrors(errors);
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      const decodedToken = decodeToken();
-
-      await updateUser({
-        id: decodedToken?.sub,
-        password: passwordData.newPassword,
-      });
-
-      toast.success("Password updated successfully!");
-      handleClosePasswordModal();
-    } catch (err) {
-      toast.error(err.message || "Failed to update password");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -253,6 +208,7 @@ const Profile = () => {
                   textTransform: "none",
                   fontWeight: 600,
                 }}
+                onClose={handleClosePasswordModal}
               >
                 Change Password
               </Button>

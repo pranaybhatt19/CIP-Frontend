@@ -136,7 +136,7 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
 
             <TextField
               fullWidth
-              label="Link"
+              label="Link*"
               margin="normal"
               name="link"
               value={formik.values.link}
