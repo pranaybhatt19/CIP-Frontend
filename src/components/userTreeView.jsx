@@ -160,7 +160,7 @@ export default function UserTreeView({ treeData }) {
               fontSize: "16px",
             }}
           >
-            Reporting Person
+            Reporting Manager
           </HeaderCell>
           <Cell
             dataKey="reporting_person"

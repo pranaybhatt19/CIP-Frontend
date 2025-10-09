@@ -67,7 +67,6 @@ const Profile = () => {
         const firstName = nameParts[0] || "";
         const lastName = nameParts[2] || "";
 
-
         setUserInfo({
           firstName,
           lastName,
@@ -77,7 +76,8 @@ const Profile = () => {
           designation: decodedToken.designation?.name || "",
           experience: `${decodedToken.experience} Years` || "N/A",
           reportingPersonName: decodedToken.reportingPerson?.name || "",
-          reportingDesignation: decodedToken.reportingPerson?.designation?.name || "",
+          reportingDesignation:
+            decodedToken.reportingPerson?.designation?.name || "",
           isActive: decodedToken.activeStatus || false,
         });
       } catch (err) {
@@ -99,7 +99,6 @@ const Profile = () => {
     setPasswordData({ newPassword: "", confirmPassword: "" });
   };
 
-
   const getInitials = (name) => {
     if (!name) return "U";
     const parts = name.trim().split(" ");
@@ -107,7 +106,6 @@ const Profile = () => {
     const last = parts.length > 1 ? parts[parts.length - 1]?.[0] : "";
     return (first + last).toUpperCase();
   };
-
 
   if (loading) {
     return (
@@ -214,9 +212,10 @@ const Profile = () => {
               </Button>
             </Box>
 
-            {/* Reporting Person Information Section */}
             <Box sx={{ mb: 4 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}
+              >
                 <WorkIcon color="primary" />
                 <Typography variant="h6" fontWeight="600">
                   Professional Information
@@ -227,7 +226,7 @@ const Profile = () => {
                   display: "grid",
                   gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
                   gap: 3,
-                  mb: 4
+                  mb: 4,
                 }}
               >
                 <TextField
@@ -284,45 +283,49 @@ const Profile = () => {
                 />
               </Box>
             </Box>
-            {userInfo?.reportingPerson && <Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-                <SupervisorIcon color="primary" />
-                <Typography variant="h6" fontWeight="600">
-                  Reporting Person Information
-                </Typography>
-              </Box>
+            {userInfo?.reportingPerson && (
+              <Box>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}
+                >
+                  <SupervisorIcon color="primary" />
+                  <Typography variant="h6" fontWeight="600">
+                    Reporting Manager Information
+                  </Typography>
+                </Box>
 
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                  gap: 3,
-                }}
-              >
-                <TextField
-                  fullWidth
-                  label="Name"
-                  value={userInfo?.reportingPersonName || ""}
-                  InputProps={{ readOnly: true }}
+                <Box
                   sx={{
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: theme.palette.grey[50],
-                    },
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                    gap: 3,
                   }}
-                />
-                <TextField
-                  fullWidth
-                  label="Designation"
-                  value={userInfo?.reportingDesignation || ""}
-                  InputProps={{ readOnly: true }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: theme.palette.grey[50],
-                    },
-                  }}
-                />
+                >
+                  <TextField
+                    fullWidth
+                    label="Name"
+                    value={userInfo?.reportingPersonName || ""}
+                    InputProps={{ readOnly: true }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: theme.palette.grey[50],
+                      },
+                    }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Designation"
+                    value={userInfo?.reportingDesignation || ""}
+                    InputProps={{ readOnly: true }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: theme.palette.grey[50],
+                      },
+                    }}
+                  />
+                </Box>
               </Box>
-            </Box>}
+            )}
           </CardContent>
         </Card>
       </Fade>

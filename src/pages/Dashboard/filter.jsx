@@ -132,7 +132,6 @@ export default function FilterDrawer({
           </Select>
         </FormControl>
 
-        {/* Reporting Person filter */}
         <FormControl fullWidth sx={{ mb: 2 }}>
           <InputLabel id="reporting-label">Reporting Manager</InputLabel>
           <Select
@@ -140,7 +139,7 @@ export default function FilterDrawer({
             multiple
             value={selectedReportingPerson}
             onChange={(e) => setSelectedReportingPerson(e.target.value)}
-            input={<OutlinedInput label="Reporting Person" />}
+            input={<OutlinedInput label="Reporting Manager" />}
             renderValue={(selected) => (
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.4 }}>
                 {selected.map((id) => {

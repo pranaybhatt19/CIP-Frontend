@@ -34,7 +34,7 @@ import { DashboardTableHead } from "../../components/dashboardTableHead";
 import { Tooltip } from "@mui/material";
 import UserTreeView from "../../components/userTreeView";
 import dayjs from "dayjs";
-
+import AddLanguageModal from "../../components/addLanguage";
 
 export const Dashboard = () => {
   const theme = useTheme();
@@ -93,7 +93,9 @@ export const Dashboard = () => {
       const res = await getDesignations();
       setDesignationList(res.data || []);
     } catch (err) {
-      toast.error(err.message || "Failed to fetch designations");
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch designations");
+      }
     }
   };
 
@@ -102,7 +104,9 @@ export const Dashboard = () => {
       const res = await getReportingPersons();
       setReportingPersonList(res.data || []);
     } catch (err) {
-      toast.error(err.message || "Failed to fetch reporting persons");
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch reporting managers");
+      }
     }
   };
 
@@ -111,7 +115,6 @@ export const Dashboard = () => {
       const payload = {
         isTreeView: isTreeView,
       };
-
 
       if (!isTreeView) {
         payload.limit = rowsPerPage;
@@ -143,7 +146,9 @@ export const Dashboard = () => {
         setTotalCount(res.data.totalCount || 0);
       });
     } catch (err) {
-      toast.error(err.message || "Failed to fetch data");
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch data");
+      }
     } finally {
       setLoading(false);
     }
@@ -313,6 +318,8 @@ export const Dashboard = () => {
         onClose={() => setAddUserModalOpen(false)}
       />
 
+      <AddLanguageModal open={false} />
+
       {openTreeView ? (
         <UserTreeView treeData={Array.isArray(rows) ? rows : [rows]} />
       ) : (
@@ -359,13 +366,13 @@ export const Dashboard = () => {
                           <span style={{ cursor: "pointer" }}>
                             {row.full_name
                               ? row.full_name
-                                .split(" ")
-                                .map((word, idx, arr) =>
-                                  idx > 0 && idx < arr.length - 1
-                                    ? word[0]
-                                    : word
-                                )
-                                .join(" ")
+                                  .split(" ")
+                                  .map((word, idx, arr) =>
+                                    idx > 0 && idx < arr.length - 1
+                                      ? word[0]
+                                      : word
+                                  )
+                                  .join(" ")
                               : "-"}
                           </span>
                         </Tooltip>
@@ -379,18 +386,18 @@ export const Dashboard = () => {
                       <TableCell sx={{ pl: "5px" }}>
                         {row.reporting_person?.name
                           ? row.reporting_person?.name
-                            .split(" ")
-                            .map((word, idx, arr) =>
-                              idx > 0 && idx < arr.length - 1 ? "" : word
-                            )
-                            .join(" ")
+                              .split(" ")
+                              .map((word, idx, arr) =>
+                                idx > 0 && idx < arr.length - 1 ? "" : word
+                              )
+                              .join(" ")
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>
                         {row.last_communication_date
                           ? dayjs(row.last_communication_date).format(
-                            "DD/MM/YYYY"
-                          )
+                              "DD/MM/YYYY"
+                            )
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>

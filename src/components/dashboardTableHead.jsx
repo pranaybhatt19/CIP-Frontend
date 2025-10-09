@@ -24,7 +24,7 @@ const headCells = [
     id: "reporting_person_name",
     numeric: false,
     disablePadding: false,
-    label: "Reporting Person",
+    label: "Reporting Manager",
   },
   {
     id: "last_communication_date",
