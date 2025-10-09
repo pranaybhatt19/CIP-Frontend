@@ -15,8 +15,8 @@ export default function PracticeFilterDrawer({
   exactDate,
   fromDate,
   toDate,
-  onClear, 
-  onApply, 
+  onClear,
+  onApply,
 }) {
   // Local state inside drawer
   const [localExactDate, setLocalExactDate] = useState(exactDate);
@@ -80,7 +80,9 @@ export default function PracticeFilterDrawer({
             value={localExactDate ? dayjs(localExactDate) : null}
             onChange={(newValue) =>
               setLocalExactDate(
-                newValue ? dayjs(newValue).utc(true).startOf('day').toISOString() : null
+                newValue
+                  ? dayjs(newValue).utc(true).startOf("day").toISOString()
+                  : null
               )
             }
             slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
@@ -91,30 +93,54 @@ export default function PracticeFilterDrawer({
             format="DD/MM/YYYY"
             value={localFromDate ? dayjs(localFromDate) : null}
             onChange={(newValue) =>
-              setLocalFromDate(newValue ? dayjs(newValue).utc(true).startOf('day').toISOString() : null)
+              setLocalFromDate(
+                newValue
+                  ? dayjs(newValue).utc(true).startOf("day").toISOString()
+                  : null
+              )
             }
             slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
-            maxDate={localToDate ? dayjs(localToDate) : dayjs()}
+            maxDate={
+              localToDate ? dayjs(localToDate).subtract(1, "day") : dayjs()
+            }
           />
           <DatePicker
             label="To Date"
             format="DD/MM/YYYY"
             value={localToDate ? dayjs(localToDate) : null}
             onChange={(newValue) =>
-              setLocalToDate(newValue ? dayjs(newValue).utc(true).startOf('day').toISOString() : null)
+              setLocalToDate(
+                newValue
+                  ? dayjs(newValue).utc(true).startOf("day").toISOString()
+                  : null
+              )
             }
             slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
-            minDate={localFromDate ? dayjs(localFromDate) : undefined}
+            minDate={
+              localFromDate ? dayjs(localFromDate).add(1, "day") : undefined
+            }
             maxDate={dayjs()}
           />
         </LocalizationProvider>
 
         {/* Action Buttons */}
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: 2 }}>
-          <Button variant="outlined" color="primary" sx={{ fontWeight: "bold" }} onClick={handleClear}>
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: 2 }}
+        >
+          <Button
+            variant="outlined"
+            color="primary"
+            sx={{ fontWeight: "bold" }}
+            onClick={handleClear}
+          >
             Clear
           </Button>
-          <Button variant="contained" color="primary" sx={{ fontWeight: "bold" }} onClick={handleApply}>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ fontWeight: "bold" }}
+            onClick={handleApply}
+          >
             Apply
           </Button>
         </Box>
