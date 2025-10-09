@@ -40,6 +40,7 @@ export default function FilterDrawer({
   reportingPersonList,
   onClear,
   onApply,
+  userId,
 }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -133,7 +134,7 @@ export default function FilterDrawer({
 
         {/* Reporting Person filter */}
         <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="reporting-label">Reporting Person</InputLabel>
+          <InputLabel id="reporting-label">Reporting Manager</InputLabel>
           <Select
             labelId="reporting-label"
             multiple
@@ -156,11 +157,13 @@ export default function FilterDrawer({
               },
             }}
           >
-            {reportingPersonList.map((item) => (
-              <MenuItem key={item.user_id} value={item.user_id}>
-                {item.name}
-              </MenuItem>
-            ))}
+            {reportingPersonList
+              .filter((item) => item.user_id !== userId)
+              .map((item) => (
+                <MenuItem key={item.user_id} value={item.user_id}>
+                  {item.name}
+                </MenuItem>
+              ))}
           </Select>
         </FormControl>
 
@@ -182,7 +185,6 @@ export default function FilterDrawer({
 
         {/* Last Attempted Date Filter */}
         <Box sx={{ mt: 0 }}>
-
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               label="Exact Date (Last Attempt)"

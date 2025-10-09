@@ -38,7 +38,8 @@ import dayjs from "dayjs";
 export const Dashboard = () => {
   const theme = useTheme();
   const [isTreeView, setIsTreeView] = useState(true);
-  const [openTreeView, setOpenTreeView] = useState(false);
+  const [openTreeView, setOpenTreeView] = useState(true);
+  const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
   const [userDesignation, setUserDesignation] = useState("");
   const [order, setOrder] = useState("asc");
@@ -80,7 +81,7 @@ export const Dashboard = () => {
     const decodedToken = decodeToken();
     if (decodedToken?.designation)
       setUserDesignation(decodedToken.designation?.name);
-
+    if (decodedToken?.sub) setUserId(decodedToken.sub);
     fetchDesignations();
     fetchReportingPersons();
   }, []);
@@ -209,41 +210,42 @@ export const Dashboard = () => {
           Dashboard
         </Typography>
         <Box sx={{ display: "flex", gap: 1 }}>
-          <Tabs
-            value={isTreeView ? 1 : 0}
-            onChange={(e, newValue) => setIsTreeView(newValue === 1)}
-            textColor="inherit"
-            indicatorColor="none"
-            sx={{
-              minHeight: 36,
-              border: "1px solid #2a9d8f",
-              borderRadius: 1,
-              overflow: "hidden",
-              "& .MuiTabs-flexContainer": {
-                height: "100%",
-              },
-              "& .MuiTab-root": {
-                textTransform: "none",
-                fontWeight: "bold",
-                fontSize: "1rem",
+          {reportingPersonList.length > 0 && (
+            <Tabs
+              value={isTreeView ? 1 : 0}
+              onChange={(e, newValue) => setIsTreeView(newValue === 1)}
+              indicatorColor="none"
+              sx={{
                 minHeight: 36,
-                height: "100%",
-                flex: 1,
-                color: "#2a9d8f",
-                whiteSpace: "nowrap",
-                padding: "0 12px",
-                margin: 0,
-                borderRadius: 0,
-                "&.Mui-selected": {
-                  color: "#fff",
-                  backgroundColor: "#2a9d8f",
+                border: "1px solid #2a9d8f",
+                borderRadius: 1,
+                overflow: "hidden",
+                "& .MuiTabs-flexContainer": {
+                  height: "100%",
                 },
-              },
-            }}
-          >
-            <Tab label="List View" />
-            <Tab label="Tree View" />
-          </Tabs>
+                "& .MuiTab-root": {
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  fontSize: "1rem",
+                  minHeight: 36,
+                  height: "100%",
+                  flex: 1,
+                  color: "#2a9d8f",
+                  whiteSpace: "nowrap",
+                  padding: "0 12px",
+                  margin: 0,
+                  borderRadius: 0,
+                  "&.Mui-selected": {
+                    color: "#fff",
+                    backgroundColor: "#2a9d8f",
+                  },
+                },
+              }}
+            >
+              <Tab label="List View" />
+              <Tab label="Tree View" />
+            </Tabs>
+          )}
 
           {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
             <Button
@@ -259,18 +261,21 @@ export const Dashboard = () => {
               Add User
             </Button>
           )}
-          <Button
-            variant="outlined"
-            sx={{
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              fontWeight: "bold",
-            }}
-            startIcon={<FilterListIcon color="primary" />}
-            onClick={() => setFilterOpen(true)}
-          >
-            Filters
-          </Button>
+
+          {reportingPersonList.length > 0 && (
+            <Button
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                fontWeight: "bold",
+              }}
+              startIcon={<FilterListIcon color="primary" />}
+              onClick={() => setFilterOpen(true)}
+            >
+              Filters
+            </Button>
+          )}
         </Box>
 
         <FilterDrawer
@@ -295,6 +300,7 @@ export const Dashboard = () => {
           reportingPersonList={reportingPersonList}
           onClear={handleClearFilters}
           onApply={fetchData}
+          userId={userId}
         />
       </Box>
 
