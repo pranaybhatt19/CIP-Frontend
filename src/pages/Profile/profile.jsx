@@ -57,7 +57,6 @@ const Profile = () => {
         setError("");
 
         const decodedToken = decodeToken();
-        console.log(decodedToken)
         if (!decodedToken) {
           throw new Error("Unable to decode token");
         }
