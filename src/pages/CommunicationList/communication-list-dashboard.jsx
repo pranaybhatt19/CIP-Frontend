@@ -38,6 +38,7 @@ import {
 } from "../../services/authentication";
 import AddPracticeModal from "../../components/addPractice";
 import CommunicationTableHead from "../../components/communicationListTableHead";
+import { decodeToken } from "../../util/commonFunction";
 
 const renderWithTooltip = (text, limit = 40) => {
   if (!text) return "—";
@@ -82,7 +83,7 @@ const CommunicationListDashboard = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
-
+  const decodedToken = decodeToken();
   const [rows, setRows] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -106,7 +107,7 @@ const CommunicationListDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       const payload = {
         id: +id,
         offset: page * rowsPerPage,
@@ -233,7 +234,7 @@ const CommunicationListDashboard = () => {
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 2 }}>
-          <Button
+          {decodedToken.sub === id ? <Button
             variant="outlined"
             sx={{
               borderColor: theme.palette.primary.main,
@@ -243,7 +244,7 @@ const CommunicationListDashboard = () => {
             onClick={() => setAddModalOpen(true)}
           >
             Add Practice
-          </Button>
+          </Button> : ""}
           <Button
             variant="outlined"
             sx={{
