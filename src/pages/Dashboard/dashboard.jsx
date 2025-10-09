@@ -108,10 +108,13 @@ export const Dashboard = () => {
     try {
       const payload = {
         isTreeView: isTreeView,
-        limit: rowsPerPage,
-        offset: page * rowsPerPage,
-        order: [[orderBy, order.toUpperCase()]],
       };
+
+      if (!isTreeView) {
+        payload.limit = rowsPerPage;
+        payload.offset = page * rowsPerPage;
+        payload.order = [[orderBy, order.toUpperCase()]];
+      }
 
       if (searchName?.trim()) payload.full_name = searchName.trim();
       if (selectedDesignation?.length > 0)

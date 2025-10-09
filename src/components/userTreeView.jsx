@@ -62,7 +62,6 @@ export default function UserTreeView({ treeData }) {
     >
       <Table
         isTree
-        defaultExpandAllRows
         rowKey="id"
         data={tableData}
         autoHeight
