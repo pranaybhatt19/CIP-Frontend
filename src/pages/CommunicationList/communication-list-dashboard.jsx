@@ -294,7 +294,14 @@ const CommunicationListDashboard = () => {
                 </TableRow>
               ) : rows.length > 0 ? (
                 rows.map((row) => (
-                  <TableRow key={row.id} hover>
+                  <TableRow key={row.id} hover
+                    sx={{
+                      height: "60px",
+                      "& .MuiTableCell-root": {
+                        py: 1,
+                      },
+                    }}
+                  >
                     <TableCell>
                       {dayjs(row.date_of_practice).format("DD/MM/YYYY")}
                     </TableCell>
