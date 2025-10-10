@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -15,6 +15,13 @@ import {
   Typography,
   Tab,
   Tabs,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  OutlinedInput,
+  MenuItem,
+  Chip,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
@@ -38,7 +45,7 @@ import dayjs from "dayjs";
 import AddLanguageModal from "../../components/addLanguage";
 import Cookie from "js-cookie";
 import Cookies from "js-cookie";
-import { debounce } from 'lodash';
+import { debounce } from "lodash";
 
 export const Dashboard = () => {
   const theme = useTheme();
@@ -84,26 +91,25 @@ export const Dashboard = () => {
   const [reportingPersonList, setReportingPersonList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
 
-  // const [searchTerm, setSearchTerm] = useState(''); // Can be used to store input value
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(() => {
+        fetchData();
+      }, 1000),
+    [searchName, selectedDesignation]
+  );
 
-  // Debounce function
-  // const debouncedSearch = useCallback(
-  //   debounce((input) => fetchData(input), 2500), // Call api after 2.5 seconds(initial can be changed later)
-  //   []
-  // );
+  useEffect(() => {
+    if (searchName.length < 1 || searchName?.length > 2) {
+      debouncedSearch();
+    }
+  }, [searchName, selectedDesignation, debouncedSearch]);
 
-  // Handle input changes
-  // const handleNameInputChange = (event) => {
-  //   setSearchTerm(event.target.value);
-  //   debouncedSearch(searchTerm); // Call on every keystroke
-  // };
-
-  // Clean up debounced on component unmount
-  // useEffect(() => {
-  //   return () => {
-  //     debouncedSearch.cancel();
-  //   };
-  // }, [debouncedSearch]);
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   // ====================== Effects ======================
   useEffect(() => {
@@ -117,16 +123,16 @@ export const Dashboard = () => {
 
   useEffect(() => {
     const savedView = Cookie.get("cip_view_preference");
-    if(!savedView){
+    if (!savedView) {
       Cookie.set("cip_view_preference", "list", { expires: 7 });
       setIsTreeView(false);
       return;
     }
     switch (savedView) {
-      case 'tree':
+      case "tree":
         setIsTreeView(true);
         break;
-      case 'list':
+      case "list":
         setIsTreeView(false);
         break;
       default:
@@ -295,73 +301,153 @@ export const Dashboard = () => {
         >
           Dashboard
         </Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
-          {reportingPersonList.length > 0 && (
-            <Tabs
-              value={isTreeView ? 1 : 0}
-              onChange={handlePrefChange}
-              indicatorColor="none"
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            justifyContent: "flex-end",
+            alignItems: "flex-start",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "flex-start",
+              gap: 1,
+              flexWrap: "wrap",
+            }}
+          >
+            <TextField
+              label="Name"
+              value={searchName}
+              onChange={(e) => {
+                setSearchName(e.target.value);
+              }}
+              fullWidth
+              error={searchName.length > 0 && searchName.length < 3}
+              helperText={
+                searchName.length > 0 && searchName.length < 3
+                  ? "Enter at least 3 characters"
+                  : ""
+              }
               sx={{
-                minHeight: 36,
-                border: "1px solid #2a9d8f",
-                borderRadius: 1,
-                overflow: "hidden",
-                "& .MuiTabs-flexContainer": {
-                  height: "100%",
+                width: "250px",
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "transparent",
                 },
-                "& .MuiTab-root": {
-                  textTransform: "none",
-                  fontWeight: "bold",
-                  fontSize: "1rem",
+                "& .MuiFormHelperText-root": {
+                  minHeight: "24px",
+                },
+              }}
+            />
+
+            <FormControl sx={{ width: "250px" }}>
+              <InputLabel id="designation-label">Designation</InputLabel>
+              <Select
+                labelId="designation-label"
+                multiple
+                value={selectedDesignation}
+                onChange={(e) => setSelectedDesignation(e.target.value)}
+                input={<OutlinedInput label="Designation" />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.4 }}>
+                    {selected.map((id) => {
+                      const d = designationList.find((item) => item.id === id);
+                      return <Chip key={id} label={d?.name ?? id} />;
+                    })}
+                  </Box>
+                )}
+              >
+                {designationList.map((item) => (
+                  <MenuItem key={item.id} value={item.id}>
+                    {item.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 1,
+              flexWrap: "wrap",
+              height: "100% !important",
+            }}
+          >
+            {reportingPersonList.length > 0 && (
+              <Tabs
+                value={isTreeView ? 1 : 0}
+                onChange={handlePrefChange}
+                indicatorColor="none"
+                sx={{
                   minHeight: 36,
-                  height: "100%",
-                  flex: 1,
-                  color: "#2a9d8f",
-                  whiteSpace: "nowrap",
-                  padding: "0 12px",
-                  margin: 0,
-                  borderRadius: 0,
-                  "&.Mui-selected": {
-                    color: "#fff",
-                    backgroundColor: "#2a9d8f",
+                  border: "1px solid #2a9d8f",
+                  borderRadius: 1,
+                  overflow: "hidden",
+                  "& .MuiTabs-flexContainer": {
+                    height: "100%",
                   },
-                },
-              }}
-            >
-              <Tab label="List View" />
-              <Tab label="Tree View" />
-            </Tabs>
-          )}
+                  "& .MuiTab-root": {
+                    textTransform: "none",
+                    fontWeight: "bold",
+                    fontSize: "1rem",
+                    minHeight: 36,
+                    height: "38px",
+                    flex: 1,
+                    color: "#2a9d8f",
+                    whiteSpace: "nowrap",
+                    padding: "0 12px",
+                    margin: 0,
+                    borderRadius: 0,
+                    "&.Mui-selected": {
+                      color: "#fff",
+                      backgroundColor: "#2a9d8f",
+                    },
+                  },
+                }}
+              >
+                <Tab label="List View" />
+                <Tab label="Tree View" />
+              </Tabs>
+            )}
 
-          {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
-            <Button
-              variant="outlined"
-              sx={{
-                borderColor: theme.palette.primary.main,
-                color: theme.palette.primary.main,
-                fontWeight: "bold",
-              }}
-              onClick={() => setAddUserModalOpen(true)}
-              startIcon={<PersonAddAltIcon color="primary" />}
-            >
-              Add User
-            </Button>
-          )}
+            {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
+              <Button
+                variant="outlined"
+                sx={{
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
+                  fontWeight: "bold",
+                  height: "40px",
+                  textWrap: "nowrap",
+                }}
+                onClick={() => setAddUserModalOpen(true)}
+                startIcon={<PersonAddAltIcon color="primary" />}
+              >
+                Add User
+              </Button>
+            )}
 
-          {reportingPersonList.length > 0 && (
-            <Button
-              variant="outlined"
-              sx={{
-                borderColor: theme.palette.primary.main,
-                color: theme.palette.primary.main,
-                fontWeight: "bold",
-              }}
-              startIcon={<FilterListIcon color="primary" />}
-              onClick={() => setFilterOpen(true)}
-            >
-              Filters
-            </Button>
-          )}
+            {reportingPersonList.length > 0 && (
+              <Button
+                variant="outlined"
+                sx={{
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
+                  fontWeight: "bold",
+                  height: "40px",
+                }}
+                startIcon={<FilterListIcon color="primary" />}
+                onClick={() => setFilterOpen(true)}
+              >
+                Filters
+              </Button>
+            )}
+          </Box>
         </Box>
 
         <FilterDrawer
@@ -370,10 +456,6 @@ export const Dashboard = () => {
             setFilterOpen(false);
             setPage(0);
           }}
-          searchName={searchName}
-          setSearchName={setSearchName}
-          selectedDesignation={selectedDesignation}
-          setSelectedDesignation={setSelectedDesignation}
           selectedExperience={selectedExperience}
           setSelectedExperience={setSelectedExperience}
           selectedReportingPerson={selectedReportingPerson}

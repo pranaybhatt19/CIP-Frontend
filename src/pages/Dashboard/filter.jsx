@@ -24,10 +24,6 @@ import ScoreFilter from "../../components/scoreFilter";
 export default function FilterDrawer({
   open,
   onClose,
-  searchName,
-  setSearchName,
-  selectedDesignation,
-  setSelectedDesignation,
   selectedExperience,
   setSelectedExperience,
   selectedReportingPerson,
@@ -56,8 +52,6 @@ export default function FilterDrawer({
   const handleApply = () => {
     // prepare payload
     const payload = {
-      searchName,
-      selectedDesignation,
       selectedExperience,
       selectedReportingPerson,
       selectedAttempts,
@@ -86,51 +80,6 @@ export default function FilterDrawer({
             <CloseIcon />
           </IconButton>
         </Box>
-
-        {/* Name filter */}
-        <TextField
-          label="Name"
-          value={searchName}
-          onChange={(e) => setSearchName(e.target.value)}
-          fullWidth
-          sx={{
-            mb: 2,
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: "transparent",
-            },
-          }}
-        />
-
-        {/* Designation filter */}
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="designation-label">Designation</InputLabel>
-          <Select
-            labelId="designation-label"
-            multiple
-            value={selectedDesignation}
-            onChange={(e) => setSelectedDesignation(e.target.value)}
-            input={<OutlinedInput label="Designation" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.4 }}>
-                {selected.map((id) => {
-                  const d = designationList.find((item) => item.id === id);
-                  return <Chip key={id} label={d?.name ?? id} />;
-                })}
-              </Box>
-            )}
-            MenuProps={{
-              PaperProps: {
-                style: { maxHeight: isMobile ? 250 : 300 },
-              },
-            }}
-          >
-            {designationList.map((item) => (
-              <MenuItem key={item.id} value={item.id}>
-                {item.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
 
         <FormControl fullWidth sx={{ mb: 2 }}>
           <InputLabel id="reporting-label">Reporting Manager</InputLabel>
