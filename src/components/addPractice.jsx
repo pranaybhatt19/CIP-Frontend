@@ -107,25 +107,28 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
                   label="Date & Time"
                   value={formik.values.datetime}
                   onChange={(newValue) => {
+                    // Always update Formik field
                     formik.setFieldValue("datetime", newValue);
                     formik.setFieldTouched("datetime", true);
+
+                    // Custom future-date validation
+                    if (newValue && dayjs(newValue).isAfter(dayjs())) {
+                      formik.setFieldError("datetime", "Future date/time not allowed");
+                    } else {
+                      formik.setFieldError("datetime", undefined);
+                    }
                   }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      fullWidth
-                      margin="normal"
-                      error={
-                        formik.touched.datetime &&
-                        Boolean(formik.errors.datetime)
-                      }
-                    />
-                  )}
-                  inputFormat="DD/MM/YYYY HH:mm"
-                  maxDateTime={dayjs()}
+                  onBlur={() => formik.setFieldTouched("datetime", true)}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      margin: "normal",
+                      error: formik.touched.datetime && Boolean(formik.errors.datetime),
+                    },
+                  }}
+                  format="DD/MM/YYYY HH:mm"
                   disableFuture
                 />
-                {/* Show Formik error explicitly */}
                 {formik.touched.datetime && formik.errors.datetime && (
                   <Typography variant="caption" color="error" sx={{ ml: 0.5 }}>
                     {formik.errors.datetime}

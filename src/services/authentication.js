@@ -42,7 +42,7 @@ export const resetPassword = async (details) => {
 };
 
 export const getUserInfo = async (id) => {
-  return api.get(`/api/auth/users/user-info/${id}`);
+  return api.get(`/api/auth/users/get-user-details/${id}`);
 };
 
 export const searchDashboard = async (details) => {

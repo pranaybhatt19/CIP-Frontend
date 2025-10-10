@@ -33,7 +33,7 @@ import {
   VisibilityOff,
 } from "@mui/icons-material";
 import { decodeToken } from "../../util/commonFunction";
-import { updateUser } from "../../services/authentication";
+import { getUserInfo, updateUser } from "../../services/authentication";
 import { toast } from "react-toastify";
 import ChangePasswordDialog from "../../components/changePasswordModal";
 
@@ -57,28 +57,37 @@ const Profile = () => {
         setError("");
 
         const decodedToken = decodeToken();
-        if (!decodedToken) {
-          throw new Error("Unable to decode token");
+        if (!decodedToken?.sub) {
+          throw new Error("Unable to decode token or missing user ID");
         }
 
-        // Extract first and last name
-        const fullName = decodedToken.name || "";
-        const nameParts = fullName.trim().split(" ");
-        const firstName = nameParts[0] || "";
-        const lastName = nameParts[2] || "";
+        // Fetch user data from backend
+        const response = await getUserInfo(decodedToken.sub);
+        const user = response?.payload;
+
+        if (!user) {
+          throw new Error("User data not found");
+        }
 
         setUserInfo({
-          firstName,
-          lastName,
-          fullName,
-          reportingPerson: decodedToken.reportingPerson,
-          email: decodedToken.email || "",
-          designation: decodedToken.designation?.name || "",
-          experience: `${decodedToken.experience} Years` || "N/A",
-          reportingPersonName: decodedToken.reportingPerson?.name || "",
-          reportingDesignation:
-            decodedToken.reportingPerson?.designation?.name || "",
-          isActive: decodedToken.activeStatus || false,
+          id: user.id,
+          firstName: user.first_name || "",
+          middleName: user.middle_name || "",
+          lastName: user.last_name || "",
+          fullName: user.full_name || "",
+          email: user.email || "",
+          experience: user.experience_years
+            ? `${user.experience_years} Years`
+            : "N/A",
+          experienceStartDate: user.experience_start_date || "",
+          designation: user.designation?.name || "",
+          mediumOfEducation: user.medium_of_education || "",
+          isActive: user.is_active || false,
+          reportingPerson: {
+            id: user.reporting_person?.id || null,
+            fullName: user.reporting_person?.full_name || "",
+            designation: user.reporting_person?.designation?.name || "",
+          },
         });
       } catch (err) {
         if (err.status === 409) {
@@ -88,12 +97,15 @@ const Profile = () => {
             err?.response?.data?.message || "Failed to fetch profile data"
           );
         }
+
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
+
 
   const handleOpenPasswordModal = () => {
     setOpenPasswordModal(true);
@@ -185,16 +197,13 @@ const Profile = () => {
               >
                 {getInitials(`${userInfo?.firstName} ${userInfo?.lastName}`)}
               </Avatar>
+
               <Box sx={{ flex: 1 }}>
                 <Typography variant="h5" fontWeight="600" sx={{ mb: 0.5 }}>
-                  {userInfo?.firstName} {userInfo?.lastName}
+                  {userInfo?.fullName || "-"}
                 </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  sx={{ mb: 1 }}
-                >
-                  {userInfo?.designation || ""}
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+                  {userInfo?.designation || "N/A"}
                 </Typography>
                 <Chip
                   label={userInfo?.isActive ? "Active" : "Inactive"}
@@ -203,6 +212,7 @@ const Profile = () => {
                   sx={{ fontWeight: 600 }}
                 />
               </Box>
+
               <Button
                 variant="outlined"
                 startIcon={<LockResetIcon />}
@@ -212,21 +222,20 @@ const Profile = () => {
                   textTransform: "none",
                   fontWeight: 600,
                 }}
-                onClose={handleClosePasswordModal}
               >
                 Change Password
               </Button>
             </Box>
 
+            {/* Professional Info */}
             <Box sx={{ mb: 4 }}>
-              <Box
-                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}
-              >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
                 <WorkIcon color="primary" />
                 <Typography variant="h6" fontWeight="600">
                   Professional Information
                 </Typography>
               </Box>
+
               <Box
                 sx={{
                   display: "grid",
@@ -258,11 +267,13 @@ const Profile = () => {
                   }}
                 />
               </Box>
+
               <Box
                 sx={{
                   display: "grid",
                   gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
                   gap: 3,
+                  mb: 4,
                 }}
               >
                 <TextField
@@ -278,7 +289,7 @@ const Profile = () => {
                 />
                 <TextField
                   fullWidth
-                  label="Experience"
+                  label="Experience (Years)"
                   value={userInfo?.experience || ""}
                   InputProps={{ readOnly: true }}
                   sx={{
@@ -288,12 +299,47 @@ const Profile = () => {
                   }}
                 />
               </Box>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  gap: 3,
+                }}
+              >
+                <TextField
+                  fullWidth
+                  label="Joining Date"
+                  value={
+                    userInfo?.experienceStartDate
+                      ? new Date(userInfo.experienceStartDate).toLocaleDateString()
+                      : "-"
+                  }
+                  InputProps={{ readOnly: true }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: theme.palette.grey[50],
+                    },
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  label="Medium of Education"
+                  value={String(userInfo?.mediumOfEducation) || ""}
+                  InputProps={{ readOnly: true }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: theme.palette.grey[50],
+                    },
+                  }}
+                />
+              </Box>
             </Box>
+
+            {/* Reporting Manager Info */}
             {userInfo?.reportingPerson && (
               <Box>
-                <Box
-                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}
-                >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
                   <SupervisorIcon color="primary" />
                   <Typography variant="h6" fontWeight="600">
                     Reporting Manager Information
@@ -310,7 +356,7 @@ const Profile = () => {
                   <TextField
                     fullWidth
                     label="Name"
-                    value={userInfo?.reportingPersonName || ""}
+                    value={userInfo?.reportingPerson?.fullName || ""}
                     InputProps={{ readOnly: true }}
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -321,7 +367,7 @@ const Profile = () => {
                   <TextField
                     fullWidth
                     label="Designation"
-                    value={userInfo?.reportingDesignation || ""}
+                    value={userInfo?.reportingPerson?.designation || ""}
                     InputProps={{ readOnly: true }}
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -333,6 +379,7 @@ const Profile = () => {
               </Box>
             )}
           </CardContent>
+
         </Card>
       </Fade>
 
