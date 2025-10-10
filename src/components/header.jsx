@@ -112,7 +112,7 @@ export const Header = () => {
                 </Typography>
                 {userDesignation && (
                   <Typography
-                    variant="body2"
+                    variant='body2'
                     sx={{ color: theme.palette.text.secondary, textTransform: "capitalize" }}
                   >
                     {userDesignation}
@@ -127,9 +127,17 @@ export const Header = () => {
                   handleCloseUserMenu();
                   navigate("/profile");
                 }}
+                sx={{
+                  mt: 1,
+                  py: 1.5,
+                  px: 3,
+                  "&:hover": {
+                    backgroundColor: "rgba(25, 118, 210, 0.04)",
+                  },
+                }}
               >
                 <PersonIcon sx={{ mr: 2, color: theme.palette.text.secondary }} />
-                Profile
+                <Typography sx={{ fontSize: "0.9rem" }}>Profile</Typography>
               </MenuItem>
 
               <Divider />

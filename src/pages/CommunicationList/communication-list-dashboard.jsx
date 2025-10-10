@@ -238,7 +238,7 @@ const CommunicationListDashboard = () => {
             }}
           />
           <Typography
-            variant="h4"
+            variant="h3"
             sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
           >
             {`Communication List - ${
@@ -324,7 +324,7 @@ const CommunicationListDashboard = () => {
                     key={row.id}
                     hover
                     sx={{
-                      height: "60px",
+                      height: "57px",
                       "& .MuiTableCell-root": {
                         py: 1,
                       },

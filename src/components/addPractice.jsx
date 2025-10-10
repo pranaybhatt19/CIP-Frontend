@@ -93,11 +93,11 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
       <Box sx={modalStyle}>
         <Typography
           variant="h3"
-          sx={{ mb: 3, fontWeight: 700, textAlign: "left" }}
+          sx={{  textAlign: "left" }}
         >
           Add Practice
         </Typography>
-
+        
         <form onSubmit={formik.handleSubmit}>
           <Box sx={scrollbarStyles}>
             {/* Date & Time with proper label */}

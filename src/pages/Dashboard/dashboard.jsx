@@ -254,7 +254,7 @@ export const Dashboard = () => {
         }}
       >
         <Typography
-          variant="h4"
+          variant="h3"
           sx={{
             fontWeight: "bold",
             color: theme.palette.primary.main,
