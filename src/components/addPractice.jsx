@@ -7,17 +7,19 @@ import {
   Typography,
   TextField,
   FormControl,
-  FormLabel,
 } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { addPractice } from "../services/authentication";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useParams } from "react-router-dom";
+
+dayjs.extend(utc);
 
 const modalStyle = {
   position: "absolute",
@@ -48,25 +50,43 @@ const scrollbarStyles = {
   "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#555" },
 };
 
+// ✅ Yup validation schema
 const validationSchema = Yup.object({
-  datetime: Yup.date().required("Date & Time is required"),
+  datetime: Yup.mixed()
+    .required("Date & Time is required")
+    .test("is-valid-date", "Please enter a valid date", (value) => {
+      if (!value) return false;
+      return dayjs.isDayjs(value) && value.isValid();
+    })
+    .test("not-in-future", "Date & Time cannot be in the future", (value) => {
+      if (!value || !dayjs.isDayjs(value)) return true;
+      return (
+        dayjs(value).isBefore(dayjs()) || dayjs(value).isSame(dayjs(), "second")
+      );
+    }),
   link: Yup.string().url("Enter a valid URL").required("Link is required"),
   feedback: Yup.string(),
 });
 
 const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
-  const [initialDateTime] = useState(dayjs().subtract(5, "minute"));
   const { id } = useParams();
+  const [dateError, setDateError] = useState("");
+
   const formik = useFormik({
     initialValues: {
-      datetime: initialDateTime,
+      datetime: dayjs().subtract(5, "minute"),
       link: "",
       feedback: "",
     },
     validationSchema,
+    validateOnChange: true,
+    validateOnBlur: true,
     onSubmit: async (values, { resetForm, setSubmitting }) => {
       try {
-        const datetimeISO = dayjs(values.datetime).toISOString();
+        const datetimeISO = dayjs(values.datetime)
+          .utc(true)
+          .startOf("minute")
+          .toISOString();
         await addPractice({
           id: +id,
           date: datetimeISO,
@@ -84,15 +104,38 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
       }
     },
   });
+
   const handleClose = () => {
     formik.resetForm();
+    setDateError("");
     onClose();
   };
+
+  // ✅ Real-time validation while typing or picking date/time
+  const handleDateTimeChange = (newValue) => {
+    if (!newValue || !dayjs(newValue).isValid()) {
+      setDateError("Please enter a valid date");
+    } else if (dayjs(newValue).isAfter(dayjs())) {
+      setDateError("Date & Time cannot be in the future");
+    } else {
+      setDateError("");
+    }
+
+    formik.setFieldValue("datetime", newValue);
+    formik.setFieldTouched("datetime", true, true);
+  };
+
+  const combinedError =
+    dateError ||
+    (formik.touched.datetime && formik.errors.datetime
+      ? formik.errors.datetime
+      : "");
+
   return (
     <Modal open={open} onClose={handleClose} closeAfterTransition>
       <Box sx={modalStyle}>
         <Typography
-          variant="h3"
+          variant="h5"
           sx={{ mb: 3, fontWeight: 700, textAlign: "left" }}
         >
           Add Practice
@@ -100,40 +143,28 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
 
         <form onSubmit={formik.handleSubmit}>
           <Box sx={scrollbarStyles}>
-            {/* Date & Time with proper label */}
+            {/* ✅ Date & Time Picker */}
             <FormControl fullWidth margin="normal">
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
                   label="Date & Time"
                   value={formik.values.datetime}
-                  onChange={(newValue) => {
-                    // Always update Formik field
-                    formik.setFieldValue("datetime", newValue);
-                    formik.setFieldTouched("datetime", true);
-
-                    // Custom future-date validation
-                    if (newValue && dayjs(newValue).isAfter(dayjs())) {
-                      formik.setFieldError("datetime", "Future date/time not allowed");
-                    } else {
-                      formik.setFieldError("datetime", undefined);
-                    }
+                  onChange={handleDateTimeChange}
+                  onError={(reason) => {
+                    if (reason === "invalidDate")
+                      setDateError("Please enter a valid date");
                   }}
-                  onBlur={() => formik.setFieldTouched("datetime", true)}
                   slotProps={{
                     textField: {
                       fullWidth: true,
                       margin: "normal",
-                      error: formik.touched.datetime && Boolean(formik.errors.datetime),
+                      error: Boolean(combinedError),
+                      helperText: combinedError,
                     },
                   }}
                   format="DD/MM/YYYY HH:mm"
-                  disableFuture
+                  maxDateTime={dayjs()}
                 />
-                {formik.touched.datetime && formik.errors.datetime && (
-                  <Typography variant="caption" color="error" sx={{ ml: 0.5 }}>
-                    {formik.errors.datetime}
-                  </Typography>
-                )}
               </LocalizationProvider>
             </FormControl>
 
@@ -144,19 +175,21 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
               name="link"
               value={formik.values.link}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               error={formik.touched.link && Boolean(formik.errors.link)}
               helperText={formik.touched.link && formik.errors.link}
             />
 
             <TextField
               fullWidth
-              label="Feedback"
+              label="Summary"
               margin="normal"
               multiline
               rows={4}
               name="feedback"
               value={formik.values.feedback}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               error={formik.touched.feedback && Boolean(formik.errors.feedback)}
               helperText={formik.touched.feedback && formik.errors.feedback}
             />
@@ -173,7 +206,7 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
             <Button
               type="submit"
               variant="contained"
-              disabled={formik.isSubmitting}
+              disabled={formik.isSubmitting || Boolean(dateError)}
               sx={{ textTransform: "none" }}
             >
               {formik.isSubmitting ? (

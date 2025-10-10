@@ -64,6 +64,7 @@ export const Dashboard = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isExistReportingPerson, setIsExistReportingPerson] = useState(false);
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
@@ -200,8 +201,21 @@ export const Dashboard = () => {
       }
 
       setLoading(true);
+      const currentUserId = decodeToken()?.sub;
+      const reportingPerson = decodeToken()?.reportingPerson;
+      setIsExistReportingPerson(reportingPerson !== null);
       await searchDashboard(payload).then((res) => {
-        setRows(res.data.data || []);
+        if (!isTreeView) {
+          const allUsers = res.data.data || [];
+          const sortedUsers = allUsers.sort((a, b) => {
+            if (a.user_id == currentUserId) return -1;
+            if (b.user_id == currentUserId) return 1;
+            return 0;
+          });
+          setRows(sortedUsers);
+        } else {
+          setRows(res.data.data || []);
+        }
         if (isTreeView) {
           setOpenTreeView(true);
         } else {
@@ -290,6 +304,8 @@ export const Dashboard = () => {
           alignItems: "center",
           flexWrap: "wrap",
           gap: 2,
+          mt: 1,
+          minHeight: "80px",
         }}
       >
         <Typography
@@ -321,28 +337,34 @@ export const Dashboard = () => {
             <TextField
               label="Name"
               value={searchName}
-              onChange={(e) => {
-                setSearchName(e.target.value);
-              }}
+              onChange={(e) => setSearchName(e.target.value)}
+              size="small"
               fullWidth
               error={searchName.length > 0 && searchName.length < 3}
               helperText={
                 searchName.length > 0 && searchName.length < 3
                   ? "Enter at least 3 characters"
-                  : ""
+                  : " "
               }
+              FormHelperTextProps={{
+                sx: { minHeight: "16px", margin: 0, lineHeight: "1rem" },
+              }}
               sx={{
                 width: "250px",
                 "& .MuiOutlinedInput-root": {
                   backgroundColor: "transparent",
+                  height: "40px",
                 },
                 "& .MuiFormHelperText-root": {
-                  minHeight: "24px",
+                  position: "absolute",
+                  bottom: "-18px",
+                  left: 0,
                 },
+                position: "relative",
               }}
             />
 
-            <FormControl sx={{ width: "250px" }}>
+            <FormControl sx={{ width: "250px" }} size="small">
               <InputLabel id="designation-label">Designation</InputLabel>
               <Select
                 labelId="designation-label"
@@ -350,14 +372,46 @@ export const Dashboard = () => {
                 value={selectedDesignation}
                 onChange={(e) => setSelectedDesignation(e.target.value)}
                 input={<OutlinedInput label="Designation" />}
-                renderValue={(selected) => (
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.4 }}>
-                    {selected.map((id) => {
-                      const d = designationList.find((item) => item.id === id);
-                      return <Chip key={id} label={d?.name ?? id} />;
-                    })}
-                  </Box>
-                )}
+                renderValue={(selected) => {
+                  const maxVisible = 3; // Show only first 2 chips
+                  const extraCount = selected.length - maxVisible;
+
+                  return (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                        overflow: "hidden",
+                      }}
+                    >
+                      {selected.slice(0, maxVisible).map((id) => {
+                        const d = designationList.find(
+                          (item) => item.id === id
+                        );
+                        return (
+                          <Chip key={id} label={d?.name ?? id} size="small" />
+                        );
+                      })}
+                      {extraCount > 0 && (
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "text.secondary", whiteSpace: "nowrap" }}
+                        >
+                          +{extraCount} more
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                }}
+                sx={{
+                  "& .MuiSelect-select": {
+                    display: "flex",
+                    alignItems: "center",
+                    height: "22px !important",
+                    overflow: "hidden",
+                  },
+                }}
               >
                 {designationList.map((item) => (
                   <MenuItem key={item.id} value={item.id}>
@@ -491,7 +545,7 @@ export const Dashboard = () => {
       {openTreeView ? (
         <UserTreeView treeData={Array.isArray(rows) ? rows : [rows]} />
       ) : (
-        <Paper sx={{ width: "100%", mb: 2, p: "8px 16px", pb: 0 }}>
+        <Paper sx={{ width: "100%", mb: 2, mt: 2, p: "8px 16px", pb: 0 }}>
           <TableContainer>
             <Table sx={{ minWidth: 750 }}>
               <DashboardTableHead
@@ -504,10 +558,13 @@ export const Dashboard = () => {
                 {rows.length > 0 ? (
                   rows.map((row, index) => (
                     <TableRow
-                      hover
+                      hover={index != 0}
                       key={row.user_id ?? index}
                       sx={{
                         height: "60px",
+                        background: `${
+                          index == 0 && isExistReportingPerson ? "#f2f2f2" : ""
+                        }`,
                         "& .MuiTableCell-root": {
                           py: 1,
                         },
