@@ -261,6 +261,8 @@ const CommunicationListDashboard = () => {
                 borderColor: theme.palette.primary.main,
                 color: theme.palette.primary.main,
                 fontWeight: "bold",
+                height: "40px",
+                textWrap: "nowrap",
               }}
               onClick={() => setAddModalOpen(true)}
               startIcon={<AssignmentAddIcon />}
@@ -276,6 +278,7 @@ const CommunicationListDashboard = () => {
               borderColor: theme.palette.primary.main,
               color: theme.palette.primary.main,
               fontWeight: "bold",
+              height: "40px",
             }}
             startIcon={<FilterListIcon />}
             onClick={() => setFilterOpen(true)}

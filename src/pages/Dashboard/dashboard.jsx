@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -15,6 +15,13 @@ import {
   Typography,
   Tab,
   Tabs,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  OutlinedInput,
+  MenuItem,
+  Chip,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
@@ -38,6 +45,7 @@ import dayjs from "dayjs";
 import AddLanguageModal from "../../components/addLanguage";
 import Cookie from "js-cookie";
 import Cookies from "js-cookie";
+import { debounce } from "lodash";
 
 export const Dashboard = () => {
   const theme = useTheme();
@@ -56,6 +64,7 @@ export const Dashboard = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isExistReportingPerson, setIsExistReportingPerson] = useState(false);
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
@@ -83,6 +92,26 @@ export const Dashboard = () => {
   const [reportingPersonList, setReportingPersonList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
 
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(() => {
+        fetchData();
+      }, 1000),
+    [searchName, selectedDesignation]
+  );
+
+  useEffect(() => {
+    if (searchName.length < 1 || searchName?.length > 2) {
+      debouncedSearch();
+    }
+  }, [searchName, selectedDesignation, debouncedSearch]);
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
+
   // ====================== Effects ======================
   useEffect(() => {
     const decodedToken = decodeToken();
@@ -94,18 +123,29 @@ export const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const savedView = Cookie.get("user_view_pref");
-    if (savedView === "tree") {
-      setIsTreeView(true);
-    } else if (savedView === "list") {
+    const savedView = Cookie.get("cip_view_preference");
+    if (!savedView) {
+      Cookie.set("cip_view_preference", "list", { expires: 7 });
       setIsTreeView(false);
+      return;
+    }
+    switch (savedView) {
+      case "tree":
+        setIsTreeView(true);
+        break;
+      case "list":
+        setIsTreeView(false);
+        break;
+      default:
+        setIsTreeView(false);
+        break;
     }
   }, []);
 
   const handlePrefChange = (event, newValue) => {
     const selectedView = newValue === 1 ? "tree" : "list";
     setIsTreeView(selectedView === "tree");
-    Cookies.set("user_view_pref", selectedView, { expires: 30 });
+    Cookies.set("cip_view_preference", selectedView, { expires: 7 });
   };
 
   // ====================== API Calls ======================
@@ -161,8 +201,21 @@ export const Dashboard = () => {
       }
 
       setLoading(true);
+      const currentUserId = decodeToken()?.sub;
+      const reportingPerson = decodeToken()?.reportingPerson;
+      setIsExistReportingPerson(reportingPerson !== null);
       await searchDashboard(payload).then((res) => {
-        setRows(res.data.data || []);
+        if (!isTreeView) {
+          const allUsers = res.data.data || [];
+          const sortedUsers = allUsers.sort((a, b) => {
+            if (a.user_id == currentUserId) return -1;
+            if (b.user_id == currentUserId) return 1;
+            return 0;
+          });
+          setRows(sortedUsers);
+        } else {
+          setRows(res.data.data || []);
+        }
         if (isTreeView) {
           setOpenTreeView(true);
         } else {
@@ -251,6 +304,8 @@ export const Dashboard = () => {
           alignItems: "center",
           flexWrap: "wrap",
           gap: 2,
+          mt: 1,
+          minHeight: "80px",
         }}
       >
         <Typography
@@ -262,73 +317,191 @@ export const Dashboard = () => {
         >
           Dashboard
         </Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
-          {reportingPersonList.length > 0 && (
-            <Tabs
-              value={isTreeView ? 1 : 0}
-              onChange={handlePrefChange}
-              indicatorColor="none"
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            justifyContent: "flex-end",
+            alignItems: "flex-start",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "flex-start",
+              gap: 1,
+              flexWrap: "wrap",
+            }}
+          >
+            <TextField
+              label="Name"
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              size="small"
+              fullWidth
+              error={searchName.length > 0 && searchName.length < 3}
+              helperText={
+                searchName.length > 0 && searchName.length < 3
+                  ? "Enter at least 3 characters"
+                  : " "
+              }
+              FormHelperTextProps={{
+                sx: { minHeight: "16px", margin: 0, lineHeight: "1rem" },
+              }}
               sx={{
-                minHeight: 36,
-                border: "1px solid #2a9d8f",
-                borderRadius: 1,
-                overflow: "hidden",
-                "& .MuiTabs-flexContainer": {
-                  height: "100%",
+                width: "250px",
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "transparent",
+                  height: "40px",
                 },
-                "& .MuiTab-root": {
-                  textTransform: "none",
-                  fontWeight: "bold",
-                  fontSize: "1rem",
-                  minHeight: 36,
-                  height: "100%",
-                  flex: 1,
-                  color: "#2a9d8f",
-                  whiteSpace: "nowrap",
-                  padding: "0 12px",
-                  margin: 0,
-                  borderRadius: 0,
-                  "&.Mui-selected": {
-                    color: "#fff",
-                    backgroundColor: "#2a9d8f",
+                "& .MuiFormHelperText-root": {
+                  position: "absolute",
+                  bottom: "-18px",
+                  left: 0,
+                },
+                position: "relative",
+              }}
+            />
+
+            <FormControl sx={{ width: "250px" }} size="small">
+              <InputLabel id="designation-label">Designation</InputLabel>
+              <Select
+                labelId="designation-label"
+                multiple
+                value={selectedDesignation}
+                onChange={(e) => setSelectedDesignation(e.target.value)}
+                input={<OutlinedInput label="Designation" />}
+                renderValue={(selected) => {
+                  const maxVisible = 3; // Show only first 2 chips
+                  const extraCount = selected.length - maxVisible;
+
+                  return (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                        overflow: "hidden",
+                      }}
+                    >
+                      {selected.slice(0, maxVisible).map((id) => {
+                        const d = designationList.find(
+                          (item) => item.id === id
+                        );
+                        return (
+                          <Chip key={id} label={d?.name ?? id} size="small" />
+                        );
+                      })}
+                      {extraCount > 0 && (
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "text.secondary", whiteSpace: "nowrap" }}
+                        >
+                          +{extraCount} more
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                }}
+                sx={{
+                  "& .MuiSelect-select": {
+                    display: "flex",
+                    alignItems: "center",
+                    height: "22px !important",
+                    overflow: "hidden",
                   },
-                },
-              }}
-            >
-              <Tab label="List View" />
-              <Tab label="Tree View" />
-            </Tabs>
-          )}
+                }}
+              >
+                {designationList.map((item) => (
+                  <MenuItem key={item.id} value={item.id}>
+                    {item.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
 
-          {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
-            <Button
-              variant="outlined"
-              sx={{
-                borderColor: theme.palette.primary.main,
-                color: theme.palette.primary.main,
-                fontWeight: "bold",
-              }}
-              onClick={() => setAddUserModalOpen(true)}
-              startIcon={<PersonAddAltIcon color="primary" />}
-            >
-              Add User
-            </Button>
-          )}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 1,
+              flexWrap: "wrap",
+              height: "100% !important",
+            }}
+          >
+            {reportingPersonList.length > 0 && (
+              <Tabs
+                value={isTreeView ? 1 : 0}
+                onChange={handlePrefChange}
+                indicatorColor="none"
+                sx={{
+                  minHeight: 36,
+                  border: "1px solid #2a9d8f",
+                  borderRadius: 1,
+                  overflow: "hidden",
+                  "& .MuiTabs-flexContainer": {
+                    height: "100%",
+                  },
+                  "& .MuiTab-root": {
+                    textTransform: "none",
+                    fontWeight: "bold",
+                    fontSize: "1rem",
+                    minHeight: 36,
+                    height: "38px",
+                    flex: 1,
+                    color: "#2a9d8f",
+                    whiteSpace: "nowrap",
+                    padding: "0 12px",
+                    margin: 0,
+                    borderRadius: 0,
+                    "&.Mui-selected": {
+                      color: "#fff",
+                      backgroundColor: "#2a9d8f",
+                    },
+                  },
+                }}
+              >
+                <Tab label="List View" />
+                <Tab label="Tree View" />
+              </Tabs>
+            )}
 
-          {reportingPersonList.length > 0 && (
-            <Button
-              variant="outlined"
-              sx={{
-                borderColor: theme.palette.primary.main,
-                color: theme.palette.primary.main,
-                fontWeight: "bold",
-              }}
-              startIcon={<FilterListIcon color="primary" />}
-              onClick={() => setFilterOpen(true)}
-            >
-              Filters
-            </Button>
-          )}
+            {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
+              <Button
+                variant="outlined"
+                sx={{
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
+                  fontWeight: "bold",
+                  height: "40px",
+                  textWrap: "nowrap",
+                }}
+                onClick={() => setAddUserModalOpen(true)}
+                startIcon={<PersonAddAltIcon color="primary" />}
+              >
+                Add User
+              </Button>
+            )}
+
+            {reportingPersonList.length > 0 && (
+              <Button
+                variant="outlined"
+                sx={{
+                  borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
+                  fontWeight: "bold",
+                  height: "40px",
+                }}
+                startIcon={<FilterListIcon color="primary" />}
+                onClick={() => setFilterOpen(true)}
+              >
+                Filters
+              </Button>
+            )}
+          </Box>
         </Box>
 
         <FilterDrawer
@@ -337,10 +510,6 @@ export const Dashboard = () => {
             setFilterOpen(false);
             setPage(0);
           }}
-          searchName={searchName}
-          setSearchName={setSearchName}
-          selectedDesignation={selectedDesignation}
-          setSelectedDesignation={setSelectedDesignation}
           selectedExperience={selectedExperience}
           setSelectedExperience={setSelectedExperience}
           selectedReportingPerson={selectedReportingPerson}
@@ -376,7 +545,7 @@ export const Dashboard = () => {
       {openTreeView ? (
         <UserTreeView treeData={Array.isArray(rows) ? rows : [rows]} />
       ) : (
-        <Paper sx={{ width: "100%", mb: 2, p: "8px 16px", pb: 0 }}>
+        <Paper sx={{ width: "100%", mb: 2, mt: 2, p: "8px 16px", pb: 0 }}>
           <TableContainer>
             <Table sx={{ minWidth: 750 }}>
               <DashboardTableHead
@@ -389,10 +558,13 @@ export const Dashboard = () => {
                 {rows.length > 0 ? (
                   rows.map((row, index) => (
                     <TableRow
-                      hover
+                      hover={index != 0}
                       key={row.user_id ?? index}
                       sx={{
                         height: "60px",
+                        background: `${
+                          index == 0 && isExistReportingPerson ? "#f2f2f2" : ""
+                        }`,
                         "& .MuiTableCell-root": {
                           py: 1,
                         },

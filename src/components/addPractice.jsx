@@ -182,7 +182,7 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
 
             <TextField
               fullWidth
-              label="Feedback"
+              label="Summary"
               margin="normal"
               multiline
               rows={4}
