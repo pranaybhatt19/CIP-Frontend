@@ -36,11 +36,13 @@ import { Tooltip } from "@mui/material";
 import UserTreeView from "../../components/userTreeView";
 import dayjs from "dayjs";
 import AddLanguageModal from "../../components/addLanguage";
+import Cookie from "js-cookie";
+import Cookies from "js-cookie";
 
 export const Dashboard = () => {
   const theme = useTheme();
-  const [isTreeView, setIsTreeView] = useState(true);
-  const [openTreeView, setOpenTreeView] = useState(true);
+  const [isTreeView, setIsTreeView] = useState(false);
+  const [openTreeView, setOpenTreeView] = useState(false);
   const [languageModelOpen, setLanguageModalOpen] = useState(false);
   const [educationalLanguage, setEducationalLanguage] = useState("");
   const [otherLanguageValue, setOtherLanguageValue] = useState("");
@@ -90,6 +92,21 @@ export const Dashboard = () => {
     fetchDesignations();
     fetchReportingPersons();
   }, []);
+
+  useEffect(() => {
+    const savedView = Cookie.get("user_view_pref");
+    if (savedView === "tree") {
+      setIsTreeView(true);
+    } else if (savedView === "list") {
+      setIsTreeView(false);
+    }
+  }, []);
+
+  const handlePrefChange = (event, newValue) => {
+    const selectedView = newValue === 1 ? "tree" : "list";
+    setIsTreeView(selectedView === "tree");
+    Cookies.set("user_view_pref", selectedView, { expires: 30 });
+  };
 
   // ====================== API Calls ======================
   const fetchDesignations = async () => {
@@ -249,7 +266,7 @@ export const Dashboard = () => {
           {reportingPersonList.length > 0 && (
             <Tabs
               value={isTreeView ? 1 : 0}
-              onChange={(e, newValue) => setIsTreeView(newValue === 1)}
+              onChange={handlePrefChange}
               indicatorColor="none"
               sx={{
                 minHeight: 36,
@@ -432,7 +449,7 @@ export const Dashboard = () => {
                       <TableCell sx={{ pl: "5px" }}>
                         {row.last_communication_date
                           ? dayjs(row.last_communication_date).format(
-                              "DD/MM/YYYY"
+                              "DD/MM/YYYY hh:mm A"
                             )
                           : "-"}
                       </TableCell>

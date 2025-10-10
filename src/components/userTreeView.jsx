@@ -28,7 +28,7 @@ const transformToTree = (node) => ({
         .join(" ")
     : "-",
   last_attempt_date: node.last_communication_date
-    ? dayjs(node.last_communication_date).format("DD/MM/YYYY")
+    ? dayjs(node.last_communication_date).format("DD/MM/YYYY hh:mm A")
     : "-",
   attempts: node.attempts ?? "-",
   children: Array.isArray(node.childrens)
@@ -181,7 +181,7 @@ export default function UserTreeView({ treeData }) {
               fontSize: "16px",
             }}
           >
-            Last Attempt Date
+            Last Attempted On
           </HeaderCell>
           <Cell
             dataKey="last_attempt_date"
