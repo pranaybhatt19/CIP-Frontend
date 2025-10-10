@@ -36,8 +36,10 @@ import { decodeToken } from "../../util/commonFunction";
 import { getUserInfo, updateUser } from "../../services/authentication";
 import { toast } from "react-toastify";
 import ChangePasswordDialog from "../../components/changePasswordModal";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [userInfo, setUserInfo] = useState(null);
@@ -97,7 +99,6 @@ const Profile = () => {
             err?.response?.data?.message || "Failed to fetch profile data"
           );
         }
-
       } finally {
         setLoading(false);
       }
@@ -105,7 +106,6 @@ const Profile = () => {
 
     fetchData();
   }, []);
-
 
   const handleOpenPasswordModal = () => {
     setOpenPasswordModal(true);
@@ -200,9 +200,13 @@ const Profile = () => {
 
               <Box sx={{ flex: 1 }}>
                 <Typography variant="h5" fontWeight="600" sx={{ mb: 0.5 }}>
-                  {userInfo?.fullName || "-"}
+                  {`${userInfo?.firstName} ${userInfo?.lastName}` || "-"}
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ mb: 1 }}
+                >
                   {userInfo?.designation || "N/A"}
                 </Typography>
                 <Chip
@@ -229,7 +233,9 @@ const Profile = () => {
 
             {/* Professional Info */}
             <Box sx={{ mb: 4 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}
+              >
                 <WorkIcon color="primary" />
                 <Typography variant="h6" fontWeight="600">
                   Professional Information
@@ -312,7 +318,9 @@ const Profile = () => {
                   label="Joining Date"
                   value={
                     userInfo?.experienceStartDate
-                      ? new Date(userInfo.experienceStartDate).toLocaleDateString()
+                      ? new Date(
+                          userInfo.experienceStartDate
+                        ).toLocaleDateString()
                       : "-"
                   }
                   InputProps={{ readOnly: true }}
@@ -337,9 +345,11 @@ const Profile = () => {
             </Box>
 
             {/* Reporting Manager Info */}
-            {userInfo?.reportingPerson && (
+            {userInfo?.reportingPerson?.id && (
               <Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}
+                >
                   <SupervisorIcon color="primary" />
                   <Typography variant="h6" fontWeight="600">
                     Reporting Manager Information
@@ -379,7 +389,6 @@ const Profile = () => {
               </Box>
             )}
           </CardContent>
-
         </Card>
       </Fade>
 

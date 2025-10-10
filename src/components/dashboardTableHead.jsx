@@ -30,7 +30,7 @@ const headCells = [
     id: "last_communication_date",
     numeric: false,
     disablePadding: false,
-    label: "Last Attempt Date",
+    label: "Last Attempted On",
   },
   {
     id: "attempts_count",
