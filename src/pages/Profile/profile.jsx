@@ -81,7 +81,13 @@ const Profile = () => {
           isActive: decodedToken.activeStatus || false,
         });
       } catch (err) {
-        setError(err.message || "Failed to fetch profile data");
+        if (err.status === 409) {
+          navigate("/dashboard");
+        } else {
+          toast.error(
+            err?.response?.data?.message || "Failed to fetch profile data"
+          );
+        }
       } finally {
         setLoading(false);
       }

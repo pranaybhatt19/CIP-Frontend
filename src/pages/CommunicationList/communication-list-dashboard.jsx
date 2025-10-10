@@ -87,7 +87,7 @@ const CommunicationListDashboard = () => {
   const [rows, setRows] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState({})
+  const [user, setUser] = useState({});
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [order, setOrder] = useState("desc");
@@ -135,8 +135,11 @@ const CommunicationListDashboard = () => {
         setTotalCount(0);
       }
     } catch (err) {
-      console.error(err);
-      toast.error(err?.message || "Failed to fetch practices");
+      if (err.status === 409) {
+        navigate("/dashboard");
+      } else {
+        toast.error(err?.message || "Failed to fetch practices");
+      }
     } finally {
       setLoading(false);
     }
@@ -182,7 +185,13 @@ const CommunicationListDashboard = () => {
       toast.success("Practice deleted successfully!");
       await fetchData();
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to delete practice");
+      if (err.status === 409) {
+        navigate("/dashboard");
+      } else {
+        toast.error(
+          err?.response?.data?.message || "Failed to delete practice"
+        );
+      }
     } finally {
       handleDeleteClose();
     }
@@ -231,30 +240,34 @@ const CommunicationListDashboard = () => {
             variant="h4"
             sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
           >
-            {`Communication List - ${user.name
-              ? user.name
-                .split(" ")
-                .map((word, idx, arr) =>
-                  idx > 0 && idx < arr.length - 1
-                    ? word[0]
-                    : word
-                )
-                .join(" ")
-              : "-"}`}
+            {`Communication List - ${
+              user.name
+                ? user.name
+                    .split(" ")
+                    .map((word, idx, arr) =>
+                      idx > 0 && idx < arr.length - 1 ? word[0] : word
+                    )
+                    .join(" ")
+                : "-"
+            }`}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 2 }}>
-          {decodedToken.sub === +id ? <Button
-            variant="outlined"
-            sx={{
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              fontWeight: "bold",
-            }}
-            onClick={() => setAddModalOpen(true)}
-          >
-            Add Practice
-          </Button> : ""}
+          {decodedToken.sub === +id ? (
+            <Button
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                fontWeight: "bold",
+              }}
+              onClick={() => setAddModalOpen(true)}
+            >
+              Add Practice
+            </Button>
+          ) : (
+            ""
+          )}
           <Button
             variant="outlined"
             sx={{
@@ -305,7 +318,9 @@ const CommunicationListDashboard = () => {
                 </TableRow>
               ) : rows.length > 0 ? (
                 rows.map((row) => (
-                  <TableRow key={row.id} hover
+                  <TableRow
+                    key={row.id}
+                    hover
                     sx={{
                       height: "60px",
                       "& .MuiTableCell-root": {
@@ -367,7 +382,9 @@ const CommunicationListDashboard = () => {
           </h3>
         </DialogTitle>
 
-        <Divider sx={{ borderColor: "rgba(0,0,0,0.6)", borderBottomWidth: 1 }} />
+        <Divider
+          sx={{ borderColor: "rgba(0,0,0,0.6)", borderBottomWidth: 1 }}
+        />
 
         <DialogContent sx={{ p: 3, m: 2, textAlign: "center" }}>
           <InfoOutlinedIcon

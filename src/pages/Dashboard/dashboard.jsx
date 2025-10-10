@@ -29,6 +29,7 @@ import {
   getDesignations,
   getReportingPersons,
   searchDashboard,
+  updateUser,
 } from "../../services/authentication";
 import { DashboardTableHead } from "../../components/dashboardTableHead";
 import { Tooltip } from "@mui/material";
@@ -40,6 +41,9 @@ export const Dashboard = () => {
   const theme = useTheme();
   const [isTreeView, setIsTreeView] = useState(true);
   const [openTreeView, setOpenTreeView] = useState(true);
+  const [languageModelOpen, setLanguageModalOpen] = useState(false);
+  const [educationalLanguage, setEducationalLanguage] = useState("");
+  const [otherLanguageValue, setOtherLanguageValue] = useState("");
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
   const [userDesignation, setUserDesignation] = useState("");
@@ -95,6 +99,8 @@ export const Dashboard = () => {
     } catch (err) {
       if (err.status != 409) {
         toast.error(err.message || "Failed to fetch designations");
+      } else {
+        setLanguageModalOpen(true);
       }
     }
   };
@@ -106,6 +112,8 @@ export const Dashboard = () => {
     } catch (err) {
       if (err.status != 409) {
         toast.error(err.message || "Failed to fetch reporting managers");
+      } else {
+        setLanguageModalOpen(true);
       }
     }
   };
@@ -148,6 +156,8 @@ export const Dashboard = () => {
     } catch (err) {
       if (err.status != 409) {
         toast.error(err.message || "Failed to fetch data");
+      } else {
+        setLanguageModalOpen(true);
       }
     } finally {
       setLoading(false);
@@ -160,6 +170,25 @@ export const Dashboard = () => {
       setClearTriggered(false);
     }
   }, [clearTriggered]);
+
+  const SubmitUpdateUser = async () => {
+    try {
+      const payload = {
+        id: userId,
+      };
+      if (educationalLanguage === "others") {
+        payload.educationLanguage = otherLanguageValue.toLocaleLowerCase();
+      } else {
+        payload.educationLanguage = educationalLanguage.toLocaleLowerCase();
+      }
+      const res = await updateUser(payload);
+      setLanguageModalOpen(false);
+      fetchData();
+    } catch (err) {
+      toast.error(err.message || "Failed to update language");
+      setLanguageModalOpen(open);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -318,7 +347,14 @@ export const Dashboard = () => {
         onClose={() => setAddUserModalOpen(false)}
       />
 
-      <AddLanguageModal open={false} />
+      <AddLanguageModal
+        open={languageModelOpen}
+        educationalLanguage={educationalLanguage}
+        setEducationalLanguage={setEducationalLanguage}
+        otherValue={otherLanguageValue}
+        setOtherValue={setOtherLanguageValue}
+        onSave={SubmitUpdateUser}
+      />
 
       {openTreeView ? (
         <UserTreeView treeData={Array.isArray(rows) ? rows : [rows]} />

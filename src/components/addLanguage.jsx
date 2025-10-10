@@ -24,9 +24,14 @@ const style = {
   outline: "none",
 };
 
-export const AddLanguageModal = ({ open }) => {
-  const [selectedLang, setSelectedLang] = useState("");
-  const [otherValue, setOtherValue] = useState("");
+export const AddLanguageModal = ({
+  open,
+  educationalLanguage,
+  setEducationalLanguage,
+  otherValue,
+  setOtherValue,
+  onSave,
+}) => {
   const [error, setError] = useState("");
 
   const languageRegex = /^[A-Za-z]+$/;
@@ -47,16 +52,10 @@ export const AddLanguageModal = ({ open }) => {
     }
   };
 
-  const handleSave = () => {
-    const valueToSave = selectedLang === "others" ? otherValue : selectedLang;
-    toast.success(`Saved: ${valueToSave}`);
-    // Add your save logic here
-  };
-
   // Disable Save if nothing selected or invalid input
   const isSaveDisabled =
-    !selectedLang ||
-    (selectedLang === "others" &&
+    !educationalLanguage ||
+    (educationalLanguage === "others" &&
       (!otherValue ||
         !languageRegex.test(otherValue) ||
         otherValue.length < 3));
@@ -74,18 +73,18 @@ export const AddLanguageModal = ({ open }) => {
     >
       <Box sx={style}>
         <h3 style={{ color: "#2a9d8f", marginBottom: "1.5rem" }}>
-          Update Language
+          Update Medium of Education
         </h3>
 
         <Typography variant="body2" mb={2} color="text.secondary">
-          Select your Schooling Language Medium. If you choose “Others”, enter
-          it below.
+          Select your Schooling Language Medium of Education. If you choose
+          “Others”, enter it below.
         </Typography>
 
         <RadioGroup
-          value={selectedLang}
+          value={educationalLanguage}
           onChange={(e) => {
-            setSelectedLang(e.target.value);
+            setEducationalLanguage(e.target.value.toLocaleLowerCase());
             setError("");
             if (e.target.value !== "others") setOtherValue("");
           }}
@@ -103,7 +102,7 @@ export const AddLanguageModal = ({ open }) => {
           <FormControlLabel value="others" control={<Radio />} label="Others" />
         </RadioGroup>
 
-        {selectedLang === "others" && (
+        {educationalLanguage === "others" && (
           <TextField
             label="Enter Language"
             value={otherValue}
@@ -118,7 +117,7 @@ export const AddLanguageModal = ({ open }) => {
         <Button
           variant="contained"
           fullWidth
-          onClick={handleSave}
+          onClick={onSave}
           sx={{ mt: 2 }}
           disabled={isSaveDisabled}
         >
