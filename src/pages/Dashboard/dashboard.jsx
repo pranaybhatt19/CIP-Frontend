@@ -96,7 +96,7 @@ export const Dashboard = () => {
     () =>
       debounce(() => {
         fetchData();
-      }, 1000),
+      }, 1200),
     [searchName, selectedDesignation]
   );
 
