@@ -68,18 +68,61 @@ const style = {
 };
 
 const validationSchema = Yup.object({
-  firstName: Yup.string().required("First Name is required"),
-  middleName: Yup.string().required("Middle Name is required"),
-  lastName: Yup.string().required("Last Name is required"),
-  email: Yup.string()
+  firstName: Yup.string()
+    .trim()
     .matches(
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-      "Please enter a valid email address"
+      /^[A-Za-z]+$/,
+      "First Name must contain only alphabets and no spaces"
     )
+    .max(50, "First Name must be at most 50 characters long")
+    .required("First Name is required"),
+
+  middleName: Yup.string()
+    .trim()
+    .matches(
+      /^[A-Za-z]+$/,
+      "Middle Name must contain only alphabets and no spaces"
+    )
+    .max(50, "Middle Name must be at most 50 characters long")
+    .required("Middle Name is required"),
+
+  lastName: Yup.string()
+    .trim()
+    .matches(
+      /^[A-Za-z]+$/,
+      "Last Name must contain only alphabets and no spaces"
+    )
+    .max(50, "Last Name must be at most 50 characters long")
+    .required("Last Name is required"),
+
+  email: Yup.string()
+    .email("Please enter a valid email address")
     .required("Email is required"),
-  designation: Yup.number().required("Designation is required"),
-  experience: Yup.date().required("Joining Date is required"),
-  reportingPerson: Yup.number().required("Reporting Manager is required"),
+
+  designation: Yup.number()
+    .nullable()
+    .required("Designation is required")
+    .typeError("Please select a valid designation"),
+
+  experience: Yup.string()
+    .required("Joining Date is required")
+    .test(
+      "valid-date",
+      "Please select a valid date",
+      (value) => !!value && !isNaN(Date.parse(value))
+    )
+    .test("not-in-future", "Joining Date cannot be in the future", (value) => {
+      if (!value) return true;
+      const selectedDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return selectedDate <= today;
+    }),
+
+  reportingPerson: Yup.number()
+    .nullable()
+    .required("Reporting Manager is required")
+    .typeError("Please select a valid reporting manager"),
 });
 
 export const AddUserModal = ({ open, onClose }) => {
@@ -88,9 +131,6 @@ export const AddUserModal = ({ open, onClose }) => {
   const [reportingPersonList, setReportingPersonList] = useState([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const handleTogglePassword = () => {
-    setShowPassword((prev) => !prev);
-  };
 
   const fetchDesignations = async () => {
     try {
@@ -134,6 +174,8 @@ export const AddUserModal = ({ open, onClose }) => {
       reportingPerson: userId,
     },
     validationSchema,
+    validateOnChange: true,
+    validateOnBlur: true,
     onSubmit: async (values, { resetForm, setSubmitting }) => {
       try {
         const res = await addUser({
@@ -168,6 +210,7 @@ export const AddUserModal = ({ open, onClose }) => {
               name="firstName"
               value={formik.values.firstName}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               error={
                 formik.touched.firstName && Boolean(formik.errors.firstName)
               }
@@ -189,6 +232,7 @@ export const AddUserModal = ({ open, onClose }) => {
               name="middleName"
               value={formik.values.middleName}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               error={
                 formik.touched.middleName && Boolean(formik.errors.middleName)
               }
@@ -210,6 +254,7 @@ export const AddUserModal = ({ open, onClose }) => {
               name="lastName"
               value={formik.values.lastName}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               error={formik.touched.lastName && Boolean(formik.errors.lastName)}
               helperText={formik.touched.lastName && formik.errors.lastName}
               autoComplete="off"
@@ -230,6 +275,7 @@ export const AddUserModal = ({ open, onClose }) => {
               name="email"
               value={formik.values.email}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               error={formik.touched.email && Boolean(formik.errors.email)}
               helperText={formik.touched.email && formik.errors.email}
               autoComplete="off"
@@ -252,11 +298,15 @@ export const AddUserModal = ({ open, onClose }) => {
                     newValue ? newValue.format("YYYY-MM-DD HH:mm:ss") : ""
                   );
                 }}
+                onClose={() => {
+                  formik.setFieldTouched("experience", true);
+                }}
                 disableFuture
                 slotProps={{
                   textField: {
                     fullWidth: true,
                     margin: "normal",
+                    onBlur: () => formik.setFieldTouched("experience", true),
                     error:
                       formik.touched.experience &&
                       Boolean(formik.errors.experience),
@@ -278,7 +328,9 @@ export const AddUserModal = ({ open, onClose }) => {
               <Select
                 labelId="designation-label"
                 name="designation"
+                value={formik.values.designation || ""}
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 error={
                   formik.touched.designation &&
                   Boolean(formik.errors.designation)
@@ -323,8 +375,9 @@ export const AddUserModal = ({ open, onClose }) => {
               <Select
                 labelId="reporting-person-label"
                 name="reportingPerson"
-                value={formik.values.reportingPerson}
+                value={formik.values.reportingPerson || ""}
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 error={
                   formik.touched.reportingPerson &&
                   Boolean(formik.errors.reportingPerson)
@@ -370,9 +423,6 @@ export const AddUserModal = ({ open, onClose }) => {
             <Button onClick={onClose} variant="outlined">
               Cancel
             </Button>
-            {/* <Button variant="contained" type="submit">
-              Save
-            </Button> */}
             <Button
               type="submit"
               variant="contained"
