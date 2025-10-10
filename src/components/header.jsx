@@ -13,10 +13,10 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import {
-  Forum as ForumIcon,
   Person as PersonIcon,
   Logout as LogoutIcon,
 } from "@mui/icons-material";
+import HeadsetMicIcon from '@mui/icons-material/HeadsetMic';
 import { decodeToken } from "../util/commonFunction";
 import { useState, useEffect } from "react";
 import { useTheme } from "@mui/material/styles";
@@ -24,26 +24,37 @@ import { useTheme } from "@mui/material/styles";
 export const Header = () => {
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [username, setUsername] = useState("");
-  const [userRole, setUserRole] = useState("");
+  const [userDesignation, setUserDesignation] = useState("");
   const navigate = useNavigate();
   const theme = useTheme();
 
   useEffect(() => {
     const decodedToken = decodeToken();
-    if (decodedToken?.name) setUsername(decodedToken.name);
-    if (decodedToken?.role) setUserRole(decodedToken.role);
+    if (decodedToken?.name) {
+      const fullName = decodedToken.name.trim().split(" ");
+      const firstName = fullName[0];
+      const lastName = fullName.length > 1 ? fullName[fullName.length - 1] : "";
+      setUsername(`${firstName} ${lastName}`.trim());
+    }
+    if (decodedToken?.designation) setUserDesignation(decodedToken.designation.name);
   }, []);
 
-  const handleOpenUserMenu = (event) =>
-    setAnchorElUser(event.currentTarget);
+  const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
   const handleCloseUserMenu = () => setAnchorElUser(null);
+
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const parts = name.trim().split(" ");
+    const first = parts[0]?.[0] || "";
+    const last = parts.length > 1 ? parts[parts.length - 1]?.[0] : "";
+    return (first + last).toUpperCase();
+  };
 
   return (
     <AppBar position="sticky" elevation={2} color="primary">
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ justifyContent: "space-between", minHeight: 64 }}>
-          
-          {/* Logo & Portal Name */}
+          {/* Logo & Title */}
           <Box
             sx={{
               display: "flex",
@@ -54,10 +65,10 @@ export const Header = () => {
             }}
             onClick={() => navigate("/dashboard")}
           >
-            <ForumIcon sx={{ fontSize: 40, color: theme.palette.common.white }} />
+            <HeadsetMicIcon sx={{ fontSize: 40, color: theme.palette.common.white }} />
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.common.white }}>
-                CommunicationAce
+                Communication Ace
               </Typography>
               <Typography variant="caption" sx={{ color: theme.palette.grey[200], display: "block" }}>
                 Communication Improvement Portal
@@ -71,15 +82,21 @@ export const Header = () => {
               <Typography sx={{ color: theme.palette.common.white, fontWeight: 500 }}>
                 {username || "User"}
               </Typography>
-              {userRole && (
-                <Typography sx={{ color: theme.palette.grey[200], fontSize: "0.75rem", textTransform: "capitalize" }}>
-                  {userRole}
+              {userDesignation && (
+                <Typography
+                  sx={{
+                    color: theme.palette.grey[200],
+                    fontSize: "0.75rem",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {userDesignation}
                 </Typography>
               )}
             </Box>
 
             <IconButton onClick={handleOpenUserMenu}>
-              <Avatar>{username ? username.charAt(0).toUpperCase() : "U"}</Avatar>
+              <Avatar>{getInitials(username)}</Avatar>
             </IconButton>
 
             <Menu
@@ -93,23 +110,37 @@ export const Header = () => {
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                   {username || "User"}
                 </Typography>
-                {userRole && (
-                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, textTransform: "capitalize" }}>
-                    {userRole}
+                {userDesignation && (
+                  <Typography
+                    variant="body2"
+                    sx={{ color: theme.palette.text.secondary, textTransform: "capitalize" }}
+                  >
+                    {userDesignation}
                   </Typography>
                 )}
               </Box>
 
               <Divider />
 
-              <MenuItem onClick={() => { handleCloseUserMenu(); navigate("/profile"); }}>
+              <MenuItem
+                onClick={() => {
+                  handleCloseUserMenu();
+                  navigate("/profile");
+                }}
+              >
                 <PersonIcon sx={{ mr: 2, color: theme.palette.text.secondary }} />
                 Profile
               </MenuItem>
 
               <Divider />
 
-              <MenuItem onClick={() => { localStorage.removeItem("token"); navigate("/"); handleCloseUserMenu(); }}>
+              <MenuItem
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  navigate("/");
+                  handleCloseUserMenu();
+                }}
+              >
                 <LogoutIcon sx={{ mr: 2, color: theme.palette.error.main }} />
                 <Typography sx={{ color: theme.palette.error.main }}>Sign Out</Typography>
               </MenuItem>

@@ -24,13 +24,13 @@ import { theme } from "../../styles/login-theme";
 import { LoginvalidationSchema } from "../../util/validationSchema";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import loginBg from "../../assets/bg-image.png";
-import logo from "../../assets/logo.png";
+import headphonesIcon from "../../assets/headphones.svg";
 
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState(null);
   const navigate = useNavigate();
-  const muiTheme = useTheme(); // Get theme
+  const muiTheme = useTheme(); 
 
   const formik = useFormik({
     initialValues: {
@@ -73,7 +73,6 @@ export const LoginPage = () => {
           justifyContent: "center",
           backgroundImage: `url(${loginBg})`,
           backgroundSize: "cover",
-          backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
       >
@@ -92,21 +91,52 @@ export const LoginPage = () => {
                   <Box
                     sx={{
                       display: "flex",
+                      flexDirection: "column",
                       justifyContent: "center",
                       alignItems: "center",
                       width: "100%",
+                      mb: 3,
                     }}
                   >
+                    {/* SVG Logo */}
                     <Box
                       component="img"
-                      src={logo}
-                      alt="Logo"
+                      src={headphonesIcon}
+                      alt="Headphones Logo"
                       sx={{
-                        width: { xs: "250px", sm: "270px", md: "300px" },
-                        height: "auto",
-                        maxWidth: "100%",
+                        width: { xs: "80px", sm: "100px" },
+                        height: { xs: "80px", sm: "100px" },
+                        mb: 2,
                       }}
                     />
+
+                    {/* Title */}
+                    <Typography
+                      variant="h4"
+                      component="h1"
+                      sx={{
+                        fontWeight: 700,
+                        color: theme.palette.primary.main,
+                        textAlign: "center",
+                        mb: 0.5,
+                        fontSize: { xs: "1.5rem", sm: "2rem" },
+                      }}
+                    >
+                      COMMUNICATION ACE
+                    </Typography>
+
+                    {/* Subtitle */}
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        // color: theme.palette.primary.main,
+                        textAlign: "center",
+                        fontSize: { xs: "0.875rem", sm: "1rem" },
+                        fontWeight: 400,
+                      }}
+                    >
+                      Communication Improvement Portal
+                    </Typography>
                   </Box>
 
                   <Box

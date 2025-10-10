@@ -36,18 +36,27 @@ export const getReportingPersons = async () => {
   return api.get("api/auth/users/get-reporting-persons");
 };
 
-export const addTest = async (details) => {
-  return api.post("api/auth/users/add-test", details);
-};
 
 export const resetPassword = async (details) => {
   return api.post("api/reset-password", details);
 };
 
 export const getUserInfo = async (id) => {
-  return api.get(`/api/auth/users/user-info/${id}`);
+  return api.get(`/api/auth/users/get-user-details/${id}`);
 };
 
 export const searchDashboard = async (details) => {
   return api.post("/api/auth/users/searchUsers", details);
 };
+
+export const getPracticeDetailsByUserId = async (details) => {
+  return api.post("/api/auth/users/user-practices", details);
+}
+
+export const addPractice = async (details) => {
+  return api.post("/api/auth/users/add-practice", details)
+}
+
+export const deletePractice = async (id) => {
+  return api.patch(`/api/auth/users/delete-practice/${id}`);
+}

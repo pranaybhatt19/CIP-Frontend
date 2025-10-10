@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  Divider,
   IconButton,
   Paper,
   Table,
@@ -12,15 +13,15 @@ import {
   TablePagination,
   TableRow,
   Typography,
+  Tab,
+  Tabs,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useTheme } from "@mui/material/styles"; // ✅ import theme hook
-
-import Header from "../../components/header";
+import { useTheme } from "@mui/material/styles";
 import AddUserModal from "../../components/addUser";
 import FilterDrawer from "./filter";
 import { decodeToken } from "../../util/commonFunction";
@@ -28,18 +29,38 @@ import {
   getDesignations,
   getReportingPersons,
   searchDashboard,
+  updateUser,
 } from "../../services/authentication";
+import { DashboardTableHead } from "../../components/dashboardTableHead";
+import { Tooltip } from "@mui/material";
+import UserTreeView from "../../components/userTreeView";
+import dayjs from "dayjs";
+import AddLanguageModal from "../../components/addLanguage";
+import Cookie from "js-cookie";
+import Cookies from "js-cookie";
 
 export const Dashboard = () => {
   const theme = useTheme();
+  const [isTreeView, setIsTreeView] = useState(false);
+  const [openTreeView, setOpenTreeView] = useState(false);
+  const [languageModelOpen, setLanguageModalOpen] = useState(false);
+  const [educationalLanguage, setEducationalLanguage] = useState("");
+  const [otherLanguageValue, setOtherLanguageValue] = useState("");
+  const [userId, setUserId] = useState(null);
+  const navigate = useNavigate();
   const [userDesignation, setUserDesignation] = useState("");
   const [order, setOrder] = useState("asc");
-  const [orderBy, setOrderBy] = useState("name");
+  const [orderBy, setOrderBy] = useState("full_name");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [totalCount, setTotalCount] = useState(0);
   const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [filterOpen, setFilterOpen] = useState(false);
+  const [addUserModalOpen, setAddUserModalOpen] = useState(false);
+
+  // Filters
   const [searchName, setSearchName] = useState("");
   const [selectedDesignation, setSelectedDesignation] = useState([]);
   const [selectedExperience, setSelectedExperience] = useState({
@@ -51,87 +72,110 @@ export const Dashboard = () => {
     type: "EQUALS",
     value: "",
   });
-  const [loading, setLoading] = useState(true);
-  const [addUserModalOpen, setAddUserModalOpen] = useState(false);
+
+  const [lastAttemptedDate, setLastAttemptedDate] = useState({
+    exactDate: null,
+    fromDate: null,
+    toDate: null,
+  });
+
   const [designationList, setDesignationList] = useState([]);
   const [reportingPersonList, setReportingPersonList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
-  const navigate = useNavigate();
 
+  // ====================== Effects ======================
+  useEffect(() => {
+    const decodedToken = decodeToken();
+    if (decodedToken?.designation)
+      setUserDesignation(decodedToken.designation?.name);
+    if (decodedToken?.sub) setUserId(decodedToken.sub);
+    fetchDesignations();
+    fetchReportingPersons();
+  }, []);
+
+  useEffect(() => {
+    const savedView = Cookie.get("user_view_pref");
+    if (savedView === "tree") {
+      setIsTreeView(true);
+    } else if (savedView === "list") {
+      setIsTreeView(false);
+    }
+  }, []);
+
+  const handlePrefChange = (event, newValue) => {
+    const selectedView = newValue === 1 ? "tree" : "list";
+    setIsTreeView(selectedView === "tree");
+    Cookies.set("user_view_pref", selectedView, { expires: 30 });
+  };
+
+  // ====================== API Calls ======================
   const fetchDesignations = async () => {
     try {
-      setLoading(true);
-      await getDesignations().then((res) => {
-        setDesignationList(res.data || []);
-      });
+      const res = await getDesignations();
+      setDesignationList(res.data || []);
     } catch (err) {
-      toast.error(err.message || "Failed to fetch data");
-    } finally {
-      setLoading(false);
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch designations");
+      } else {
+        setLanguageModalOpen(true);
+      }
     }
   };
 
   const fetchReportingPersons = async () => {
     try {
-      setLoading(true);
-      await getReportingPersons().then((res) => {
-        setReportingPersonList(res.data || []);
-      });
+      const res = await getReportingPersons();
+      setReportingPersonList(res.data || []);
     } catch (err) {
-      toast.error(err.message || "Failed to fetch data");
-    } finally {
-      setLoading(false);
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch reporting managers");
+      } else {
+        setLanguageModalOpen(true);
+      }
     }
   };
-
-  useEffect(() => {
-    const decodedToken = decodeToken();
-    if (decodedToken?.designation)
-      setUserDesignation(decodedToken.designation?.name);
-    fetchDesignations();
-    fetchReportingPersons();
-  }, []);
 
   const fetchData = async () => {
     try {
       const payload = {
-        limit: rowsPerPage,
-        offset: page * rowsPerPage,
-        order: [[orderBy, order.toUpperCase()]],
+        isTreeView: isTreeView,
       };
 
-      if (searchName?.trim()) {
-        payload.name = searchName.trim();
+      if (!isTreeView) {
+        payload.limit = rowsPerPage;
+        payload.offset = page * rowsPerPage;
+        payload.order = [[orderBy, order.toUpperCase()]];
       }
 
-      if (selectedDesignation?.length > 0) {
+      if (searchName?.trim()) payload.full_name = searchName.trim();
+      if (selectedDesignation?.length > 0)
         payload.designation_ids = selectedDesignation;
-      }
-
-      if (selectedExperience?.value) {
-        payload.experience = {
-          type: selectedExperience.type,
-          value: selectedExperience.value,
-        };
-      }
-
-      if (selectedReportingPerson?.length > 0) {
+      if (selectedExperience?.value) payload.experience = selectedExperience;
+      if (selectedReportingPerson?.length > 0)
         payload.reporting_persons_ids = selectedReportingPerson;
+      if (selectedAttempts?.value) payload.attempts = selectedAttempts;
+
+      const dateFilter = lastAttemptedDate;
+      if (dateFilter?.exactDate || dateFilter?.fromDate || dateFilter?.toDate) {
+        payload.last_communication_date = dateFilter;
       }
 
-      if (selectedAttempts?.value) {
-        payload.attempts = {
-          type: selectedAttempts.type,
-          value: selectedAttempts.value,
-        };
-      }
       setLoading(true);
       await searchDashboard(payload).then((res) => {
         setRows(res.data.data || []);
-        setTotalCount(res.data.total || 0);
+        if (isTreeView) {
+          setOpenTreeView(true);
+        } else {
+          setOpenTreeView(false);
+        }
+        setTotalCount(res.data.totalCount || 0);
       });
     } catch (err) {
-      toast.error(err.message || "Failed to fetch data");
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch data");
+      } else {
+        setLanguageModalOpen(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -144,20 +188,37 @@ export const Dashboard = () => {
     }
   }, [clearTriggered]);
 
+  const SubmitUpdateUser = async () => {
+    try {
+      const payload = {
+        id: userId,
+      };
+      if (educationalLanguage === "others") {
+        payload.educationLanguage = otherLanguageValue.toLocaleLowerCase();
+      } else {
+        payload.educationLanguage = educationalLanguage.toLocaleLowerCase();
+      }
+      const res = await updateUser(payload);
+      setLanguageModalOpen(false);
+      fetchData();
+    } catch (err) {
+      toast.error(err.message || "Failed to update language");
+      setLanguageModalOpen(open);
+    }
+  };
+
   useEffect(() => {
     fetchData();
-  }, [addUserModalOpen, order, orderBy, page, rowsPerPage]);
+  }, [addUserModalOpen, order, orderBy, page, rowsPerPage, isTreeView]);
 
-  const handleRequestSort = (event, property) => {
+  // ====================== Handlers ======================
+  const handleRequestSort = (_, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
+  const handleChangePage = (_, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -169,30 +230,31 @@ export const Dashboard = () => {
     setSelectedExperience({ type: "EQUALS", value: "" });
     setSelectedReportingPerson([]);
     setSelectedAttempts({ type: "EQUALS", value: "" });
+    setLastAttemptedDate({
+      exactDate: null,
+      fromDate: null,
+      toDate: null,
+    });
     setPage(0);
     setClearTriggered(true);
   };
 
+  // ====================== Render ======================
   return (
-    <div style={{ width: "100%", overflow: "hidden" }}>
-      <Header />
-
+    <div style={{ width: "100%", overflow: "hidden", margin: 0 }}>
       {/* Top Bar */}
       <Box
         sx={{
-          margin: "1rem",
-          marginLeft: 2,
-          // marginBottom: 2,
+          padding: "1rem",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
+          gap: 2,
         }}
       >
-        {/* Title with theme color */}
         <Typography
           variant="h4"
-          marginLeft={0}
           sx={{
             fontWeight: "bold",
             color: theme.palette.primary.main,
@@ -200,10 +262,44 @@ export const Dashboard = () => {
         >
           Dashboard
         </Typography>
-
-        {/* Buttons */}
-
         <Box sx={{ display: "flex", gap: 1 }}>
+          {reportingPersonList.length > 0 && (
+            <Tabs
+              value={isTreeView ? 1 : 0}
+              onChange={handlePrefChange}
+              indicatorColor="none"
+              sx={{
+                minHeight: 36,
+                border: "1px solid #2a9d8f",
+                borderRadius: 1,
+                overflow: "hidden",
+                "& .MuiTabs-flexContainer": {
+                  height: "100%",
+                },
+                "& .MuiTab-root": {
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  fontSize: "1rem",
+                  minHeight: 36,
+                  height: "100%",
+                  flex: 1,
+                  color: "#2a9d8f",
+                  whiteSpace: "nowrap",
+                  padding: "0 12px",
+                  margin: 0,
+                  borderRadius: 0,
+                  "&.Mui-selected": {
+                    color: "#fff",
+                    backgroundColor: "#2a9d8f",
+                  },
+                },
+              }}
+            >
+              <Tab label="List View" />
+              <Tab label="Tree View" />
+            </Tabs>
+          )}
+
           {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
             <Button
               variant="outlined"
@@ -218,21 +314,23 @@ export const Dashboard = () => {
               Add User
             </Button>
           )}
-          <Button
-            variant="outlined"
-            sx={{
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              fontWeight: "bold",
-            }}
-            startIcon={<FilterListIcon color="primary" />}
-            onClick={() => setFilterOpen(true)}
-          >
-            Filters
-          </Button>
+
+          {reportingPersonList.length > 0 && (
+            <Button
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                fontWeight: "bold",
+              }}
+              startIcon={<FilterListIcon color="primary" />}
+              onClick={() => setFilterOpen(true)}
+            >
+              Filters
+            </Button>
+          )}
         </Box>
 
-        {/* Filter Drawer */}
         <FilterDrawer
           open={filterOpen}
           onClose={() => {
@@ -249,12 +347,13 @@ export const Dashboard = () => {
           setSelectedReportingPerson={setSelectedReportingPerson}
           selectedAttempts={selectedAttempts}
           setSelectedAttempts={setSelectedAttempts}
+          lastAttemptedDate={lastAttemptedDate}
+          setLastAttemptedDate={setLastAttemptedDate}
           designationList={designationList}
           reportingPersonList={reportingPersonList}
           onClear={handleClearFilters}
-          onApply={() => {
-            fetchData();
-          }}
+          onApply={fetchData}
+          userId={userId}
         />
       </Box>
 
@@ -265,98 +364,158 @@ export const Dashboard = () => {
         onClose={() => setAddUserModalOpen(false)}
       />
 
-      {/* Data Table */}
-      <Paper sx={{ width: "100%", mb: 2, p: 1, pb: 0 }}>
-        <TableContainer>
-          <Table sx={{ minWidth: 750 }}>
-            <thead>
-              <TableRow>
-                <TableCell onClick={(e) => handleRequestSort(e, "name")}>
-                  <b>Name</b>
-                </TableCell>
-                <TableCell onClick={(e) => handleRequestSort(e, "designation")}>
-                  <b>Designation</b>
-                </TableCell>
-                <TableCell onClick={(e) => handleRequestSort(e, "experience")}>
-                  <b>Experience</b>
-                </TableCell>
-                <TableCell
-                  onClick={(e) => handleRequestSort(e, "reporting_person")}
-                >
-                  <b>Reporting Person</b>
-                </TableCell>
-                <TableCell
-                  onClick={(e) => handleRequestSort(e, "total_attempts")}
-                >
-                  <b>Attempts</b>
-                </TableCell>
-                <TableCell align="center">
-                  <b>Actions</b>
-                </TableCell>
-              </TableRow>
-            </thead>
-            <TableBody>
-              {rows.length > 0 ? (
-                rows.map((row, index) => (
-                  <TableRow hover key={row.user_id ?? index}>
-                    <TableCell>{row.full_name}</TableCell>
-                    <TableCell>{row.designation?.name ?? "-"}</TableCell>
-                    <TableCell>
-                      {row.experience ? `${row.experience} Years` : "-"}
-                    </TableCell>
-                    <TableCell>{row.reporting_person?.name ?? "-"}</TableCell>
-                    <TableCell>{row.attempts ?? "-"}</TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        aria-label="view"
-                        onClick={() =>
-                          navigate(`/user-practices/${row.user_id}`)
-                        }
-                      >
-                        <VisibilityIcon color="primary" />
-                      </IconButton>
+      <AddLanguageModal
+        open={languageModelOpen}
+        educationalLanguage={educationalLanguage}
+        setEducationalLanguage={setEducationalLanguage}
+        otherValue={otherLanguageValue}
+        setOtherValue={setOtherLanguageValue}
+        onSave={SubmitUpdateUser}
+      />
+
+      {openTreeView ? (
+        <UserTreeView treeData={Array.isArray(rows) ? rows : [rows]} />
+      ) : (
+        <Paper sx={{ width: "100%", mb: 2, p: "8px 16px", pb: 0 }}>
+          <TableContainer>
+            <Table sx={{ minWidth: 750 }}>
+              <DashboardTableHead
+                order={order}
+                orderBy={orderBy}
+                onRequestSort={handleRequestSort}
+                setPage={setPage}
+              />
+              <TableBody>
+                {rows.length > 0 ? (
+                  rows.map((row, index) => (
+                    <TableRow
+                      hover
+                      key={row.user_id ?? index}
+                      sx={{
+                        height: "60px",
+                        "& .MuiTableCell-root": {
+                          py: 1,
+                        },
+                      }}
+                    >
+                      <TableCell align="left" sx={{ pl: "5px" }}>
+                        <Tooltip
+                          title={
+                            <div style={{ fontSize: "0.8rem" }}>
+                              <div>
+                                <strong>Full Name:</strong> {row.full_name}
+                              </div>
+                              <Divider
+                                sx={{ my: 0.5, backgroundColor: "white" }}
+                              />
+                              <div>
+                                <strong>Email:</strong> {row.email}
+                              </div>
+                            </div>
+                          }
+                          arrow
+                          placement="right"
+                        >
+                          <span style={{ cursor: "pointer" }}>
+                            {row.full_name
+                              ? row.full_name
+                                  .split(" ")
+                                  .map((word, idx, arr) =>
+                                    idx > 0 && idx < arr.length - 1
+                                      ? word[0]
+                                      : word
+                                  )
+                                  .join(" ")
+                              : "-"}
+                          </span>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px" }}>
+                        {row.designation?.name ?? "-"}
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px" }}>
+                        {row.experience ?? "-"}
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px" }}>
+                        {row.reporting_person?.name
+                          ? row.reporting_person?.name
+                              .split(" ")
+                              .map((word, idx, arr) =>
+                                idx > 0 && idx < arr.length - 1 ? "" : word
+                              )
+                              .join(" ")
+                          : "-"}
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px" }}>
+                        {row.last_communication_date
+                          ? dayjs(row.last_communication_date).format(
+                              "DD/MM/YYYY hh:mm A"
+                            )
+                          : "-"}
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px" }}>
+                        {row.attempts ?? "-"}
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          aria-label="view"
+                          onClick={() =>
+                            navigate(`/user-practices/${row.user_id}`)
+                          }
+                        >
+                          <VisibilityIcon color="primary" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                      {loading ? (
+                        <CircularProgress
+                          size="2rem"
+                          sx={{ color: theme.palette.primary.main }}
+                        />
+                      ) : (
+                        "No data found"
+                      )}
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                    {loading ? (
-                      <CircularProgress
-                        size="2rem"
-                        sx={{ color: theme.palette.primary.main }}
-                      />
-                    ) : (
-                      "No data found"
-                    )}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={totalCount}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          sx={{
-            ".MuiTablePagination-selectLabel": {
-              marginTop: "auto",
-            },
-            ".MuiSelect-select": {
-              paddingTop: "4px",
-              paddingBottom: "4px",
-            },
-            ".MuiTablePagination-displayedRows": {
-              marginTop: "auto",
-            },
-          }}
-        />
-      </Paper>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={totalCount}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            sx={{
+              "& .MuiTablePagination-toolbar": {
+                minHeight: "60px",
+              },
+              "& .MuiTablePagination-selectLabel": {
+                marginTop: "0",
+                fontSize: "0.9rem",
+              },
+              "& .MuiTablePagination-displayedRows": {
+                marginTop: "0",
+                fontSize: "0.9rem",
+              },
+              "& .MuiTablePagination-select": {
+                paddingTop: "4px",
+                paddingBottom: "4px",
+              },
+              "& .MuiInputBase-root": {
+                fontSize: "0.9rem",
+              },
+            }}
+          />
+        </Paper>
+      )}
     </div>
   );
 };

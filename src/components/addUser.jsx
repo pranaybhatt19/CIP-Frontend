@@ -23,7 +23,11 @@ import {
 } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { addUser, getDesignations } from "../services/authentication";
+import {
+  addUser,
+  getDesignations,
+  getReportingPersons,
+} from "../services/authentication";
 import { decodeToken } from "../util/commonFunction";
 import { toast } from "react-toastify";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -75,12 +79,13 @@ const validationSchema = Yup.object({
     .required("Email is required"),
   designation: Yup.number().required("Designation is required"),
   experience: Yup.date().required("Joining Date is required"),
-  reportingPerson: Yup.number(),
+  reportingPerson: Yup.number().required("Reporting Manager is required"),
 });
 
 export const AddUserModal = ({ open, onClose }) => {
   const [userId, setUserId] = useState(null);
   const [designationList, setDesignationList] = useState([]);
+  const [reportingPersonList, setReportingPersonList] = useState([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const handleTogglePassword = () => {
@@ -93,13 +98,28 @@ export const AddUserModal = ({ open, onClose }) => {
         setDesignationList(res.data || []);
       });
     } catch (err) {
-      toast.error(err.message || "Failed to fetch data");
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch data");
+      }
+    }
+  };
+
+  const fetchReportingPersons = async () => {
+    try {
+      await getReportingPersons().then((res) => {
+        setReportingPersonList(res.data || []);
+      });
+    } catch (err) {
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch data");
+      }
     }
   };
 
   useEffect(() => {
     const decodedToken = decodeToken();
     fetchDesignations();
+    fetchReportingPersons();
     if (decodedToken?.sub) setUserId(decodedToken.sub);
   }, []);
 
@@ -290,6 +310,59 @@ export const AddUserModal = ({ open, onClose }) => {
                   {formik.errors.designation}
                 </Box>
               )}
+            </FormControl>
+
+            <FormControl fullWidth margin="normal">
+              <InputLabel
+                id="reporting-person-label"
+                shrink={Boolean(formik.values.reportingPerson)}
+              >
+                Reporting Manager
+              </InputLabel>
+
+              <Select
+                labelId="reporting-person-label"
+                name="reportingPerson"
+                value={formik.values.reportingPerson}
+                onChange={formik.handleChange}
+                error={
+                  formik.touched.reportingPerson &&
+                  Boolean(formik.errors.reportingPerson)
+                }
+                input={
+                  <OutlinedInput
+                    label="Reporting Manager"
+                    notched={Boolean(formik.values.reportingPerson)}
+                  />
+                }
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: isMobile ? 250 : 300,
+                    },
+                  },
+                }}
+              >
+                {reportingPersonList.map((item) => (
+                  <MenuItem key={item.user_id} value={item.user_id}>
+                    {item.name}
+                  </MenuItem>
+                ))}
+              </Select>
+
+              {formik.touched.reportingPerson &&
+                formik.errors.reportingPerson && (
+                  <Box
+                    sx={{
+                      color: "#d32f2f",
+                      fontSize: 12,
+                      mt: 0.5,
+                      marginLeft: 0,
+                    }}
+                  >
+                    {formik.errors.reportingPerson}
+                  </Box>
+                )}
             </FormControl>
           </Box>
 

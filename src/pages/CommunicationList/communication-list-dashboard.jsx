@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from "react";
 import {
-    Box,
-    Button,
-    CircularProgress,
-    IconButton,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TablePagination,
-    TableRow,
-    Typography,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Divider,
-    Tooltip,
-    Link,
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TablePagination,
+  TableRow,
+  Typography,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Divider,
+  Tooltip,
+  Link,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
@@ -28,345 +28,395 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import LinkSharpIcon from "@mui/icons-material/LinkSharp";
 import { useTheme } from "@mui/material/styles";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-import Header from "../../components/header";
-import PracticeFilterDrawer from "./filter";
+import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
+import AssignmentAddIcon from "@mui/icons-material/AssignmentAdd";
 
-// helper to truncate & tooltip text
+import PracticeFilterDrawer from "./filter";
+import {
+  deletePractice,
+  getPracticeDetailsByUserId,
+} from "../../services/authentication";
+import AddPracticeModal from "../../components/addPractice";
+import CommunicationTableHead from "../../components/communicationListTableHead";
+import { decodeToken } from "../../util/commonFunction";
+
 const renderWithTooltip = (text, limit = 40) => {
-    if (!text) return "—";
-    const isTruncated = text.length > limit;
-    const displayText = isTruncated ? text.slice(0, limit) + "..." : text;
-    return isTruncated ? (
-        <Tooltip title={text} placement="bottom-start" arrow>
-            <span>{displayText}</span>
-        </Tooltip>
-    ) : (
-        <span>{text}</span>
-    );
+  if (!text) return "—";
+  const isTruncated = text.length > limit;
+  const displayText = isTruncated ? text.slice(0, limit) + "..." : text;
+  return isTruncated ? (
+    <Tooltip title={text} placement="bottom-start" arrow>
+      <span>{displayText}</span>
+    </Tooltip>
+  ) : (
+    <span>{displayText}</span>
+  );
 };
 
-// helper to render link with truncation
 const renderLink = (url) => {
-    if (!url) return "N/A";
-    const maxLength = 35;
-    const isTruncated = url.length > maxLength;
-    const displayText = isTruncated ? url.slice(0, maxLength) + "..." : url;
+  if (!url) return "N/A";
+  const maxLength = 35;
+  const isTruncated = url.length > maxLength;
+  const displayText = isTruncated ? url.slice(0, maxLength) + "..." : url;
 
-    return (
-        <Link
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            underline="hover"
-            sx={{ display: "flex", alignItems: "center", gap: "6px" }}
-        >
-            <LinkSharpIcon fontSize="small" color="#1976d2" />
-            {isTruncated ? (
-                <Tooltip title={url} placement="bottom-start" arrow>
-                    <span>{displayText}</span>
-                </Tooltip>
-            ) : (
-                <span>{url}</span>
-            )}
-        </Link>
-    );
+  return (
+    <Link
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      underline="hover"
+      sx={{ display: "flex", alignItems: "center", gap: "6px" }}
+    >
+      <LinkSharpIcon fontSize="small" />
+      {isTruncated ? (
+        <Tooltip title={url} placement="bottom-start" arrow>
+          <span>{displayText}</span>
+        </Tooltip>
+      ) : (
+        <span>{displayText}</span>
+      )}
+    </Link>
+  );
 };
 
-export const CommunicationListDashboard = () => {
-    const theme = useTheme();
-    const navigate = useNavigate();
+const CommunicationListDashboard = () => {
+  const theme = useTheme();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const decodedToken = decodeToken();
+  const [rows, setRows] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState({});
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [order, setOrder] = useState("desc");
+  const [orderBy, setOrderBy] = useState("date");
 
-    const [rows, setRows] = useState([]);
-    const [totalCount, setTotalCount] = useState(0);
-    const [loading, setLoading] = useState(true);
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(25);
-    const [order, setOrder] = useState("asc");
-    const [orderBy, setOrderBy] = useState("date_of_practice");
-    const [filterOpen, setFilterOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
-    // Filter state
-    const [exactDate, setExactDate] = useState(null);
-    const [fromDate, setFromDate] = useState(null);
-    const [toDate, setToDate] = useState(null);
+  const [exactDate, setExactDate] = useState(null);
+  const [fromDate, setFromDate] = useState(null);
+  const [toDate, setToDate] = useState(null);
 
-    // Delete dialog state
-    const [deleteOpen, setDeleteOpen] = useState(false);
-    const [selectedDeleteId, setSelectedDeleteId] = useState(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedDeleteId, setSelectedDeleteId] = useState(null);
 
-    // Dummy data (with feedback)
-    useEffect(() => {
-        setRows([
-            {
-                id: 1,
-                date_of_practice: "2025-10-01T10:30:00",
-                link: "https://link1.com/very/long/link/here",
-                feedback: "Good clarity",
-            },
-            {
-                id: 2,
-                date_of_practice: "2025-10-02T14:45:00",
-                link: "https://link2.com",
-                feedback: "Needs improvement in tone, especially while explaining technical details in a structured way.",
-            },
-            {
-                id: 3,
-                date_of_practice: "2025-10-03T09:15:00",
-                link: "https://link3.com/more/stuff",
-                feedback: "Excellent flow",
-            },
-        ]);
-        setTotalCount(3);
-        setLoading(false);
-    }, []);
+  // ------------------ FETCH DATA ------------------
+  const fetchData = async () => {
+    try {
+      setLoading(true);
 
-    const handleRequestSort = (event, property) => {
-        const isAsc = orderBy === property && order === "asc";
-        setOrder(isAsc ? "desc" : "asc");
-        setOrderBy(property);
-    };
+      const payload = {
+        id: +id,
+        offset: page * rowsPerPage,
+        limit: rowsPerPage,
+        order: [[orderBy, order.toUpperCase()]],
+        ...(exactDate && { dateExact: exactDate }),
+        ...(fromDate && { dateFrom: fromDate }),
+        ...(toDate && { dateTo: toDate }),
+      };
 
-    const handleChangePage = (event, newPage) => setPage(newPage);
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
+      const response = await getPracticeDetailsByUserId(payload);
+      if (response?.payload?.practices) {
+        const { practices, total, user } = response.payload;
+        const formatted = practices.map((p) => ({
+          id: +p.id,
+          date_of_practice: p.date,
+          link: p.link,
+          feedback: p.feedback || "—",
+        }));
+        setRows(formatted);
+        setUser(user);
+        setTotalCount(total ?? formatted.length);
+      } else {
+        setRows([]);
+        setTotalCount(0);
+      }
+    } catch (err) {
+      if (err.status === 409) {
+        navigate("/dashboard");
+      } else {
+        toast.error(err?.message || "Failed to fetch practices");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Delete handlers
-    const handleDeleteOpen = (id) => {
-        setSelectedDeleteId(id);
-        setDeleteOpen(true);
-    };
-    const handleDeleteClose = () => {
-        setDeleteOpen(false);
-        setSelectedDeleteId(null);
-    };
-    const handleDeleteConfirm = async () => {
-        try {
-            if (selectedDeleteId) {
-                setRows((prev) => prev.filter((row) => row.id !== selectedDeleteId));
-                setTotalCount((prev) => prev - 1);
-                toast.success("Practice deleted successfully!");
-            }
-        } catch (err) {
-            toast.error(err.message || "Failed to delete practice");
-        } finally {
-            handleDeleteClose();
-        }
-    };
+  useEffect(() => {
+    fetchData();
+  }, [id, page, rowsPerPage, order, orderBy, exactDate, fromDate, toDate]);
 
-    // Filtering
-    const filteredRows = rows.filter((row) => {
-        const rowDate = dayjs(row.date_of_practice);
-        if (exactDate && !rowDate.isSame(dayjs(exactDate), "day")) return false;
-        if (fromDate && rowDate.isBefore(dayjs(fromDate), "day")) return false;
-        if (toDate && rowDate.isAfter(dayjs(toDate), "day")) return false;
-        return true;
-    });
+  // ------------------ SORTING ------------------
+  const handleRequestSort = (event, property) => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+  };
 
-    // Sorting
-    const sortedRows = [...filteredRows].sort((a, b) => {
-        let comparison = 0;
-        if (orderBy === "date_of_practice") {
-            comparison =
-                new Date(a.date_of_practice).getTime() -
-                new Date(b.date_of_practice).getTime();
-        } else if (orderBy === "feedback") {
-            comparison = a.feedback.localeCompare(b.feedback);
-        }
-        return order === "asc" ? comparison : -comparison;
-    });
+  // ------------------ PAGINATION ------------------
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
-    return (
-        <div style={{ width: "100%", padding: 2 }}>
-            <Header />
+  const handleChangeRowsPerPage = (event) => {
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
+    setPage(0);
+  };
 
-            {/* Top Bar */}
-            <Box
-                sx={{
-                    margin: "1rem",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                }}
+  // ------------------ DELETE HANDLERS ------------------
+  const handleDeleteOpen = (id) => {
+    setSelectedDeleteId(id);
+    setDeleteOpen(true);
+  };
+
+  const handleDeleteClose = () => {
+    setDeleteOpen(false);
+    setSelectedDeleteId(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      if (!selectedDeleteId) return;
+      await deletePractice(selectedDeleteId);
+      toast.success("Practice deleted successfully!");
+      await fetchData();
+    } catch (err) {
+      if (err.status === 409) {
+        navigate("/dashboard");
+      } else {
+        toast.error(
+          err?.response?.data?.message || "Failed to delete practice"
+        );
+      }
+    } finally {
+      handleDeleteClose();
+    }
+  };
+
+  // ------------------ FILTERS ------------------
+  const handleClearFilters = () => {
+    setExactDate(null);
+    setFromDate(null);
+    setToDate(null);
+    setPage(0);
+  };
+
+  const handleApplyFilters = (filters) => {
+    const { exactDate: e, fromDate: f, toDate: t } = filters;
+    setExactDate(e ?? null);
+    setFromDate(f ?? null);
+    setToDate(t ?? null);
+    setPage(0);
+  };
+
+  // ------------------ UI ------------------
+  return (
+    <div style={{ width: "100%" }}>
+      {/* Header */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          padding: 2,
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <ArrowBackIosIcon
+            onClick={() => navigate(-1)}
+            sx={{
+              fontSize: "1.8rem",
+              height: 48,
+              cursor: "pointer",
+              color: theme.palette.primary.main,
+            }}
+          />
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
+          >
+            {`Communication List - ${
+              user.name
+                ? user.name
+                    .split(" ")
+                    .map((word, idx, arr) =>
+                      idx > 0 && idx < arr.length - 1 ? word[0] : word
+                    )
+                    .join(" ")
+                : "-"
+            }`}
+          </Typography>
+        </Box>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          {decodedToken.sub === +id ? (
+            <Button
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                fontWeight: "bold",
+              }}
+              onClick={() => setAddModalOpen(true)}
+              startIcon={<AssignmentAddIcon />}
             >
-                <Box sx={{ display: "flex" }}>
-                    <ArrowBackIosIcon
-                        onClick={() => navigate(-1)}
-                        sx={{
-                            fontSize: "1.8rem",
-                            height: 48,
-                            fontWeight: "bold",
-                            cursor: "pointer",
-                            color: theme.palette.primary.main,
-                        }}
+              Add Practice
+            </Button>
+          ) : (
+            ""
+          )}
+          <Button
+            variant="outlined"
+            sx={{
+              borderColor: theme.palette.primary.main,
+              color: theme.palette.primary.main,
+              fontWeight: "bold",
+            }}
+            startIcon={<FilterListIcon />}
+            onClick={() => setFilterOpen(true)}
+          >
+            Filters
+          </Button>
+        </Box>
+
+        <PracticeFilterDrawer
+          open={filterOpen}
+          onClose={() => setFilterOpen(false)}
+          exactDate={exactDate}
+          setExactDate={setExactDate}
+          fromDate={fromDate}
+          setFromDate={setFromDate}
+          toDate={toDate}
+          setToDate={setToDate}
+          onClear={handleClearFilters}
+          onApply={handleApplyFilters}
+        />
+      </Box>
+
+      {/* Table */}
+      <Paper sx={{ width: "100%", p: "8px 16px", pb: 0 }}>
+        <TableContainer>
+          <Table sx={{ minWidth: 750 }}>
+            <CommunicationTableHead
+              order={order}
+              orderBy={orderBy}
+              onRequestSort={handleRequestSort}
+              setPage={setPage}
+            />
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                    <CircularProgress
+                      size="2rem"
+                      sx={{ color: theme.palette.primary.main }}
                     />
-                    <Typography
-                        variant="h4"
-                        sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
-                    >
-                        Practice Dashboard
-                    </Typography>
-                </Box>
-                <Box sx={{ display: "flex", gap: 2 }}>
-                    <Button
-                        variant="contained"
-                        sx={{
-                            backgroundColor: theme.palette.primary.main,
-                            fontWeight: "bold",
-                        }}
-                        onClick={() => navigate("/add-communication-practice")}
-                    >
-                        Add Practice
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        sx={{
-                            borderColor: theme.palette.primary.main,
-                            color: theme.palette.primary.main,
-                            fontWeight: "bold",
-                        }}
-                        startIcon={<FilterListIcon color="primary" />}
-                        onClick={() => setFilterOpen(true)}
-                    >
-                        Filters
-                    </Button>
-                </Box>
+                  </TableCell>
+                </TableRow>
+              ) : rows.length > 0 ? (
+                rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    hover
+                    sx={{
+                      height: "60px",
+                      "& .MuiTableCell-root": {
+                        py: 1,
+                      },
+                    }}
+                  >
+                    <TableCell>
+                      {dayjs(row.date_of_practice).format("DD/MM/YYYY")}
+                    </TableCell>
+                    <TableCell>
+                      {dayjs(row.date_of_practice).format("hh:mm A")}
+                    </TableCell>
+                    <TableCell>{renderLink(row.link)}</TableCell>
+                    <TableCell>{renderWithTooltip(row.feedback)}</TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        aria-label="delete"
+                        onClick={() => handleDeleteOpen(row.id)}
+                      >
+                        <DeleteIcon color="error" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                    No data found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-                {/* Filter Drawer */}
-                <PracticeFilterDrawer
-                    open={filterOpen}
-                    onClose={() => setFilterOpen(false)}
-                    exactDate={exactDate}
-                    setExactDate={setExactDate}
-                    fromDate={fromDate}
-                    setFromDate={setFromDate}
-                    toDate={toDate}
-                    setToDate={setToDate}
-                />
-            </Box>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={totalCount}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Paper>
 
-            {/* Data Table */}
-            <Paper sx={{ width: "100%", p: 1 }}>
-                <TableContainer>
-                    <Table sx={{ minWidth: 750 }}>
-                        <thead>
-                            <TableRow>
-                                <TableCell
-                                    onClick={(e) => handleRequestSort(e, "date_of_practice")}
-                                    sx={{ cursor: "pointer" }}
-                                >
-                                    <b>Date & Time of Practice</b>
-                                </TableCell>
-                                <TableCell>
-                                    <b>Link</b>
-                                </TableCell>
-                                <TableCell
-                                    onClick={(e) => handleRequestSort(e, "feedback")}
-                                    sx={{ cursor: "pointer" }}
-                                >
-                                    <b>Feedback</b>
-                                </TableCell>
-                                <TableCell align="center">
-                                    <b>Actions</b>
-                                </TableCell>
-                            </TableRow>
-                        </thead>
-                        <TableBody>
-                            {sortedRows.length > 0 ? (
-                                sortedRows.map((row) => (
-                                    <TableRow hover key={row.id}>
-                                        <TableCell>
-                                            {dayjs(row.date_of_practice).format("DD/MM/YYYY HH:mm")}
-                                        </TableCell>
-                                        <TableCell>{renderLink(row.link)}</TableCell>
-                                        <TableCell>{renderWithTooltip(row.feedback)}</TableCell>
-                                        <TableCell align="center">
-                                            <IconButton
-                                                aria-label="delete"
-                                                onClick={() => handleDeleteOpen(row.id)}
-                                            >
-                                                <DeleteIcon color="error" />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={4} align="center" sx={{ py: 3 }}>
-                                        {loading ? (
-                                            <CircularProgress
-                                                size="2rem"
-                                                sx={{ color: theme.palette.primary.main }}
-                                            />
-                                        ) : (
-                                            "No data found"
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    component="div"
-                    count={sortedRows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-            </Paper>
+      <AddPracticeModal
+        open={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        onSubmitSuccess={fetchData} // simply call the single fetchData function
+      />
 
-            {/* Delete Confirmation Dialog */}
-            <Dialog open={deleteOpen} onClose={handleDeleteClose}>
-                <DialogTitle sx={{ fontWeight: "bold" }}>
-                    <h3 style={{ color: "#1976d2", marginBottom: 0 }}>
-                        Delete Confirmation
-                    </h3>
-                </DialogTitle>
+      {/* Delete Dialog */}
+      <Dialog open={deleteOpen} onClose={handleDeleteClose}>
+        <DialogTitle sx={{ fontWeight: "bold" }}>
+          <Typography variant="h3" style={{ marginBottom: 0 }}>
+            Delete Confirmation
+          </Typography>
+        </DialogTitle>
 
-                <Divider
-                    sx={{ borderColor: "rgba(0,0,0,0.6)", borderBottomWidth: 1 }}
-                />
+        <Divider
+          sx={{ borderColor: "rgba(0,0,0,0.6)", borderBottomWidth: 1 }}
+        />
 
-                <DialogContent
-                    sx={{ borderRadius: 0, p: 3, m: 2, fontFamily: "Roboto" }}
-                >
-                    <Box
-                        display="flex"
-                        flexDirection="column"
-                        alignItems="center"
-                        gap={2}
-                        sx={{ textAlign: "center" }}
-                    >
-                        <InfoOutlinedIcon
-                            sx={{ fontSize: 80, fontWeight: 300, color: "#1976d2" }}
-                        />
-                        <DialogContentText sx={{ fontSize: "1.1rem", fontWeight: 500 }}>
-                            Are you sure you want to delete this practice record? <br />
-                            This action cannot be undone.
-                        </DialogContentText>
-                    </Box>
-                </DialogContent>
+        <DialogContent sx={{ p: 3, m: 2, textAlign: "center" }}>
+          <InfoOutlinedIcon
+            sx={{ fontSize: 80, fontWeight: 300, color: "#2a9d8f" }}
+          />
+          <DialogContentText sx={{ fontSize: "1.1rem", fontWeight: 500 }}>
+            Are you sure you want to delete this practice record? <br />
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
 
-                <DialogActions
-                    sx={{ p: 2, display: "flex", justifyContent: "center" }}
-                >
-                    <Button onClick={handleDeleteConfirm} color="primary" variant="contained">
-                        Yes, Delete
-                    </Button>
-                    <Button onClick={handleDeleteClose} color="primary" variant="outlined">
-                        Cancel
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </div>
-    );
+        <DialogActions sx={{ p: 2, justifyContent: "center" }}>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="primary"
+            variant="contained"
+          >
+            Yes, Delete
+          </Button>
+          <Button
+            onClick={handleDeleteClose}
+            color="primary"
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
 };
 
 export default CommunicationListDashboard;

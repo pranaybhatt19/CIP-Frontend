@@ -1,67 +1,148 @@
-import React from "react";
-import { Drawer, Box, Typography, IconButton, Button } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Button, Drawer, IconButton, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
-export default function filter({
+dayjs.extend(utc);
+
+export default function PracticeFilterDrawer({
   open,
   onClose,
   exactDate,
-  setExactDate,
   fromDate,
-  setFromDate,
   toDate,
-  setToDate,
+  onClear,
+  onApply,
 }) {
+  // Local state inside drawer
+  const [localExactDate, setLocalExactDate] = useState(exactDate);
+  const [localFromDate, setLocalFromDate] = useState(fromDate);
+  const [localToDate, setLocalToDate] = useState(toDate);
+
+  // Keep local state in sync if parent state changes
+  useEffect(() => {
+    setLocalExactDate(exactDate);
+    setLocalFromDate(fromDate);
+    setLocalToDate(toDate);
+  }, [exactDate, fromDate, toDate]);
+
+  const handleApply = () => {
+    onApply({
+      exactDate: localExactDate,
+      fromDate: localFromDate,
+      toDate: localToDate,
+    });
+    onClose();
+  };
+
   const handleClear = () => {
-    setExactDate(null);
-    setFromDate(null);
-    setToDate(null);
+    // Clear local state
+    setLocalExactDate(null);
+    setLocalFromDate(null);
+    setLocalToDate(null);
+
+    // Call parent's clear function if needed
+    if (onClear) onClear();
+
+    // Immediately fetch data without filters
+    onApply({ exactDate: null, fromDate: null, toDate: null });
   };
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
-      <Box sx={{ width: 300, p: 2 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-          <Typography variant="h5" sx={{ color: "#1976d2" }}>Filters</Typography>
+      <Box sx={{ width: 320, p: 3 }}>
+        {/* Header */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
+          <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+            Filters
+          </Typography>
           <IconButton onClick={onClose}>
-            <CloseIcon sx={{ color: "#1976d2" }} />
+            <CloseIcon />
           </IconButton>
         </Box>
 
+        {/* Date Pickers */}
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
             label="Exact Date"
             format="DD/MM/YYYY"
-            value={exactDate ? dayjs(exactDate) : null}
-            onChange={(newValue) => setExactDate(newValue?.toISOString() || null)}
-            slotProps={{ textField: { fullWidth: true, sx: { mb: 2 } } }}
+            value={localExactDate ? dayjs(localExactDate) : null}
+            onChange={(newValue) =>
+              setLocalExactDate(
+                newValue
+                  ? dayjs(newValue).utc(true).startOf("day").toISOString()
+                  : null
+              )
+            }
+            slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
             maxDate={dayjs()}
           />
           <DatePicker
             label="From Date"
             format="DD/MM/YYYY"
-            value={fromDate ? dayjs(fromDate) : null}
-            onChange={(newValue) => setFromDate(newValue?.toISOString() || null)}
-            slotProps={{ textField: { fullWidth: true, sx: { mb: 2 } } }}
-            maxDate={toDate ? dayjs(toDate) : dayjs()}
+            value={localFromDate ? dayjs(localFromDate) : null}
+            onChange={(newValue) =>
+              setLocalFromDate(
+                newValue
+                  ? dayjs(newValue).utc(true).startOf("day").toISOString()
+                  : null
+              )
+            }
+            slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
+            maxDate={
+              localToDate ? dayjs(localToDate).subtract(1, "day") : dayjs()
+            }
           />
           <DatePicker
             label="To Date"
             format="DD/MM/YYYY"
-            value={toDate ? dayjs(toDate) : null}
-            onChange={(newValue) => setToDate(newValue?.toISOString() || null)}
-            slotProps={{ textField: { fullWidth: true, sx: { mb: 2 } } }}
-            minDate={fromDate ? dayjs(fromDate) : undefined}
+            value={localToDate ? dayjs(localToDate) : null}
+            onChange={(newValue) =>
+              setLocalToDate(
+                newValue
+                  ? dayjs(newValue).utc(true).startOf("day").toISOString()
+                  : null
+              )
+            }
+            slotProps={{ textField: { fullWidth: true, sx: { mb: 3 } } }}
+            minDate={
+              localFromDate ? dayjs(localFromDate).add(1, "day") : undefined
+            }
             maxDate={dayjs()}
           />
         </LocalizationProvider>
 
-        <Box display="flex" justifyContent="space-between" mt={2}>
-          <Button variant="outlined" onClick={handleClear}>Clear</Button>
-          <Button variant="contained" onClick={onClose}>Apply</Button>
+        {/* Action Buttons */}
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: 2 }}
+        >
+          <Button
+            variant="outlined"
+            color="primary"
+            sx={{ fontWeight: "bold" }}
+            onClick={handleClear}
+          >
+            Clear
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ fontWeight: "bold" }}
+            onClick={handleApply}
+          >
+            Apply
+          </Button>
         </Box>
       </Box>
     </Drawer>
