@@ -38,6 +38,7 @@ import dayjs from "dayjs";
 import AddLanguageModal from "../../components/addLanguage";
 import Cookie from "js-cookie";
 import Cookies from "js-cookie";
+import { debounce } from 'lodash';
 
 export const Dashboard = () => {
   const theme = useTheme();
@@ -83,6 +84,27 @@ export const Dashboard = () => {
   const [reportingPersonList, setReportingPersonList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
 
+  // const [searchTerm, setSearchTerm] = useState(''); // Can be used to store input value
+
+  // Debounce function
+  // const debouncedSearch = useCallback(
+  //   debounce((input) => fetchData(input), 2500), // Call api after 2.5 seconds(initial can be changed later)
+  //   []
+  // );
+
+  // Handle input changes
+  // const handleNameInputChange = (event) => {
+  //   setSearchTerm(event.target.value);
+  //   debouncedSearch(searchTerm); // Call on every keystroke
+  // };
+
+  // Clean up debounced on component unmount
+  // useEffect(() => {
+  //   return () => {
+  //     debouncedSearch.cancel();
+  //   };
+  // }, [debouncedSearch]);
+
   // ====================== Effects ======================
   useEffect(() => {
     const decodedToken = decodeToken();
@@ -94,18 +116,29 @@ export const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const savedView = Cookie.get("user_view_pref");
-    if (savedView === "tree") {
-      setIsTreeView(true);
-    } else if (savedView === "list") {
+    const savedView = Cookie.get("cip_view_preference");
+    if(!savedView){
+      Cookie.set("cip_view_preference", "list", { expires: 7 });
       setIsTreeView(false);
+      return;
+    }
+    switch (savedView) {
+      case 'tree':
+        setIsTreeView(true);
+        break;
+      case 'list':
+        setIsTreeView(false);
+        break;
+      default:
+        setIsTreeView(false);
+        break;
     }
   }, []);
 
   const handlePrefChange = (event, newValue) => {
     const selectedView = newValue === 1 ? "tree" : "list";
     setIsTreeView(selectedView === "tree");
-    Cookies.set("user_view_pref", selectedView, { expires: 30 });
+    Cookies.set("cip_view_preference", selectedView, { expires: 7 });
   };
 
   // ====================== API Calls ======================
