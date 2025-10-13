@@ -95,8 +95,7 @@ const ChangePasswordDialog = ({ open, onClose }) => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <LockResetIcon color="primary" />
-            <Typography variant="h6" fontWeight={600}>
+            <Typography variant="h3" fontWeight={600}>
               Change Password
             </Typography>
           </Box>
@@ -142,7 +141,6 @@ const ChangePasswordDialog = ({ open, onClose }) => {
                     </IconButton>
                   </InputAdornment>
                 }
-                sx={{ backgroundColor: "grey.50" }}
               />
               {formik.touched.new_password && formik.errors.new_password && (
                 <Typography color="error" variant="caption">
@@ -183,7 +181,6 @@ const ChangePasswordDialog = ({ open, onClose }) => {
                     </IconButton>
                   </InputAdornment>
                 }
-                sx={{ backgroundColor: "grey.50" }}
               />
               {formik.touched.confirm_password && formik.errors.confirm_password && (
                 <Typography color="error" variant="caption">

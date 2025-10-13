@@ -54,7 +54,7 @@ export default function PracticeFilterDrawer({
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
-      <Box sx={{ width: 320, p: 3 }}>
+      <Box sx={{ width: 350, p: 2 }}>
         {/* Header */}
         <Box
           sx={{
