@@ -341,7 +341,7 @@ export const Dashboard = () => {
             sx={{
               display: "flex",
               flexDirection: { sm: "row" },
-              alignItems: { sm: "center" , md: "flex-end" },
+              alignItems: { sm: "center", md: "flex-end" },
               justifyContent: "center",
               gap: 2,
               flexWrap: "wrap",
@@ -557,7 +557,7 @@ export const Dashboard = () => {
       ) : (
         <Paper sx={{ width: "100%", mb: 2, mt: 2, p: "8px 16px", pb: 0 }}>
           <TableContainer>
-            <Table sx={{ minWidth: 750 }}>
+            <Table sx={{ minWidth: 750 }} size="small">
               <DashboardTableHead
                 order={order}
                 orderBy={orderBy}
@@ -571,10 +571,11 @@ export const Dashboard = () => {
                       hover={index != 0}
                       key={row.user_id ?? index}
                       sx={{
-                        height: "60px",
+                        height: "50px",
                         background: `${index == 0 && !isPM ? "#f2f2f2" : ""}`,
                         "& .MuiTableCell-root": {
-                          py: 1,
+                          py: 0.45,
+                          height: "50px",
                         },
                       }}
                     >
@@ -628,9 +629,7 @@ export const Dashboard = () => {
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>
                         {row.last_communication_date
-                          ? dayjs(row.last_communication_date).format(
-                            "DD/MM/YYYY hh:mm A"
-                          )
+                          ? dayjs(row.last_communication_date).format("DD/MM/YYYY \u00A0 hh:mm A") 
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>
