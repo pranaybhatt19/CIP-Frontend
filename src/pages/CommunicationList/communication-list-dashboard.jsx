@@ -304,7 +304,7 @@ const CommunicationListDashboard = () => {
       {/* Table */}
       <Paper sx={{ width: "100%", p: "8px 16px", pb: 0 }}>
         <TableContainer>
-          <Table sx={{ minWidth: 750 }}>
+          <Table sx={{ minWidth: 750 }} size="small">
             <CommunicationTableHead
               order={order}
               orderBy={orderBy}
@@ -327,9 +327,10 @@ const CommunicationListDashboard = () => {
                     key={row.id}
                     hover
                     sx={{
-                      height: "57px",
+                      height: "50px",
                       "& .MuiTableCell-root": {
-                        py: 1,
+                        py: 0.45,
+                        height: "50px",
                       },
                     }}
                   >

@@ -1,6 +1,6 @@
 import React from "react";
 import { Table } from "rsuite";
-import { Box, IconButton, useTheme } from "@mui/material";
+import { Box, IconButton, Link, useTheme } from "@mui/material";
 import "rsuite/dist/rsuite.min.css";
 import dayjs from "dayjs";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -221,31 +221,32 @@ export default function UserTreeView({ treeData }) {
           >
             {(rowData) =>
               rowData.last_attempt_date !== "-" ? (
-                <a
+                <Link
                   href={rowData.link || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
+                  underline="none"
                   sx={{
-                    color: "#000000de",
+                    display: "flex",
+                    alignItems: "center",
+                    fontWeight: 600,
+                    color: "#000",
+                    cursor: rowData.link ? "pointer" : "default",
                     transition: "color 0.2s ease",
                     "&:hover": {
                       color: theme.palette.primary.main,
                       textDecoration: "underline",
                     },
-                    cursor: rowData.link ? "pointer" : "default",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (rowData.link) e.currentTarget.style.color = "#1976d2";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "#000000de";
                   }}
                 >
-                  <LinkSharpIcon fontSize="small" sx={{ mr: 0.3 }} />
+                  <LinkSharpIcon
+                    fontSize="small"
+                    sx={{ mr: 0.6, verticalAlign: "middle" }}
+                  />
                   {dayjs(rowData.last_attempt_date).format(
-                    "DD/MM/YYYY\u00A0\u00A0hh:mm A"
+                    "DD/MM/YYYY  hh:mm A"
                   )}
-                </a>
+                </Link>
               ) : (
                 "-"
               )
