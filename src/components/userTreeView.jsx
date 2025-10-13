@@ -1,10 +1,11 @@
 import React from "react";
 import { Table } from "rsuite";
-import { Box, IconButton, Typography } from "@mui/material";
+import { Box, IconButton, useTheme } from "@mui/material";
 import "rsuite/dist/rsuite.min.css";
 import dayjs from "dayjs";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useNavigate } from "react-router-dom";
+import LinkSharpIcon from "@mui/icons-material/LinkSharp";
 
 const { Column, HeaderCell, Cell } = Table;
 
@@ -34,6 +35,7 @@ const transformToTree = (node) => ({
   last_attempt_date: node.last_communication_date
     ? dayjs(node.last_communication_date).format("DD/MM/YYYY hh:mm A")
     : "-",
+  link: node.link ?? "-",
   attempts: node.attempts ?? "-",
   children: Array.isArray(node.childrens)
     ? node.childrens.map(transformToTree)
@@ -42,6 +44,7 @@ const transformToTree = (node) => ({
 
 export default function UserTreeView({ treeData }) {
   const navigate = useNavigate();
+  const theme = useTheme();
 
   // Ensure treeData is always an array
   const dataArray = Array.isArray(treeData)
@@ -208,14 +211,46 @@ export default function UserTreeView({ treeData }) {
           >
             Last Attempted On
           </HeaderCell>
+
           <Cell
-            dataKey="last_attempt_date"
             style={{
               padding: "16px 8px",
               display: "flex",
               alignItems: "center",
             }}
-          />
+          >
+            {(rowData) =>
+              rowData.last_attempt_date !== "-" ? (
+                <a
+                  href={rowData.link || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: "#000000de",
+                    transition: "color 0.2s ease",
+                    "&:hover": {
+                      color: theme.palette.primary.main,
+                      textDecoration: "underline",
+                    },
+                    cursor: rowData.link ? "pointer" : "default",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (rowData.link) e.currentTarget.style.color = "#1976d2";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "#000000de";
+                  }}
+                >
+                  <LinkSharpIcon fontSize="small" sx={{ mr: 0.3 }} />
+                  {dayjs(rowData.last_attempt_date).format(
+                    "DD/MM/YYYY\u00A0\u00A0hh:mm A"
+                  )}
+                </a>
+              ) : (
+                "-"
+              )
+            }
+          </Cell>
         </Column>
 
         <Column flexGrow={0.4} align="center">
