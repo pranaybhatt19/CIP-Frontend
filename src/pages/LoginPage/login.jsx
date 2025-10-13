@@ -24,7 +24,7 @@ import { theme } from "../../styles/login-theme";
 import { LoginvalidationSchema } from "../../util/validationSchema";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import loginBg from "../../assets/bg-image.png";
-import headphonesIcon from "../../assets/headphones.svg";
+import headphonesIcon from "../../assets/headphonesLogo.svg";
 
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
