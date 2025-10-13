@@ -663,25 +663,27 @@ export const Dashboard = () => {
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>
                         {row.last_communication_date ? (
-                            <Link
-                              
-                              href={row.link || "#"}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              underline="none"
-                              sx={{
-                                color: "#000000de",
-                                transition: "color 0.2s ease",
-                                "&:hover": {
-                                  color: theme.palette.primary.main,
-                                  textDecoration: "underline",
-                                },
-                                cursor: row.link ? "pointer" : "default",
-                              }}
-                            >
-                                <LinkSharpIcon fontSize="small" sx={{mr:0.3}}/>
-                              {dayjs(row.last_communication_date).format("DD/MM/YYYY\u00A0\u00A0hh:mm A")}
-                            </Link>   
+                          <Link
+
+                            href={row.link || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            underline="none"
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              color: "#000000de",
+                              transition: "color 0.2s ease",
+                              "&:hover": {
+                                color: theme.palette.primary.main,
+                                textDecoration: "underline",
+                              },
+                              cursor: row.link ? "pointer" : "default",
+                            }}
+                          >
+                            <LinkSharpIcon fontSize="small" sx={{ mr: 0.3 }} />
+                            {dayjs(row.last_communication_date).format("DD/MM/YYYY\u00A0\u00A0hh:mm A")}
+                          </Link>
                         ) : (
                           "-"
                         )}
