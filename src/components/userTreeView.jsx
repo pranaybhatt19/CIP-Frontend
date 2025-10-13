@@ -27,6 +27,10 @@ const transformToTree = (node) => ({
         .map((word, idx, arr) => (idx > 0 && idx < arr.length - 1 ? "" : word))
         .join(" ")
     : "-",
+  education_medium: node.medium_of_education
+    ? node.medium_of_education.charAt(0).toUpperCase() +
+      node.medium_of_education.slice(1)
+    : "-",
   last_attempt_date: node.last_communication_date
     ? dayjs(node.last_communication_date).format("DD/MM/YYYY hh:mm A")
     : "-",
@@ -164,6 +168,27 @@ export default function UserTreeView({ treeData }) {
           </HeaderCell>
           <Cell
             dataKey="reporting_person"
+            style={{
+              padding: "16px 8px",
+              display: "flex",
+              alignItems: "center",
+            }}
+          />
+        </Column>
+
+        <Column flexGrow={0.8}>
+          <HeaderCell
+            style={{
+              padding: "5px",
+              fontWeight: "bold",
+              color: "#333",
+              fontSize: "16px",
+            }}
+          >
+            Medium of Education
+          </HeaderCell>
+          <Cell
+            dataKey="education_medium"
             style={{
               padding: "16px 8px",
               display: "flex",

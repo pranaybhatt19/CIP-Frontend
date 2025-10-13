@@ -34,12 +34,14 @@ export default function FilterDrawer({
   setSelectedExperience,
   selectedReportingPerson,
   setSelectedReportingPerson,
+  selectedMediumOfEducation,
+  setSelectedMediumOfEducation,
   selectedAttempts,
   setSelectedAttempts,
   lastAttemptedDate,
   setLastAttemptedDate,
-  designationList,
   reportingPersonList,
+  languageList,
   onClear,
   onApply,
   userId,
@@ -61,6 +63,7 @@ export default function FilterDrawer({
       setInitialValues({
         selectedExperience: { ...selectedExperience },
         selectedReportingPerson: [...selectedReportingPerson],
+        selectedMediumOfEducation: [...selectedMediumOfEducation],
         selectedAttempts: { ...selectedAttempts },
         lastAttemptedDate: { ...lastAttemptedDate },
       });
@@ -87,6 +90,8 @@ export default function FilterDrawer({
         JSON.stringify(initialValues.selectedExperience) ||
       JSON.stringify(selectedReportingPerson) !==
         JSON.stringify(initialValues.selectedReportingPerson) ||
+      JSON.stringify(selectedMediumOfEducation) !==
+        JSON.stringify(initialValues.selectedMediumOfEducation) ||
       JSON.stringify(selectedAttempts) !==
         JSON.stringify(initialValues.selectedAttempts) ||
       JSON.stringify(lastAttemptedDate) !==
@@ -96,6 +101,7 @@ export default function FilterDrawer({
     initialValues,
     selectedExperience,
     selectedReportingPerson,
+    selectedMediumOfEducation,
     selectedAttempts,
     lastAttemptedDate,
   ]);
@@ -211,6 +217,7 @@ export default function FilterDrawer({
       selectedExperience,
       selectedReportingPerson,
       selectedAttempts,
+      selectedMediumOfEducation,
       last_communication_date: lastAttemptedDate,
     };
 
@@ -291,6 +298,35 @@ export default function FilterDrawer({
                   {item.name}
                 </MenuItem>
               ))}
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel id="language-label">Medium of Education</InputLabel>
+          <Select
+            labelId="language-label"
+            multiple
+            value={selectedMediumOfEducation}
+            onChange={(e) => setSelectedMediumOfEducation(e.target.value)}
+            input={<OutlinedInput label="Medium of Education" />}
+            renderValue={(selected) => (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.4 }}>
+                {selected.map((id) => {
+                  return <Chip key={id} label={id} size="small" />;
+                })}
+              </Box>
+            )}
+            MenuProps={{
+              PaperProps: {
+                style: { maxHeight: isMobile ? 250 : 300 },
+              },
+            }}
+          >
+            {languageList.map((item) => (
+              <MenuItem key={item} value={item}>
+                {item}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
