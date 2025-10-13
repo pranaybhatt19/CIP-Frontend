@@ -175,7 +175,7 @@ export const Dashboard = () => {
     () =>
       debounce(() => {
         fetchDataRef.current();
-      }, 2500),
+      }, 1000),
     []
   );
 
