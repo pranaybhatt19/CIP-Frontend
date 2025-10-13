@@ -607,7 +607,7 @@ export const Dashboard = () => {
                         },
                       }}
                     >
-                      <TableCell align="left" sx={{ pl: "5px" }}>
+                      <TableCell align="left" sx={{ pl: "5px", width: "250px" }}>
                         <Tooltip
                           title={
                             <div style={{ fontSize: "0.8rem" }}>
@@ -639,13 +639,13 @@ export const Dashboard = () => {
                           </span>
                         </Tooltip>
                       </TableCell>
-                      <TableCell sx={{ pl: "5px" }}>
+                      <TableCell sx={{ pl: "5px", width: "200px" }}>
                         {row.designation?.name ?? "-"}
                       </TableCell>
-                      <TableCell sx={{ pl: "5px" }}>
+                      <TableCell sx={{ pl: "5px", width: "200px" }}>
                         {row.experience ?? "-"}
                       </TableCell>
-                      <TableCell sx={{ pl: "5px" }}>
+                      <TableCell sx={{ pl: "5px", width: "250px" }}>
                         {row.reporting_person?.name
                           ? row.reporting_person?.name
                             .split(" ")
@@ -655,13 +655,13 @@ export const Dashboard = () => {
                             .join(" ")
                           : "-"}
                       </TableCell>
-                      <TableCell sx={{ pl: "5px" }}>
+                      <TableCell sx={{ pl: "5px", width: "220px" }}>
                         {row.education_medium
                           ? row.education_medium.charAt(0).toUpperCase() +
                           row.education_medium.slice(1)
                           : "-"}
                       </TableCell>
-                      <TableCell sx={{ pl: "5px" }}>
+                      <TableCell sx={{ pl: "5px", width: "300px" }}>
                         {row.last_communication_date ? (
                           <Link
 

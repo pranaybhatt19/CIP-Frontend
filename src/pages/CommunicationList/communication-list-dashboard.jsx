@@ -333,15 +333,15 @@ const CommunicationListDashboard = () => {
                       },
                     }}
                   >
-                    <TableCell>
+                    <TableCell sx={ { width: "250px"}}>
                       {dayjs(row.date_of_practice).format("DD/MM/YYYY")}
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={ { width: "250px"}}>
                       {dayjs(row.date_of_practice).format("hh:mm A")}
                     </TableCell>
-                    <TableCell>{renderLink(row.link)}</TableCell>
-                    <TableCell>{renderWithTooltip(row.feedback)}</TableCell>
-                    <TableCell align="center">
+                    <TableCell sx={ { width: "450px"}}>{renderLink(row.link)}</TableCell>
+                    <TableCell sx={ { width: "450px"}}>{renderWithTooltip(row.feedback)}</TableCell>
+                    <TableCell align="center" sx={ { width: "250px"}}>
                       <IconButton
                         aria-label="delete"
                         onClick={() => handleDeleteOpen(row.id)}

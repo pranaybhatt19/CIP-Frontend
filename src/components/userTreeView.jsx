@@ -185,7 +185,7 @@ export default function UserTreeView({ treeData }) {
               fontSize: "16px",
             }}
           >
-            Medium of Education
+            Medium
           </HeaderCell>
           <Cell
             dataKey="education_medium"

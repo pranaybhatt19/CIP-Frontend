@@ -30,7 +30,7 @@ const headCells = [
     id: "education_medium",
     numeric: false,
     disablePadding: false,
-    label: "Medium of Education",
+    label: "Medium",
   },
   {
     id: "last_communication_date",
