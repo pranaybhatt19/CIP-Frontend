@@ -16,10 +16,10 @@ import {
   Person as PersonIcon,
   Logout as LogoutIcon,
 } from "@mui/icons-material";
-import HeadsetMicIcon from '@mui/icons-material/HeadsetMic';
 import { decodeToken } from "../util/commonFunction";
 import { useState, useEffect } from "react";
 import { useTheme } from "@mui/material/styles";
+import headphonesIcon from "../assets/headphoneHeaderLogo.svg"; 
 
 export const Header = () => {
   const [anchorElUser, setAnchorElUser] = useState(null);
@@ -36,7 +36,8 @@ export const Header = () => {
       const lastName = fullName.length > 1 ? fullName[fullName.length - 1] : "";
       setUsername(`${firstName} ${lastName}`.trim());
     }
-    if (decodedToken?.designation) setUserDesignation(decodedToken.designation.name);
+    if (decodedToken?.designation)
+      setUserDesignation(decodedToken.designation.name);
   }, []);
 
   const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
@@ -65,7 +66,16 @@ export const Header = () => {
             }}
             onClick={() => navigate("/dashboard")}
           >
-            <HeadsetMicIcon sx={{ fontSize: 40, color: theme.palette.common.white }} />
+         
+            <Box
+              component="img"
+              src={headphonesIcon}
+              alt="Headphones Icon"
+              sx={{
+                width: 40,
+                height: 40,
+              }}
+            />
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.common.white }}>
                 Communication Ace
@@ -112,7 +122,7 @@ export const Header = () => {
                 </Typography>
                 {userDesignation && (
                   <Typography
-                    variant='body2'
+                    variant="body2"
                     sx={{ color: theme.palette.text.secondary, textTransform: "capitalize" }}
                   >
                     {userDesignation}
