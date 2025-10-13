@@ -23,6 +23,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useState, useEffect, useMemo } from "react";
 import ScoreFilter from "../../components/scoreFilter";
+import AttemptFilter from "../../components/attemptFilter";
 
 dayjs.extend(utc);
 
@@ -293,35 +294,19 @@ export default function FilterDrawer({
           </Select>
         </FormControl>
 
-        <Box sx={{ mb: 2 }}>
-          <ScoreFilter
-            label="Experience (Years)"
-            value={selectedExperience.value}
-            type={selectedExperience.type}
-            onChange={(newFilter) => setSelectedExperience(newFilter)}
-          />
-          {!validateExperience(selectedExperience) &&
-            selectedExperience.value !== "" && (
-              <FormHelperText error sx={{ ml: 0 }}>
-                Experience must be a valid positive number
-              </FormHelperText>
-            )}
-        </Box>
-        <Box sx={{ mb: 2 }}>
-          <ScoreFilter
-            label="Total Attempts"
-            value={selectedAttempts.value}
-            type={selectedAttempts.type}
-            onChange={(newFilter) => setSelectedAttempts(newFilter)}
-          />
-          {!validateAttempts(selectedAttempts) &&
-            selectedAttempts.value !== "" && (
-              <FormHelperText error sx={{ ml: 0 }}>
-                Total Attempts must be a safe integer (max:
-                9,007,199,254,740,991)
-              </FormHelperText>
-            )}
-        </Box>
+        <ScoreFilter
+          label="Experience (Years)"
+          value={selectedExperience.value}
+          type={selectedExperience.type}
+          onChange={(newFilter) => setSelectedExperience(newFilter)}
+        />
+
+        <AttemptFilter
+          label="Total Attempts"
+          value={selectedAttempts.value}
+          type={selectedAttempts.type}
+          onChange={(newFilter) => setSelectedAttempts(newFilter)}
+        />
 
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker

@@ -255,6 +255,8 @@ export const Dashboard = () => {
       const res = await updateUser(payload);
       setLanguageModalOpen(false);
       fetchData();
+      fetchReportingPersons();
+      fetchDesignations();
     } catch (err) {
       toast.error(err.message || "Failed to update language");
       setLanguageModalOpen(open);
