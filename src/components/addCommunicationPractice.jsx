@@ -144,8 +144,8 @@ export const AddPracticeModal = ({ open, onClose }) => {
             >
               {formik.isSubmitting ? (
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CircularProgress size={20} sx={{ color: "text.secondary" }} />
-                  <Typography sx={{ textTransform: "none" }}>Adding...</Typography>
+                  <CircularProgress size={20} sx={{ color: muiTheme.palette.common.white }} />
+                  <Typography sx={{ color: muiTheme.palette.common.white, textTransform: "none" }}>Adding...</Typography>
                 </Box>
               ) : (
                 "Save"

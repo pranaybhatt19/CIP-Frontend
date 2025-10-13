@@ -22,6 +22,7 @@ import {
   OutlinedInput,
   MenuItem,
   Chip,
+  useMediaQuery,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
@@ -47,9 +48,13 @@ import AddLanguageModal from "../../components/addLanguage";
 import Cookie from "js-cookie";
 import Cookies from "js-cookie";
 import { debounce } from "lodash";
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 export const Dashboard = () => {
   const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.up("sm"));
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
   const [isTreeView, setIsTreeView] = useState(false);
   const [openTreeView, setOpenTreeView] = useState(false);
   const [languageModelOpen, setLanguageModalOpen] = useState(false);
@@ -347,18 +352,24 @@ export const Dashboard = () => {
         <Box
           sx={{
             display: "flex",
-            gap: 1,
-            justifyContent: "flex-end",
-            alignItems: "flex-start",
+            flexDirection: { xs: "column", sm: "row" },
+            justifyContent: { xs: "space-between", sm: "center", md: "flex-end" },
+            alignItems: { xs: "stretch" },
+            flexWrap: "wrap",
+            gap: 2,
+            width: isSmallScreen ? "auto" : "100%",
           }}
         >
+          {/* Left Side: Filters */}
           <Box
             sx={{
               display: "flex",
+              flexDirection: { sm: "row" },
+              alignItems: { sm: "center" , md: "flex-end" },
               justifyContent: "center",
-              alignItems: "flex-start",
-              gap: 1,
+              gap: 2,
               flexWrap: "wrap",
+              width: { xs: "100%", md: "auto" },
             }}
           >
             <TextField
@@ -377,7 +388,7 @@ export const Dashboard = () => {
                 sx: { minHeight: "16px", margin: 0, lineHeight: "1rem" },
               }}
               sx={{
-                width: "250px",
+                width: { xs: "100%", sm: "47%", lg: "240px" },
                 "& .MuiOutlinedInput-root": {
                   backgroundColor: "transparent",
                   height: "40px",
@@ -391,7 +402,7 @@ export const Dashboard = () => {
               }}
             />
 
-            <FormControl sx={{ width: "250px" }} size="small">
+            <FormControl sx={{ width: { xs: "100%", sm: "47%", lg: "240px" } }} size="small">
               <InputLabel id="designation-label">Designation</InputLabel>
               <Select
                 labelId="designation-label"
@@ -400,9 +411,8 @@ export const Dashboard = () => {
                 onChange={(e) => setSelectedDesignation(e.target.value)}
                 input={<OutlinedInput label="Designation" />}
                 renderValue={(selected) => {
-                  const maxVisible = 3; // Show only first 2 chips
+                  const maxVisible = 3;
                   const extraCount = selected.length - maxVisible;
-
                   return (
                     <Box
                       sx={{
@@ -413,12 +423,8 @@ export const Dashboard = () => {
                       }}
                     >
                       {selected.slice(0, maxVisible).map((id) => {
-                        const d = designationList.find(
-                          (item) => item.id === id
-                        );
-                        return (
-                          <Chip key={id} label={d?.name ?? id} size="small" />
-                        );
+                        const d = designationList.find((item) => item.id === id);
+                        return <Chip key={id} label={d?.name ?? id} size="small" />;
                       })}
                       {extraCount > 0 && (
                         <Typography
@@ -449,14 +455,16 @@ export const Dashboard = () => {
             </FormControl>
           </Box>
 
+          {/* Right Side: Tabs & Buttons */}
           <Box
             sx={{
               display: "flex",
-              justifyContent: "center",
+              flexDirection: { sm: "row" },
+              justifyContent: { xs: "center", sm: "flex-end" },
               alignItems: "center",
-              gap: 1,
               flexWrap: "wrap",
-              height: "100% !important",
+              gap: 1.5,
+              width: { xs: "100%", sm: "auto" },
             }}
           >
             {reportingPersonList.length > 0 && (
@@ -469,9 +477,8 @@ export const Dashboard = () => {
                   border: "1px solid #2a9d8f",
                   borderRadius: 1,
                   overflow: "hidden",
-                  "& .MuiTabs-flexContainer": {
-                    height: "100%",
-                  },
+                  width: { sm: "auto" },
+                  "& .MuiTabs-flexContainer": { height: "100%" },
                   "& .MuiTab-root": {
                     textTransform: "none",
                     fontWeight: "bold",
@@ -484,10 +491,7 @@ export const Dashboard = () => {
                     padding: "0 12px",
                     margin: 0,
                     borderRadius: 0,
-                    "&.Mui-selected": {
-                      color: "#fff",
-                      backgroundColor: "#2a9d8f",
-                    },
+                    "&.Mui-selected": { color: "#fff", backgroundColor: "#2a9d8f" },
                   },
                 }}
               >
@@ -505,6 +509,7 @@ export const Dashboard = () => {
                   fontWeight: "bold",
                   height: "40px",
                   textWrap: "nowrap",
+                  width: { sm: "auto" },
                 }}
                 onClick={() => setAddUserModalOpen(true)}
                 startIcon={<PersonAddAltIcon color="primary" />}
@@ -521,6 +526,7 @@ export const Dashboard = () => {
                   color: theme.palette.primary.main,
                   fontWeight: "bold",
                   height: "40px",
+                  width: { sm: "auto" },
                 }}
                 startIcon={<FilterListIcon color="primary" />}
                 onClick={() => setFilterOpen(true)}
@@ -530,6 +536,7 @@ export const Dashboard = () => {
             )}
           </Box>
         </Box>
+
 
         <FilterDrawer
           open={filterOpen}
@@ -618,13 +625,13 @@ export const Dashboard = () => {
                           <span style={{ cursor: "pointer" }}>
                             {row.full_name
                               ? row.full_name
-                                  .split(" ")
-                                  .map((word, idx, arr) =>
-                                    idx > 0 && idx < arr.length - 1
-                                      ? word[0]
-                                      : word
-                                  )
-                                  .join(" ")
+                                .split(" ")
+                                .map((word, idx, arr) =>
+                                  idx > 0 && idx < arr.length - 1
+                                    ? word[0]
+                                    : word
+                                )
+                                .join(" ")
                               : "-"}
                           </span>
                         </Tooltip>
@@ -638,11 +645,11 @@ export const Dashboard = () => {
                       <TableCell sx={{ pl: "5px" }}>
                         {row.reporting_person?.name
                           ? row.reporting_person?.name
-                              .split(" ")
-                              .map((word, idx, arr) =>
-                                idx > 0 && idx < arr.length - 1 ? "" : word
-                              )
-                              .join(" ")
+                            .split(" ")
+                            .map((word, idx, arr) =>
+                              idx > 0 && idx < arr.length - 1 ? "" : word
+                            )
+                            .join(" ")
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>
@@ -654,8 +661,8 @@ export const Dashboard = () => {
                       <TableCell sx={{ pl: "5px" }}>
                         {row.last_communication_date
                           ? dayjs(row.last_communication_date).format(
-                              "DD/MM/YYYY hh:mm A"
-                            )
+                            "DD/MM/YYYY hh:mm A"
+                          )
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>

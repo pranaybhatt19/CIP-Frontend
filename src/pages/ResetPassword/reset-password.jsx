@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff, Lock } from "@mui/icons-material";
 import { useFormik } from "formik";
-import { theme } from "../../styles/login-theme"; 
+import { theme } from "../../styles/login-theme";
 import { ResetPasswordValidationSchema } from "../../util/validationSchema";
 import loginBg from "../../assets/bg-image.png";
 import { resetPassword, verifyOtpToken } from "../../services/authentication";
@@ -219,7 +219,7 @@ const ResetPassword = () => {
                             size={20}
                             sx={{ color: theme.palette.common.white }}
                           />
-                          <Typography color="inherit">Resetting...</Typography>
+                          <Typography sx={{ color:muiTheme.palette.common.white }}>Resetting...</Typography>
                         </Box>
                       ) : (
                         "Reset Password"
