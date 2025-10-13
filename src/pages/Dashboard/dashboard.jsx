@@ -96,7 +96,7 @@ export const Dashboard = () => {
     () =>
       debounce(() => {
         fetchData();
-      }, 1000),
+      }, 1200),
     [searchName, selectedDesignation]
   );
 
@@ -310,7 +310,7 @@ export const Dashboard = () => {
         }}
       >
         <Typography
-          variant="h4"
+          variant="h3"
           sx={{
             fontWeight: "bold",
             color: theme.palette.primary.main,

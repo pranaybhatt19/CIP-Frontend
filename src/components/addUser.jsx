@@ -197,9 +197,9 @@ export const AddUserModal = ({ open, onClose }) => {
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
-        <h3 style={{ color: "#2a9d8f", marginBottom: "1.5rem" }}>
+        <Typography variant='h3'>
           Add New User
-        </h3>
+        </Typography>
 
         <form onSubmit={formik.handleSubmit}>
           <Box sx={scrollbarStyles}>

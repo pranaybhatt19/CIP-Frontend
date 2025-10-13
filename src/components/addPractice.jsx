@@ -135,12 +135,13 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
     <Modal open={open} onClose={handleClose} closeAfterTransition>
       <Box sx={modalStyle}>
         <Typography
-          variant="h5"
-          sx={{ mb: 3, fontWeight: 700, textAlign: "left" }}
+          variant="h3"
+          sx={{  textAlign: "left" }}
+
         >
           Add Practice
         </Typography>
-
+        
         <form onSubmit={formik.handleSubmit}>
           <Box sx={scrollbarStyles}>
             {/* ✅ Date & Time Picker */}
