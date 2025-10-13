@@ -430,12 +430,21 @@ export const AddUserModal = ({ open, onClose }) => {
               aria-label="Save"
             >
               {formik.isSubmitting ? (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    color: "#fff", 
+                  }}
+                >
                   <CircularProgress
                     size={20}
-                    sx={{ color: "text.secondary" }}
+                    sx={{
+                      color: muiTheme.palette.common.white, 
+                    }}
                   />
-                  <Typography sx={{ textTransform: "none" }}>
+                  <Typography sx={{ color: muiTheme.palette.common.white, textTransform: "none" }}>
                     Creating User...
                   </Typography>
                 </Box>

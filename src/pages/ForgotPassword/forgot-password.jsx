@@ -159,7 +159,7 @@ const ForgotPassword = () => {
                             size={20}
                             sx={{ color: muiTheme.palette.common.white }}
                           />
-                          <Typography color="inherit">
+                          <Typography sx={{ color: muiTheme.palette.common.white }}>
                             Sending email...
                           </Typography>
                         </Box>

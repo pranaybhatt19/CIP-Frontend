@@ -212,7 +212,7 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
             >
               {formik.isSubmitting ? (
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CircularProgress size={20} sx={{ color: "white" }} />
+                  <CircularProgress size={20} sx={{ color: muiTheme.palette.common.white }} />
                   Saving...
                 </Box>
               ) : (
