@@ -64,7 +64,7 @@ export const Dashboard = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isExistReportingPerson, setIsExistReportingPerson] = useState(false);
+  const [isPM, setIsPM] = useState(false);
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
@@ -202,8 +202,9 @@ export const Dashboard = () => {
 
       setLoading(true);
       const currentUserId = decodeToken()?.sub;
-      const reportingPerson = decodeToken()?.reportingPerson;
-      setIsExistReportingPerson(reportingPerson !== null);
+      const designation = decodeToken()?.designation;
+      console.log("reporting Person::", decodeToken());
+      setIsPM(designation?.name === "PM");
       await searchDashboard(payload).then((res) => {
         if (!isTreeView) {
           const allUsers = res.data.data || [];
@@ -562,9 +563,7 @@ export const Dashboard = () => {
                       key={row.user_id ?? index}
                       sx={{
                         height: "60px",
-                        background: `${
-                          index == 0 && isExistReportingPerson ? "#f2f2f2" : ""
-                        }`,
+                        background: `${index == 0 && !isPM ? "#f2f2f2" : ""}`,
                         "& .MuiTableCell-root": {
                           py: 1,
                         },
