@@ -10,7 +10,7 @@ const headCells = [
   { id: "date", label: "Date", sortable: true },
   { id: "time", label: "Time" },
   { id: "link", label: "Link" },
-  { id: "feedback", label: "Feedback" },
+  { id: "feedback", label: "Summary" },
   { id: "actions", label: "Actions" },
 ];
 
