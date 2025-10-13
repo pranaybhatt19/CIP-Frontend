@@ -15,6 +15,7 @@ import {
   Alert,
   Link,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 import { Visibility, VisibilityOff, Lock } from "@mui/icons-material";
 import { useFormik } from "formik";
@@ -31,6 +32,7 @@ const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const resetToken = new URLSearchParams(useLocation().search).get("resetToken");
+  const muiTheme = useTheme();
 
   useEffect(() => {
     const storedToken = localStorage.getItem("resetToken");
