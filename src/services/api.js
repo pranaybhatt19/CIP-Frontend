@@ -21,11 +21,14 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
+    
     return response.data;
   },
   (error) => {
     if (error) {
-      return Promise.reject(error.response.data);
+      let errorObj=error.response.data;
+      if(error.status===409) errorObj=error;
+      return Promise.reject(errorObj);
     } else {
       return Promise.reject({
         success: false,
