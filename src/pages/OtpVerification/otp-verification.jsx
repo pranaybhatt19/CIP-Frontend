@@ -223,7 +223,7 @@ const OtpVerification = () => {
                             size={20}
                             sx={{ color: muiTheme.palette.common.white }}
                           />
-                          <Typography color="inherit">Verifying...</Typography>
+                          <Typography sx={{ color: muiTheme.palette.common.white }}>Verifying...</Typography>
                         </Box>
                       ) : (
                         "Verify OTP"

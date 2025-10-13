@@ -259,7 +259,7 @@ export const LoginPage = () => {
                             size={20}
                             sx={{ color: muiTheme.palette.common.white }}
                           />
-                          <Typography color="inherit">Signing In...</Typography>
+                          <Typography sx={{color:muiTheme.palette.common.white}}>Signing In...</Typography>
                         </Box>
                       ) : (
                         "Sign In"

@@ -270,7 +270,7 @@ export const EditUserModal = ({
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <CircularProgress
                     size={20}
-                    sx={{ color: "text.secondary" }}
+                    sx={{ color: muiTheme.palette.common.white }}
                   />
                   <Typography sx={{ textTransform: "none" }}>
                     Updating User...
