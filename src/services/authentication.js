@@ -36,6 +36,9 @@ export const getReportingPersons = async () => {
   return api.get("api/auth/users/get-reporting-persons");
 };
 
+export const getEducationMedium = async () => {
+  return api.get("api/auth/users/get-user-medium");
+};
 
 export const resetPassword = async (details) => {
   return api.post("api/reset-password", details);
@@ -51,12 +54,12 @@ export const searchDashboard = async (details) => {
 
 export const getPracticeDetailsByUserId = async (details) => {
   return api.post("/api/auth/users/user-practices", details);
-}
+};
 
 export const addPractice = async (details) => {
-  return api.post("/api/auth/users/add-practice", details)
-}
+  return api.post("/api/auth/users/add-practice", details);
+};
 
 export const deletePractice = async (id) => {
   return api.patch(`/api/auth/users/delete-practice/${id}`);
-}
+};

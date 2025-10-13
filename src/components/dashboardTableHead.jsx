@@ -27,6 +27,12 @@ const headCells = [
     label: "Reporting Manager",
   },
   {
+    id: "education_medium",
+    numeric: false,
+    disablePadding: false,
+    label: "Medium of Education",
+  },
+  {
     id: "last_communication_date",
     numeric: false,
     disablePadding: false,

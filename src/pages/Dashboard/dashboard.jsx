@@ -34,6 +34,7 @@ import FilterDrawer from "./filter";
 import { decodeToken } from "../../util/commonFunction";
 import {
   getDesignations,
+  getEducationMedium,
   getReportingPersons,
   searchDashboard,
   updateUser,
@@ -77,6 +78,9 @@ export const Dashboard = () => {
     value: "",
   });
   const [selectedReportingPerson, setSelectedReportingPerson] = useState([]);
+  const [selectedMediumOfEducation, setSelectedMediumOfEducation] = useState(
+    []
+  );
   const [selectedAttempts, setSelectedAttempts] = useState({
     type: "EQUALS",
     value: "",
@@ -90,6 +94,7 @@ export const Dashboard = () => {
 
   const [designationList, setDesignationList] = useState([]);
   const [reportingPersonList, setReportingPersonList] = useState([]);
+  const [languageList, setLanguageList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
 
   const debouncedSearch = useMemo(
@@ -120,6 +125,7 @@ export const Dashboard = () => {
     if (decodedToken?.sub) setUserId(decodedToken.sub);
     fetchDesignations();
     fetchReportingPersons();
+    fetchEducationMedium();
   }, []);
 
   useEffect(() => {
@@ -175,6 +181,19 @@ export const Dashboard = () => {
     }
   };
 
+  const fetchEducationMedium = async () => {
+    try {
+      const res = await getEducationMedium();
+      setLanguageList(res.data || []);
+    } catch (err) {
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch education medium");
+      } else {
+        setLanguageModalOpen(true);
+      }
+    }
+  };
+
   const fetchData = async () => {
     try {
       const payload = {
@@ -193,6 +212,10 @@ export const Dashboard = () => {
       if (selectedExperience?.value) payload.experience = selectedExperience;
       if (selectedReportingPerson?.length > 0)
         payload.reporting_persons_ids = selectedReportingPerson;
+      if (selectedMediumOfEducation?.length > 0)
+        payload.education_medium = selectedMediumOfEducation.map((item) =>
+          item.toLowerCase()
+        );
       if (selectedAttempts?.value) payload.attempts = selectedAttempts;
 
       const dateFilter = lastAttemptedDate;
@@ -203,7 +226,6 @@ export const Dashboard = () => {
       setLoading(true);
       const currentUserId = decodeToken()?.sub;
       const designation = decodeToken()?.designation;
-      console.log("reporting Person::", decodeToken());
       setIsPM(designation?.name === "PM");
       await searchDashboard(payload).then((res) => {
         if (!isTreeView) {
@@ -257,6 +279,7 @@ export const Dashboard = () => {
       fetchData();
       fetchReportingPersons();
       fetchDesignations();
+      fetchEducationMedium();
     } catch (err) {
       toast.error(err.message || "Failed to update language");
       setLanguageModalOpen(open);
@@ -285,6 +308,7 @@ export const Dashboard = () => {
     setSelectedDesignation([]);
     setSelectedExperience({ type: "EQUALS", value: "" });
     setSelectedReportingPerson([]);
+    setSelectedMediumOfEducation([]);
     setSelectedAttempts({ type: "EQUALS", value: "" });
     setLastAttemptedDate({
       exactDate: null,
@@ -517,12 +541,14 @@ export const Dashboard = () => {
           setSelectedExperience={setSelectedExperience}
           selectedReportingPerson={selectedReportingPerson}
           setSelectedReportingPerson={setSelectedReportingPerson}
+          selectedMediumOfEducation={selectedMediumOfEducation}
+          setSelectedMediumOfEducation={setSelectedMediumOfEducation}
           selectedAttempts={selectedAttempts}
           setSelectedAttempts={setSelectedAttempts}
           lastAttemptedDate={lastAttemptedDate}
           setLastAttemptedDate={setLastAttemptedDate}
-          designationList={designationList}
           reportingPersonList={reportingPersonList}
+          languageList={languageList}
           onClear={handleClearFilters}
           onApply={fetchData}
           userId={userId}
@@ -617,6 +643,12 @@ export const Dashboard = () => {
                                 idx > 0 && idx < arr.length - 1 ? "" : word
                               )
                               .join(" ")
+                          : "-"}
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px" }}>
+                        {row.education_medium
+                          ? row.education_medium.charAt(0).toUpperCase() +
+                            row.education_medium.slice(1)
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>
