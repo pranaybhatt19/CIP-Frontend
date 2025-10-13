@@ -241,15 +241,16 @@ const CommunicationListDashboard = () => {
             variant="h3"
             sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
           >
-            {`Communication List - ${user.name
+            {`Communication List - ${
+              user.name
                 ? user.name
-                  .split(" ")
-                  .map((word, idx, arr) =>
-                    idx > 0 && idx < arr.length - 1 ? word[0] : word
-                  )
-                  .join(" ")
+                    .split(" ")
+                    .map((word, idx, arr) =>
+                      idx > 0 && idx < arr.length - 1 ? word[0] : word
+                    )
+                    .join(" ")
                 : "-"
-              }`}
+            }`}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 2 }}>
@@ -328,7 +329,7 @@ const CommunicationListDashboard = () => {
                     sx={{
                       height: "50px",
                       "& .MuiTableCell-root": {
-                        py: 0.45, 
+                        py: 0.45,
                         height: "50px",
                       },
                     }}

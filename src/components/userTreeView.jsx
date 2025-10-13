@@ -1,10 +1,11 @@
 import React from "react";
 import { Table } from "rsuite";
-import { Box, IconButton, Typography } from "@mui/material";
+import { Box, IconButton, Link, useTheme } from "@mui/material";
 import "rsuite/dist/rsuite.min.css";
 import dayjs from "dayjs";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useNavigate } from "react-router-dom";
+import LinkSharpIcon from "@mui/icons-material/LinkSharp";
 
 const { Column, HeaderCell, Cell } = Table;
 
@@ -34,6 +35,7 @@ const transformToTree = (node) => ({
   last_attempt_date: node.last_communication_date
     ? dayjs(node.last_communication_date).format("DD/MM/YYYY hh:mm A")
     : "-",
+  link: node.link ?? "-",
   attempts: node.attempts ?? "-",
   children: Array.isArray(node.childrens)
     ? node.childrens.map(transformToTree)
@@ -42,6 +44,7 @@ const transformToTree = (node) => ({
 
 export default function UserTreeView({ treeData }) {
   const navigate = useNavigate();
+  const theme = useTheme();
 
   // Ensure treeData is always an array
   const dataArray = Array.isArray(treeData)
@@ -208,14 +211,47 @@ export default function UserTreeView({ treeData }) {
           >
             Last Attempted On
           </HeaderCell>
+
           <Cell
-            dataKey="last_attempt_date"
             style={{
               padding: "16px 8px",
               display: "flex",
               alignItems: "center",
             }}
-          />
+          >
+            {(rowData) =>
+              rowData.last_attempt_date !== "-" ? (
+                <Link
+                  href={rowData.link || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  underline="none"
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    fontWeight: 600,
+                    color: "#000",
+                    cursor: rowData.link ? "pointer" : "default",
+                    transition: "color 0.2s ease",
+                    "&:hover": {
+                      color: theme.palette.primary.main,
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  <LinkSharpIcon
+                    fontSize="small"
+                    sx={{ mr: 0.6, verticalAlign: "middle" }}
+                  />
+                  {dayjs(rowData.last_attempt_date).format(
+                    "DD/MM/YYYY  hh:mm A"
+                  )}
+                </Link>
+              ) : (
+                "-"
+              )
+            }
+          </Cell>
         </Column>
 
         <Column flexGrow={0.4} align="center">

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -102,27 +102,88 @@ export const Dashboard = () => {
   const [languageList, setLanguageList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
 
+  const fetchData = async () => {
+    try {
+      const payload = {
+        isTreeView: isTreeView,
+      };
+
+      if (!isTreeView) {
+        payload.limit = rowsPerPage;
+        payload.offset = page * rowsPerPage;
+        payload.order = [[orderBy, order.toUpperCase()]];
+      }
+
+      if (searchName?.trim()) payload.full_name = searchName.trim();
+      if (selectedDesignation?.length > 0)
+        payload.designation_ids = selectedDesignation;
+      if (selectedExperience?.value) payload.experience = selectedExperience;
+      if (selectedReportingPerson?.length > 0)
+        payload.reporting_persons_ids = selectedReportingPerson;
+      if (selectedMediumOfEducation?.length > 0)
+        payload.education_medium = selectedMediumOfEducation.map((item) =>
+          item.toLowerCase()
+        );
+      if (selectedAttempts?.value) payload.attempts = selectedAttempts;
+
+      const dateFilter = lastAttemptedDate;
+      if (dateFilter?.exactDate || dateFilter?.fromDate || dateFilter?.toDate) {
+        payload.last_communication_date = dateFilter;
+      }
+
+      setLoading(true);
+      const currentUserId = decodeToken()?.sub;
+      const designation = decodeToken()?.designation;
+      setIsPM(designation?.name === "PM");
+      await searchDashboard(payload).then((res) => {
+        if (!isTreeView) {
+          const allUsers = res.data.data || [];
+          const sortedUsers = allUsers.sort((a, b) => {
+            if (a.user_id == currentUserId) return -1;
+            if (b.user_id == currentUserId) return 1;
+            return 0;
+          });
+          setRows(sortedUsers);
+        } else {
+          setRows(res.data.data || []);
+        }
+        if (isTreeView) {
+          setOpenTreeView(true);
+        } else {
+          setOpenTreeView(false);
+        }
+        setTotalCount(res.data.totalCount || 0);
+      });
+    } catch (err) {
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch data");
+      } else {
+        setLanguageModalOpen(true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDataRef = useRef(fetchData);
+
+  useEffect(() => {
+    fetchDataRef.current = fetchData;
+  }, [fetchData]);
+
   const debouncedSearch = useMemo(
     () =>
       debounce(() => {
-        fetchData();
-      }, 1200),
-    [searchName, selectedDesignation]
+        fetchDataRef.current();
+      }, 2500),
+    []
   );
 
   useEffect(() => {
-    if (searchName.length < 1 || searchName?.length > 2) {
-      debouncedSearch();
-    }
-  }, [searchName, selectedDesignation, debouncedSearch]);
+    debouncedSearch();
+    return () => debouncedSearch.cancel();
+  }, [searchName, selectedDesignation]);
 
-  useEffect(() => {
-    return () => {
-      debouncedSearch.cancel();
-    };
-  }, [debouncedSearch]);
-
-  // ====================== Effects ======================
   useEffect(() => {
     const decodedToken = decodeToken();
     if (decodedToken?.designation)
@@ -197,71 +258,6 @@ export const Dashboard = () => {
         setLanguageModalOpen(true);
       }
     }
-  };
-
-  const fetchData = async () => {
-    try {
-      const payload = {
-        isTreeView: isTreeView,
-      };
-
-      if (!isTreeView) {
-        payload.limit = rowsPerPage;
-        payload.offset = page * rowsPerPage;
-        payload.order = [[orderBy, order.toUpperCase()]];
-      }
-
-      if (searchName?.trim()) payload.full_name = searchName.trim();
-      if (selectedDesignation?.length > 0)
-        payload.designation_ids = selectedDesignation;
-      if (selectedExperience?.value) payload.experience = selectedExperience;
-      if (selectedReportingPerson?.length > 0)
-        payload.reporting_persons_ids = selectedReportingPerson;
-      if (selectedMediumOfEducation?.length > 0)
-        payload.education_medium = selectedMediumOfEducation.map((item) =>
-          item.toLowerCase()
-        );
-      if (selectedAttempts?.value) payload.attempts = selectedAttempts;
-
-      const dateFilter = lastAttemptedDate;
-      if (dateFilter?.exactDate || dateFilter?.fromDate || dateFilter?.toDate) {
-        payload.last_communication_date = dateFilter;
-      }
-
-      setLoading(true);
-      const currentUserId = decodeToken()?.sub;
-      const designation = decodeToken()?.designation;
-      setIsPM(designation?.name === "PM");
-      await searchDashboard(payload).then((res) => {
-        if (!isTreeView) {
-          const allUsers = res.data.data || [];
-          const sortedUsers = allUsers.sort((a, b) => {
-            if (a.user_id == currentUserId) return -1;
-            if (b.user_id == currentUserId) return 1;
-            return 0;
-          });
-          setRows(sortedUsers);
-          console.log(rows);
-        } else {
-          setRows(res.data.data || []);
-        }
-        if (isTreeView) {
-          setOpenTreeView(true);
-        } else {
-          setOpenTreeView(false);
-        }
-        setTotalCount(res.data.totalCount || 0);
-      });
-    } catch (err) {
-      if (err.status != 409) {
-        toast.error(err.message || "Failed to fetch data");
-      } else {
-        setLanguageModalOpen(true);
-      }
-    } finally {
-      setLoading(false);
-    }
-    console.log(rows);
   };
 
   useEffect(() => {
@@ -355,7 +351,11 @@ export const Dashboard = () => {
           sx={{
             display: "flex",
             flexDirection: { xs: "column", sm: "row" },
-            justifyContent: { xs: "space-between", sm: "center", md: "flex-end" },
+            justifyContent: {
+              xs: "space-between",
+              sm: "center",
+              md: "flex-end",
+            },
             alignItems: { xs: "stretch" },
             flexWrap: "wrap",
             gap: 2,
@@ -404,7 +404,10 @@ export const Dashboard = () => {
               }}
             />
 
-            <FormControl sx={{ width: { xs: "100%", sm: "47%", lg: "240px" } }} size="small">
+            <FormControl
+              sx={{ width: { xs: "100%", sm: "47%", lg: "240px" } }}
+              size="small"
+            >
               <InputLabel id="designation-label">Designation</InputLabel>
               <Select
                 labelId="designation-label"
@@ -425,8 +428,12 @@ export const Dashboard = () => {
                       }}
                     >
                       {selected.slice(0, maxVisible).map((id) => {
-                        const d = designationList.find((item) => item.id === id);
-                        return <Chip key={id} label={d?.name ?? id} size="small" />;
+                        const d = designationList.find(
+                          (item) => item.id === id
+                        );
+                        return (
+                          <Chip key={id} label={d?.name ?? id} size="small" />
+                        );
                       })}
                       {extraCount > 0 && (
                         <Typography
@@ -493,7 +500,10 @@ export const Dashboard = () => {
                     padding: "0 12px",
                     margin: 0,
                     borderRadius: 0,
-                    "&.Mui-selected": { color: "#fff", backgroundColor: "#2a9d8f" },
+                    "&.Mui-selected": {
+                      color: "#fff",
+                      backgroundColor: "#2a9d8f",
+                    },
                   },
                 }}
               >
@@ -538,7 +548,6 @@ export const Dashboard = () => {
             )}
           </Box>
         </Box>
-
 
         <FilterDrawer
           open={filterOpen}
@@ -628,13 +637,13 @@ export const Dashboard = () => {
                           <span style={{ cursor: "pointer" }}>
                             {row.full_name
                               ? row.full_name
-                                .split(" ")
-                                .map((word, idx, arr) =>
-                                  idx > 0 && idx < arr.length - 1
-                                    ? word[0]
-                                    : word
-                                )
-                                .join(" ")
+                                  .split(" ")
+                                  .map((word, idx, arr) =>
+                                    idx > 0 && idx < arr.length - 1
+                                      ? word[0]
+                                      : word
+                                  )
+                                  .join(" ")
                               : "-"}
                           </span>
                         </Tooltip>
@@ -648,30 +657,27 @@ export const Dashboard = () => {
                       <TableCell sx={{ pl: "5px", width: "250px" }}>
                         {row.reporting_person?.name
                           ? row.reporting_person?.name
-                            .split(" ")
-                            .map((word, idx, arr) =>
-                              idx > 0 && idx < arr.length - 1 ? "" : word
-                            )
-                            .join(" ")
+                              .split(" ")
+                              .map((word, idx, arr) =>
+                                idx > 0 && idx < arr.length - 1 ? "" : word
+                              )
+                              .join(" ")
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "220px" }}>
                         {row.education_medium
                           ? row.education_medium.charAt(0).toUpperCase() +
-                          row.education_medium.slice(1)
+                            row.education_medium.slice(1)
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "300px" }}>
                         {row.last_communication_date ? (
                           <Link
-
                             href={row.link || "#"}
                             target="_blank"
                             rel="noopener noreferrer"
                             underline="none"
                             sx={{
-                              display: 'flex',
-                              alignItems: 'center',
                               color: "#000000de",
                               transition: "color 0.2s ease",
                               "&:hover": {
@@ -682,7 +688,9 @@ export const Dashboard = () => {
                             }}
                           >
                             <LinkSharpIcon fontSize="small" sx={{ mr: 0.3 }} />
-                            {dayjs(row.last_communication_date).format("DD/MM/YYYY\u00A0\u00A0hh:mm A")}
+                            {dayjs(row.last_communication_date).format(
+                              "DD/MM/YYYY\u00A0\u00A0hh:mm A"
+                            )}
                           </Link>
                         ) : (
                           "-"
