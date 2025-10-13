@@ -23,6 +23,7 @@ import {
   MenuItem,
   Chip,
   useMediaQuery,
+  Link,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
@@ -48,8 +49,7 @@ import AddLanguageModal from "../../components/addLanguage";
 import Cookie from "js-cookie";
 import Cookies from "js-cookie";
 import { debounce } from "lodash";
-import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import LinkSharpIcon from "@mui/icons-material/LinkSharp";
 
 export const Dashboard = () => {
   const theme = useTheme();
@@ -241,6 +241,7 @@ export const Dashboard = () => {
             return 0;
           });
           setRows(sortedUsers);
+          console.log(rows);
         } else {
           setRows(res.data.data || []);
         }
@@ -260,6 +261,7 @@ export const Dashboard = () => {
     } finally {
       setLoading(false);
     }
+    console.log(rows);
   };
 
   useEffect(() => {
@@ -365,7 +367,7 @@ export const Dashboard = () => {
             sx={{
               display: "flex",
               flexDirection: { sm: "row" },
-              alignItems: { sm: "center" , md: "flex-end" },
+              alignItems: { sm: "center", md: "flex-end" },
               justifyContent: "center",
               gap: 2,
               flexWrap: "wrap",
@@ -583,7 +585,7 @@ export const Dashboard = () => {
       ) : (
         <Paper sx={{ width: "100%", mb: 2, mt: 2, p: "8px 16px", pb: 0 }}>
           <TableContainer>
-            <Table sx={{ minWidth: 750 }}>
+            <Table sx={{ minWidth: 750 }} size="small">
               <DashboardTableHead
                 order={order}
                 orderBy={orderBy}
@@ -597,10 +599,11 @@ export const Dashboard = () => {
                       hover={index != 0}
                       key={row.user_id ?? index}
                       sx={{
-                        height: "60px",
+                        height: "50px",
                         background: `${index == 0 && !isPM ? "#f2f2f2" : ""}`,
                         "& .MuiTableCell-root": {
-                          py: 1,
+                          py: 0.45,
+                          height: "50px",
                         },
                       }}
                     >
@@ -655,15 +658,33 @@ export const Dashboard = () => {
                       <TableCell sx={{ pl: "5px" }}>
                         {row.education_medium
                           ? row.education_medium.charAt(0).toUpperCase() +
-                            row.education_medium.slice(1)
+                          row.education_medium.slice(1)
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>
-                        {row.last_communication_date
-                          ? dayjs(row.last_communication_date).format(
-                            "DD/MM/YYYY hh:mm A"
-                          )
-                          : "-"}
+                        {row.last_communication_date ? (
+                            <Link
+                              
+                              href={row.link || "#"}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              underline="none"
+                              sx={{
+                                color: "#000000de",
+                                transition: "color 0.2s ease",
+                                "&:hover": {
+                                  color: theme.palette.primary.main,
+                                  textDecoration: "underline",
+                                },
+                                cursor: row.link ? "pointer" : "default",
+                              }}
+                            >
+                                <LinkSharpIcon fontSize="small" sx={{mr:0.3}}/>
+                              {dayjs(row.last_communication_date).format("DD/MM/YYYY\u00A0\u00A0hh:mm A")}
+                            </Link>   
+                        ) : (
+                          "-"
+                        )}
                       </TableCell>
                       <TableCell sx={{ pl: "5px" }}>
                         {row.attempts ?? "-"}

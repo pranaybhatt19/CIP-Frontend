@@ -241,16 +241,15 @@ const CommunicationListDashboard = () => {
             variant="h3"
             sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
           >
-            {`Communication List - ${
-              user.name
+            {`Communication List - ${user.name
                 ? user.name
-                    .split(" ")
-                    .map((word, idx, arr) =>
-                      idx > 0 && idx < arr.length - 1 ? word[0] : word
-                    )
-                    .join(" ")
+                  .split(" ")
+                  .map((word, idx, arr) =>
+                    idx > 0 && idx < arr.length - 1 ? word[0] : word
+                  )
+                  .join(" ")
                 : "-"
-            }`}
+              }`}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 2 }}>
@@ -304,7 +303,7 @@ const CommunicationListDashboard = () => {
       {/* Table */}
       <Paper sx={{ width: "100%", p: "8px 16px", pb: 0 }}>
         <TableContainer>
-          <Table sx={{ minWidth: 750 }}>
+          <Table sx={{ minWidth: 750 }} size="small">
             <CommunicationTableHead
               order={order}
               orderBy={orderBy}
@@ -327,9 +326,10 @@ const CommunicationListDashboard = () => {
                     key={row.id}
                     hover
                     sx={{
-                      height: "57px",
+                      height: "50px",
                       "& .MuiTableCell-root": {
-                        py: 1,
+                        py: 0.45, 
+                        height: "50px",
                       },
                     }}
                   >
