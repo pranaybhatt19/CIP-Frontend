@@ -13,34 +13,26 @@ import MainLayout from "../components/mainLayout";
 
 const AppRoutes = () => {
   return (
-
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<LoginPage />} />
-      <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/otp-verification" element={<OtpVerification />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Protected routes */}
-      <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-        <Route
-          path="/profile"
-          element={
-              <Profile />
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-              <Dashboard />
-          }
-        />
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route
           path="/user-practices/:id"
-          element={
-              <CommunicationListDashboard />
-          }
+          element={<CommunicationListDashboard />}
         />
       </Route>
 
