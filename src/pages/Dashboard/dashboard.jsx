@@ -50,6 +50,8 @@ import Cookie from "js-cookie";
 import Cookies from "js-cookie";
 import { debounce } from "lodash";
 import LinkSharpIcon from "@mui/icons-material/LinkSharp";
+import EditIcon from "@mui/icons-material/Edit";
+import EditUserModal from "../../components/editUser";
 
 export const Dashboard = () => {
   const theme = useTheme();
@@ -74,6 +76,11 @@ export const Dashboard = () => {
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
+
+  const [editUserModalOpen, setEditUserModalOpen] = useState(false);
+  const [editUserData, setEditUserData] = useState(null);
+
+  const [currentUserId, setCurrentUserId] = useState(0)
 
   // Filters
   const [searchName, setSearchName] = useState("");
@@ -101,6 +108,12 @@ export const Dashboard = () => {
   const [reportingPersonList, setReportingPersonList] = useState([]);
   const [languageList, setLanguageList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
+
+  const handleEditUserClick = (user) => {
+    setEditUserData(user);
+    setEditUserModalOpen(true);
+  };
+
 
   const fetchData = async () => {
     try {
@@ -133,6 +146,7 @@ export const Dashboard = () => {
 
       setLoading(true);
       const currentUserId = decodeToken()?.sub;
+      setCurrentUserId(currentUserId);
       const designation = decodeToken()?.designation;
       setIsPM(designation?.name === "PM");
       await searchDashboard(payload).then((res) => {
@@ -637,13 +651,13 @@ export const Dashboard = () => {
                           <span style={{ cursor: "pointer" }}>
                             {row.full_name
                               ? row.full_name
-                                  .split(" ")
-                                  .map((word, idx, arr) =>
-                                    idx > 0 && idx < arr.length - 1
-                                      ? word[0]
-                                      : word
-                                  )
-                                  .join(" ")
+                                .split(" ")
+                                .map((word, idx, arr) =>
+                                  idx > 0 && idx < arr.length - 1
+                                    ? word[0]
+                                    : word
+                                )
+                                .join(" ")
                               : "-"}
                           </span>
                         </Tooltip>
@@ -657,27 +671,30 @@ export const Dashboard = () => {
                       <TableCell sx={{ pl: "5px", width: "250px" }}>
                         {row.reporting_person?.name
                           ? row.reporting_person?.name
-                              .split(" ")
-                              .map((word, idx, arr) =>
-                                idx > 0 && idx < arr.length - 1 ? "" : word
-                              )
-                              .join(" ")
+                            .split(" ")
+                            .map((word, idx, arr) =>
+                              idx > 0 && idx < arr.length - 1 ? "" : word
+                            )
+                            .join(" ")
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "220px" }}>
                         {row.education_medium
                           ? row.education_medium.charAt(0).toUpperCase() +
-                            row.education_medium.slice(1)
+                          row.education_medium.slice(1)
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "300px" }}>
                         {row.last_communication_date ? (
+
                           <Link
                             href={row.link || "#"}
                             target="_blank"
                             rel="noopener noreferrer"
                             underline="none"
                             sx={{
+                              display: "flex",
+                              alignItems: "center",
                               color: "#000000de",
                               transition: "color 0.2s ease",
                               "&:hover": {
@@ -700,14 +717,29 @@ export const Dashboard = () => {
                         {row.attempts ?? "-"}
                       </TableCell>
                       <TableCell align="center">
-                        <IconButton
-                          aria-label="view"
-                          onClick={() =>
-                            navigate(`/user-practices/${row.user_id}`)
-                          }
-                        >
-                          <VisibilityIcon color="primary" />
-                        </IconButton>
+                        <Box display="flex" justifyContent="flex-end" alignItems="center" gap={1.2}>
+                          {row.user_id !== currentUserId && (
+                            <Tooltip title="Edit User">
+                              <IconButton
+                                color="primary"
+                                onClick={() => handleEditUserClick(row)}
+                                size="small"
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+
+                          <Tooltip title="View Details">
+                            <IconButton
+                              aria-label="view"
+                              onClick={() => navigate(`/user-practices/${row.user_id}`)}
+                              size="small"
+                            >
+                              <VisibilityIcon color="primary" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))
@@ -728,6 +760,15 @@ export const Dashboard = () => {
               </TableBody>
             </Table>
           </TableContainer>
+          <EditUserModal
+            open={editUserModalOpen}
+            onClose={() => setEditUserModalOpen(false)}
+            userData={editUserData}
+            languageList={languageList}
+            currentUserId={userId}
+            onUpdated={fetchData}
+          />
+
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
