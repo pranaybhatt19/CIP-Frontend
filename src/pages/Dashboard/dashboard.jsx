@@ -377,106 +377,111 @@ export const Dashboard = () => {
           }}
         >
           {/* Left Side: Filters */}
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { sm: "row" },
-              alignItems: { sm: "center", md: "flex-end" },
-              justifyContent: "center",
-              gap: 2,
-              flexWrap: "wrap",
-              width: { xs: "100%", md: "auto" },
-            }}
-          >
-            <TextField
-              label="Name"
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-              size="small"
-              fullWidth
-              error={searchName.length > 0 && searchName.length < 3}
-              helperText={
-                searchName.length > 0 && searchName.length < 3
-                  ? "Enter at least 3 characters"
-                  : " "
-              }
-              FormHelperTextProps={{
-                sx: { minHeight: "16px", margin: 0, lineHeight: "1rem" },
-              }}
+          {reportingPersonList.length > 0 && (
+            <Box
               sx={{
-                width: { xs: "100%", sm: "47%", lg: "240px" },
-                "& .MuiOutlinedInput-root": {
-                  backgroundColor: "transparent",
-                  height: "40px",
-                },
-                "& .MuiFormHelperText-root": {
-                  position: "absolute",
-                  bottom: "-18px",
-                  left: 0,
-                },
-                position: "relative",
+                display: "flex",
+                flexDirection: { sm: "row" },
+                alignItems: { sm: "center", md: "flex-end" },
+                justifyContent: "center",
+                gap: 2,
+                flexWrap: "wrap",
+                width: { xs: "100%", md: "auto" },
               }}
-            />
-
-            <FormControl
-              sx={{ width: { xs: "100%", sm: "47%", lg: "240px" } }}
-              size="small"
             >
-              <InputLabel id="designation-label">Designation</InputLabel>
-              <Select
-                labelId="designation-label"
-                multiple
-                value={selectedDesignation}
-                onChange={(e) => setSelectedDesignation(e.target.value)}
-                input={<OutlinedInput label="Designation" />}
-                renderValue={(selected) => {
-                  const maxVisible = 3;
-                  const extraCount = selected.length - maxVisible;
-                  return (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 0.5,
-                        overflow: "hidden",
-                      }}
-                    >
-                      {selected.slice(0, maxVisible).map((id) => {
-                        const d = designationList.find(
-                          (item) => item.id === id
-                        );
-                        return (
-                          <Chip key={id} label={d?.name ?? id} size="small" />
-                        );
-                      })}
-                      {extraCount > 0 && (
-                        <Typography
-                          variant="body2"
-                          sx={{ color: "text.secondary", whiteSpace: "nowrap" }}
-                        >
-                          +{extraCount} more
-                        </Typography>
-                      )}
-                    </Box>
-                  );
+              <TextField
+                label="Name"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                size="small"
+                fullWidth
+                error={searchName.length > 0 && searchName.length < 3}
+                helperText={
+                  searchName.length > 0 && searchName.length < 3
+                    ? "Enter at least 3 characters"
+                    : " "
+                }
+                FormHelperTextProps={{
+                  sx: { minHeight: "16px", margin: 0, lineHeight: "1rem" },
                 }}
                 sx={{
-                  "& .MuiSelect-select": {
-                    display: "flex",
-                    alignItems: "center",
-                    height: "22px !important",
-                    overflow: "hidden",
+                  width: { xs: "100%", sm: "47%", lg: "240px" },
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "transparent",
+                    height: "40px",
                   },
+                  "& .MuiFormHelperText-root": {
+                    position: "absolute",
+                    bottom: "-18px",
+                    left: 0,
+                  },
+                  position: "relative",
                 }}
+              />
+
+              <FormControl
+                sx={{ width: { xs: "100%", sm: "47%", lg: "240px" } }}
+                size="small"
               >
-                {designationList.map((item) => (
-                  <MenuItem key={item.id} value={item.id}>
-                    {item.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
+                <InputLabel id="designation-label">Designation</InputLabel>
+                <Select
+                  labelId="designation-label"
+                  multiple
+                  value={selectedDesignation}
+                  onChange={(e) => setSelectedDesignation(e.target.value)}
+                  input={<OutlinedInput label="Designation" />}
+                  renderValue={(selected) => {
+                    const maxVisible = 3;
+                    const extraCount = selected.length - maxVisible;
+                    return (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          overflow: "hidden",
+                        }}
+                      >
+                        {selected.slice(0, maxVisible).map((id) => {
+                          const d = designationList.find(
+                            (item) => item.id === id
+                          );
+                          return (
+                            <Chip key={id} label={d?.name ?? id} size="small" />
+                          );
+                        })}
+                        {extraCount > 0 && (
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "text.secondary",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            +{extraCount} more
+                          </Typography>
+                        )}
+                      </Box>
+                    );
+                  }}
+                  sx={{
+                    "& .MuiSelect-select": {
+                      display: "flex",
+                      alignItems: "center",
+                      height: "22px !important",
+                      overflow: "hidden",
+                    },
+                  }}
+                >
+                  {designationList.map((item) => (
+                    <MenuItem key={item.id} value={item.id}>
+                      {item.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          )}
 
           {/* Right Side: Tabs & Buttons */}
           <Box
@@ -630,7 +635,10 @@ export const Dashboard = () => {
                         },
                       }}
                     >
-                      <TableCell align="left" sx={{ pl: "5px", width: "250px" }}>
+                      <TableCell
+                        align="left"
+                        sx={{ pl: "5px", width: "250px" }}
+                      >
                         <Tooltip
                           title={
                             <div style={{ fontSize: "0.8rem" }}>
