@@ -53,6 +53,7 @@ import LinkSharpIcon from "@mui/icons-material/LinkSharp";
 
 export const Dashboard = () => {
   const theme = useTheme();
+  const DASHBOARD_FILTERS_STORAGE_KEY = "cip_dashboard_filters";
   const isSmallScreen = useMediaQuery(theme.breakpoints.up("sm"));
   const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
   const [isTreeView, setIsTreeView] = useState(false);
@@ -102,8 +103,63 @@ export const Dashboard = () => {
   const [languageList, setLanguageList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
 
+  const getDefaultFilterState = () => ({
+    searchName: "",
+    selectedDesignation: [],
+    selectedExperience: { type: "EQUALS", value: "" },
+    selectedReportingPerson: [],
+    selectedMediumOfEducation: [],
+    selectedAttempts: { type: "EQUALS", value: "" },
+    lastAttemptedDate: { exactDate: null, fromDate: null, toDate: null },
+    page: 0,
+    rowsPerPage: 25,
+    order: "asc",
+    orderBy: "full_name",
+    totalCount: 0,
+  });
+
+  const getInitialFilterState = () => {
+    try {
+      const savedFilters = sessionStorage.getItem(DASHBOARD_FILTERS_STORAGE_KEY);
+      if (savedFilters) {
+        const parsedFilters = JSON.parse(savedFilters);
+        if (parsedFilters.lastAttemptedDate?.exactDate) {
+          parsedFilters.lastAttemptedDate.exactDate = dayjs(parsedFilters.lastAttemptedDate.exactDate);
+        }
+        if (parsedFilters.lastAttemptedDate?.fromDate) {
+          parsedFilters.lastAttemptedDate.fromDate = dayjs(parsedFilters.lastAttemptedDate.fromDate);
+        }
+        if (parsedFilters.lastAttemptedDate?.toDate) {
+          parsedFilters.lastAttemptedDate.toDate = dayjs(parsedFilters.lastAttemptedDate.toDate);
+        }
+        return parsedFilters;
+      }
+      return getDefaultFilterState();
+    } catch (error) {
+      console.error("Failed to parse saved filters from session storage", error);
+      sessionStorage.removeItem(DASHBOARD_FILTERS_STORAGE_KEY);
+      return getDefaultFilterState();
+    }
+  };
+
+  const saveFilterStateToSession = useCallback((currentFilters) => {
+    const serializableFilters = {
+      ...currentFilters,
+      lastAttemptedDate: {
+        exactDate: currentFilters.lastAttemptedDate?.exactDate?.toISOString() || null,
+        fromDate: currentFilters.lastAttemptedDate?.fromDate?.toISOString() || null,
+        toDate: currentFilters.lastAttemptedDate?.toDate?.toISOString() || null,
+      }
+    };
+    sessionStorage.setItem(DASHBOARD_FILTERS_STORAGE_KEY, JSON.stringify(serializableFilters));
+  }, []);
+
+  const [filterState, setFilterState] = useState(getInitialFilterState);
+
   const fetchData = async () => {
     try {
+      saveFilterStateToSession(filterState);
+      
       const payload = {
         isTreeView: isTreeView,
       };
@@ -320,6 +376,7 @@ export const Dashboard = () => {
     });
     setPage(0);
     setClearTriggered(true);
+    sessionStorage.removeItem(DASHBOARD_FILTERS_STORAGE_KEY);
   };
 
   // ====================== Render ======================

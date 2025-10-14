@@ -30,6 +30,7 @@ api.interceptors.response.use(
       if(error.status===409) errorObj=error;
       return Promise.reject(errorObj);
     } else {
+      sessionStorage.removeItem("cip_dashboard_filters");
       return Promise.reject({
         success: false,
         message: "Network error. Please try again.",

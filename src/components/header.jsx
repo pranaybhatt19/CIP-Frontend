@@ -155,6 +155,7 @@ export const Header = () => {
               <MenuItem
                 onClick={() => {
                   localStorage.removeItem("token");
+                  sessionStorage.removeItem('cip_dashboard_filters');
                   navigate("/");
                   handleCloseUserMenu();
                 }}
