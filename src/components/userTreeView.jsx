@@ -1,6 +1,13 @@
-import React from "react";
+import { useState } from "react";
 import { Table } from "rsuite";
-import { Box, IconButton, Link, useTheme } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  Link,
+  useTheme,
+  Breadcrumbs,
+  Typography,
+} from "@mui/material";
 import "rsuite/dist/rsuite.min.css";
 import dayjs from "dayjs";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -9,7 +16,6 @@ import LinkSharpIcon from "@mui/icons-material/LinkSharp";
 
 const { Column, HeaderCell, Cell } = Table;
 
-// Recursive transformer
 const transformToTree = (node) => ({
   id: node.user_id,
   label: node.full_name
@@ -28,9 +34,10 @@ const transformToTree = (node) => ({
         .map((word, idx, arr) => (idx > 0 && idx < arr.length - 1 ? "" : word))
         .join(" ")
     : "-",
-  education_medium: node.medium_of_education
-    ? node.medium_of_education.charAt(0).toUpperCase() +
-      node.medium_of_education.slice(1)
+  reporting_person_data: node.reporting_person,
+  education_medium: node.education_medium
+    ? node.education_medium.charAt(0).toUpperCase() +
+      node.education_medium.slice(1)
     : "-",
   last_attempt_date: node.last_communication_date
     ? dayjs(node.last_communication_date).format("DD/MM/YYYY hh:mm A")
@@ -42,19 +49,99 @@ const transformToTree = (node) => ({
     : [],
 });
 
+const formatName = (fullName) => {
+  if (!fullName) return "-";
+  return fullName
+    .split(" ")
+    .map((word, idx, arr) => (idx > 0 && idx < arr.length - 1 ? word[0] : word))
+    .join(" ");
+};
+
 export default function UserTreeView({ treeData }) {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  // Ensure treeData is always an array
   const dataArray = Array.isArray(treeData)
     ? treeData
     : Array.isArray(treeData?.data)
     ? treeData.data
     : [];
 
-  // Transform data to RSuite tree structure
-  const tableData = dataArray.map(transformToTree);
+  const fullTree = dataArray.map(transformToTree);
+
+  let initialBreadcrumb = [];
+  let initialData = fullTree;
+  let isInitialSelfView = false;
+
+  const referenceNode = fullTree[0];
+
+  if (fullTree.length === 1 && referenceNode) {
+    const hasReportingPerson = referenceNode.reporting_person !== "-";
+
+    if (hasReportingPerson) {
+      initialBreadcrumb = [
+        { id: referenceNode.id, label: "Self", node: referenceNode },
+      ];
+      initialData = [referenceNode];
+      isInitialSelfView = true;
+    } else {
+      initialBreadcrumb = [];
+      initialData = referenceNode.children || [];
+    }
+  } else if (fullTree.length > 1 && referenceNode) {
+    const reportingPersonData = referenceNode.reporting_person_data;
+
+    if (reportingPersonData) {
+      const syntheticRootNode = {
+        id: reportingPersonData.id,
+        label: formatName(reportingPersonData.name),
+        children: fullTree,
+        isSyntheticRoot: true,
+      };
+
+      initialBreadcrumb = [
+        {
+          id: syntheticRootNode.id,
+          label: syntheticRootNode.label,
+          node: syntheticRootNode,
+        },
+      ];
+      initialData = fullTree;
+    }
+  }
+
+  const [breadcrumb, setBreadcrumb] = useState(initialBreadcrumb);
+  const [currentData, setCurrentData] = useState(initialData);
+  const [isSelfViewMode] = useState(isInitialSelfView);
+
+  const handleRowClick = (rowData) => {
+    if (rowData.children && rowData.children.length > 0) {
+      setCurrentData(rowData.children);
+      setBreadcrumb((prev) => [
+        ...prev,
+        { id: rowData.id, label: rowData.label, node: rowData },
+      ]);
+    }
+  };
+
+  const handleBreadcrumbClick = (index) => {
+    if (index === breadcrumb.length - 1) return;
+
+    const newBreadcrumb = breadcrumb.slice(0, index + 1);
+    const clickedCrumbNode = newBreadcrumb[newBreadcrumb.length - 1].node;
+
+    const isFirstCrumb = index === 0;
+
+    if (isFirstCrumb && clickedCrumbNode.isSyntheticRoot) {
+      setCurrentData(clickedCrumbNode.children || []);
+    } else if (isFirstCrumb && isSelfViewMode) {
+      setCurrentData([clickedCrumbNode]);
+    } else {
+      setCurrentData(clickedCrumbNode.children || []);
+    }
+
+    setBreadcrumb(newBreadcrumb);
+  };
 
   return (
     <Box
@@ -67,26 +154,58 @@ export default function UserTreeView({ treeData }) {
         overflowX: "auto",
       }}
     >
+      {breadcrumb.length > 0 && (
+        <Box sx={{ mb: 2 }}>
+          <Breadcrumbs separator="›" aria-label="breadcrumb">
+            {breadcrumb.map((crumb, index) => {
+              const isLast = index === breadcrumb.length - 1;
+              const isClickable = !isLast && crumb.node.children?.length;
+
+              return isLast ? (
+                <Typography
+                  key={crumb.id}
+                  sx={{
+                    fontWeight: 600,
+                    color: theme.palette.primary.main, // last crumb color
+                  }}
+                >
+                  {crumb.label}
+                </Typography>
+              ) : (
+                <Link
+                  key={crumb.id}
+                  underline="hover"
+                  sx={{
+                    cursor: isClickable ? "pointer" : "default",
+                    fontWeight: 500,
+                    color: isClickable ? theme.palette.primary.main : "#000",
+                    "&:hover": {
+                      color: isClickable ? "#1c6a62" : "#000",
+                    },
+                  }}
+                  onClick={() => isClickable && handleBreadcrumbClick(index)}
+                >
+                  {crumb.label}
+                </Link>
+              );
+            })}
+          </Breadcrumbs>
+        </Box>
+      )}
+
       <Table
-        isTree
         rowKey="id"
-        data={tableData}
+        data={currentData}
         autoHeight
         rowHeight={60}
         headerHeight={34.5}
         virtualized
         hover
         shouldUpdateScroll={false}
-        renderTreeToggle={(expandIcon, rowData) =>
-          rowData.children?.length ? (
-            expandIcon
-          ) : (
-            <span style={{ marginLeft: 16 }} />
-          )
-        }
+        onRowClick={handleRowClick}
         style={{
           width: "100%",
-          minWidth: "max(100%, 1200px)", // scroll appears if viewport < 1200px
+          minWidth: "max(100%, 1200px)",
         }}
         sx={{
           "& .rs-table-cell-content": {
@@ -113,7 +232,39 @@ export default function UserTreeView({ treeData }) {
               display: "flex",
               alignItems: "center",
             }}
-          />
+          >
+            {(rowData) => {
+              const isClickable =
+                rowData.children && rowData.children.length > 0;
+              return (
+                <div
+                  style={{
+                    color: isClickable ? theme.palette.primary.main : "#000",
+                    cursor: isClickable ? "pointer" : "default",
+                    transition: "color 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isClickable) {
+                      e.currentTarget.style.color = "#1c6a62";
+                      e.currentTarget.style.textDecoration = "underline";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (isClickable) {
+                      e.currentTarget.style.color = theme.palette.primary.main;
+                      e.currentTarget.style.textDecoration = "none";
+                    }
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isClickable) handleRowClick(rowData);
+                  }}
+                >
+                  {rowData.label}
+                </div>
+              );
+            }}
+          </Cell>
         </Column>
 
         <Column flexGrow={0.6}>
@@ -211,7 +362,6 @@ export default function UserTreeView({ treeData }) {
           >
             Last Attempted On
           </HeaderCell>
-
           <Cell
             style={{
               padding: "16px 8px",
@@ -225,16 +375,16 @@ export default function UserTreeView({ treeData }) {
                   href={rowData.link || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  underline="none"
                   sx={{
                     display: "flex",
                     alignItems: "center",
                     fontWeight: 600,
-                    color: "#000",
+                    color: theme.palette.primary.main,
+                    textDecoration: "underline",
                     cursor: rowData.link ? "pointer" : "default",
                     transition: "color 0.2s ease",
                     "&:hover": {
-                      color: theme.palette.primary.main,
+                      color: "#1c6a62",
                       textDecoration: "underline",
                     },
                   }}
@@ -243,9 +393,7 @@ export default function UserTreeView({ treeData }) {
                     fontSize="small"
                     sx={{ mr: 0.6, verticalAlign: "middle" }}
                   />
-                  {dayjs(rowData.last_attempt_date).format(
-                    "DD/MM/YYYY  hh:mm A"
-                  )}
+                  {rowData.last_attempt_date}
                 </Link>
               ) : (
                 "-"
