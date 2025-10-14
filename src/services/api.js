@@ -23,7 +23,6 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    console.log("error:::", error);
 
     if (!error.response) {
       return Promise.reject({
