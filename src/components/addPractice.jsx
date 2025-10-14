@@ -84,7 +84,6 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
     onSubmit: async (values, { resetForm, setSubmitting }) => {
       try {
         const datetimeISO = dayjs(values.datetime)
-          .utc(true)
           .startOf("minute")
           .toISOString();
         await addPractice({
