@@ -7,6 +7,7 @@ import {
   Typography,
   TextField,
   FormControl,
+  useTheme,
 } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -50,7 +51,6 @@ const scrollbarStyles = {
   "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#555" },
 };
 
-// ✅ Yup validation schema
 const validationSchema = Yup.object({
   datetime: Yup.mixed()
     .required("Date & Time is required")
@@ -71,7 +71,7 @@ const validationSchema = Yup.object({
 const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
   const { id } = useParams();
   const [dateError, setDateError] = useState("");
-
+  const muiTheme = useTheme();
   const formik = useFormik({
     initialValues: {
       datetime: dayjs().subtract(5, "minute"),
@@ -111,7 +111,6 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
     onClose();
   };
 
-  // ✅ Real-time validation while typing or picking date/time
   const handleDateTimeChange = (newValue) => {
     if (!newValue || !dayjs(newValue).isValid()) {
       setDateError("Please enter a valid date");
@@ -144,7 +143,6 @@ const AddPracticeModal = ({ open, onClose, onSubmitSuccess }) => {
         
         <form onSubmit={formik.handleSubmit}>
           <Box sx={scrollbarStyles}>
-            {/* ✅ Date & Time Picker */}
             <FormControl fullWidth margin="normal">
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
