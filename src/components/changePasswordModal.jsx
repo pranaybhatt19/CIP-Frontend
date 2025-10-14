@@ -14,6 +14,7 @@ import {
   InputLabel,
   OutlinedInput,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 import {
   LockReset as LockResetIcon,
@@ -45,7 +46,7 @@ const ChangePasswordValidationSchema = yup.object().shape({
 const ChangePasswordDialog = ({ open, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+  const muiTheme = useTheme();
   const formik = useFormik({
     initialValues: {
       new_password: "",

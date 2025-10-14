@@ -441,10 +441,10 @@ export const AddUserModal = ({ open, onClose }) => {
                   <CircularProgress
                     size={20}
                     sx={{
-                      color: muiTheme.palette.common.white, 
+                      color: theme.palette.common.white, 
                     }}
                   />
-                  <Typography sx={{ color: muiTheme.palette.common.white, textTransform: "none" }}>
+                  <Typography sx={{ color: theme.palette.common.white, textTransform: "none" }}>
                     Creating User...
                   </Typography>
                 </Box>
