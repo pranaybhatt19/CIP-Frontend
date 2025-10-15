@@ -1,32 +1,36 @@
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
   Modal,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  OutlinedInput,
-  Chip,
-  Paper,
+  TextField,
   RadioGroup,
   FormControlLabel,
-  FormLabel,
-  Typography,
   Radio,
-  useMediaQuery,
-  useTheme,
+  Typography,
   CircularProgress,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
-import { useFormik } from "formik";
-import * as Yup from "yup";
-import { updateUser } from "../services/authentication";
 import { toast } from "react-toastify";
+import { updateUser } from "../services/authentication";
+
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 450,
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: "12px",
+};
 
 const scrollbarStyles = {
   px: 0,
   pr: 1.5,
-  maxHeight: "40vh",
+  maxHeight: "62vh",
   overflowY: "auto",
   "&::-webkit-scrollbar": {
     width: "5px",
@@ -44,244 +48,186 @@ const scrollbarStyles = {
   },
 };
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 500,
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: "12px",
-};
-
-const validationSchema = Yup.object({
-  primary_skills_ids: Yup.array().min(1, "Select at least one primary skill"),
-  secondary_skills_ids: Yup.array(),
-  is_active: Yup.string().required("Status is required"),
-});
-
-export const EditUserModal = ({
+const EditUserModal = ({
   open,
   onClose,
   userData,
-  skillOptions = [],
+  currentUserId,
+  onUpdated,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const formik = useFormik({
-    initialValues: {
-      user_id: userData?.user_id || null,
-      username: userData?.name || "",
-      primary_skills_ids: userData?.primary_skills?.map((s) => s.id) || [],
-      secondary_skills_ids: userData?.secondary_skills?.map((s) => s.id) || [],
-      is_active: userData?.is_active ?? true,
-    },
-    enableReinitialize: true,
-    validationSchema,
-    onSubmit: async (values, { resetForm, setSubmitting }) => {
-      try {
-        const payload = {
-          id: values.user_id,
-          primarySkill: values.primary_skills_ids,
-          secondarySkill: values.secondary_skills_ids,
-          status: values.is_active,
-        };
-        const res = await updateUser(payload);
-        toast.success("User updated successfully!");
-        resetForm();
-        onClose();
-      } catch (err) {
-        toast.error(err.message || "Failed to update user");
-      } finally {
-        setSubmitting(false);
-      }
-    },
-  });
+  const [educationMedium, setEducationMedium] = useState(""); // 'gujarati' | 'english' | 'others'
+  const [otherValue, setOtherValue] = useState(""); // only for others
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isSelf = userData?.user_id === currentUserId;
+
+  useEffect(() => {
+    if (!userData) return;
+    const medium = userData.education_medium?.toLowerCase() || "";
+    if (medium === "gujarati" || medium === "english") {
+      setEducationMedium(medium);
+      setOtherValue("");
+    } else if (medium) {
+      setEducationMedium("others");
+      setOtherValue(medium);
+    } else {
+      setEducationMedium("");
+      setOtherValue("");
+    }
+    setError("");
+  }, [userData]);
+
+  const handleSubmit = async () => {
+    try {
+      if (!userData) return;
+      setIsSubmitting(true);
+
+      const payload = {
+        id: userData.user_id,
+        educationLanguage:
+          educationMedium === "others" ? otherValue : educationMedium,
+      };
+
+      await updateUser(payload);
+      toast.success("User updated successfully!");
+      onUpdated?.();
+      onClose();
+    } catch (err) {
+      toast.error(err.message || "Failed to update user");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!userData) return null;
+
+  const languageRegex = /^[A-Za-z]+$/;
+
+  // Disable Save if "Others" is selected and input is empty or invalid
+  const isSaveDisabled =
+    educationMedium === "others" &&
+    (!otherValue || !languageRegex.test(otherValue) || otherValue.length < 3);
 
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
-        <Typography
-          variant="h6"
-          mb={2}
-          style={{ color: "#1976d2", marginBottom: "1.5rem" }}
-        >
-          <h3>
-            Edit User: &nbsp;<strong>{formik.values.username}</strong>
-          </h3>
+        <Typography variant="h3" mb={1.5}>
+          Edit User
         </Typography>
 
-        <form onSubmit={formik.handleSubmit}>
-          <Box sx={scrollbarStyles}>
-            {/* Primary Skills */}
-            <FormControl
+        <Box sx={scrollbarStyles}>
+          <TextField
+            fullWidth
+            label="Full Name"
+            value={userData.full_name || ""}
+            disabled
+            margin="normal"
+            autoComplete="off"
+            sx={{ marginBottom: 0 }}
+          />
+
+          <TextField
+            fullWidth
+            label="Designation"
+            value={userData.designation?.name || ""}
+            disabled
+            margin="normal"
+            autoComplete="off"
+            sx={{ marginBottom: 0 }}
+          />
+
+          <Typography variant="subtitle1" mt={2} mb={1}>
+            Medium of Education
+          </Typography>
+
+          <RadioGroup
+            value={educationMedium}
+            onChange={(e) => {
+              setEducationMedium(e.target.value);
+              setError("");
+              if (e.target.value !== "others") setOtherValue("");
+            }}
+          >
+            <FormControlLabel
+              value="gujarati"
+              control={<Radio />}
+              label="Gujarati"
+              disabled={isSelf}
+            />
+            <FormControlLabel
+              value="english"
+              control={<Radio />}
+              label="English"
+              disabled={isSelf}
+            />
+            <FormControlLabel
+              value="others"
+              control={<Radio />}
+              label="Others"
+              disabled={isSelf}
+            />
+          </RadioGroup>
+
+          {educationMedium === "others" && (
+            <TextField
+              label="Enter Language"
+              value={otherValue}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "" || languageRegex.test(val)) {
+                  setOtherValue(val);
+                  if (val.length > 0 && val.length < 3) {
+                    setError("Enter at least 3 letters");
+                  } else {
+                    setError("");
+                  }
+                } else {
+                  setError("Only letters are allowed");
+                }
+              }}
               fullWidth
               margin="normal"
-              error={Boolean(
-                formik.touched.primary_skills_ids &&
-                  formik.errors.primary_skills_ids
-              )}
-            >
-              <InputLabel id="primary-skills-label">Primary Skills</InputLabel>
-              <Select
-                labelId="primary-skills-label"
-                id="primary_skills_ids"
-                multiple
-                name="primary_skills_ids"
-                value={formik.values.primary_skills_ids || []}
-                onChange={(e) =>
-                  formik.setFieldValue("primary_skills_ids", e.target.value)
-                }
-                input={<OutlinedInput label="Primary Skills" />}
-                renderValue={(selectedIds) => (
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                    {selectedIds.map((id) => {
-                      const skill = skillOptions.find((s) => s.id === id);
-                      return <Chip key={id} label={skill?.name || ""} />;
-                    })}
-                  </Box>
-                )}
-                MenuProps={{
-                  PaperProps: {
-                    style: {
-                      maxHeight: isMobile ? 250 : 300,
-                    },
-                  },
-                }}
-              >
-                {skillOptions
-                  .filter(
-                    (skill) =>
-                      !formik.values.secondary_skills_ids.includes(skill.id)
-                  ) // exclude secondary skills
-                  .map((skill) => (
-                    <MenuItem key={skill.id} value={skill.id}>
-                      {skill.name}
-                    </MenuItem>
-                  ))}
-              </Select>
-              {formik.touched.primary_skills_ids &&
-                formik.errors.primary_skills_ids && (
-                  <Box sx={{ color: "red", fontSize: 12, mt: 0.5 }}>
-                    {formik.errors.primary_skills_ids}
-                  </Box>
-                )}
-            </FormControl>
+              error={!!error}
+              helperText={error}
+              disabled={isSelf}
+            />
+          )}
 
-            {/* Secondary Skills */}
-            <FormControl
-              fullWidth
-              margin="normal"
-              error={Boolean(
-                formik.touched.secondary_skills_ids &&
-                  formik.errors.secondary_skills_ids
-              )}
-            >
-              <InputLabel id="secondary-skills-label">
-                Secondary Skills
-              </InputLabel>
-              <Select
-                labelId="secondary-skills-label"
-                id="secondary_skills_ids"
-                multiple
-                name="secondary_skills_ids"
-                value={formik.values.secondary_skills_ids || []}
-                onChange={(e) =>
-                  formik.setFieldValue("secondary_skills_ids", e.target.value)
-                }
-                input={<OutlinedInput label="Secondary Skills" />}
-                renderValue={(selectedIds) => (
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                    {selectedIds.map((id) => {
-                      const skill = skillOptions.find((s) => s.id === id);
-                      return <Chip key={id} label={skill?.name || ""} />;
-                    })}
-                  </Box>
-                )}
-                MenuProps={{
-                  PaperProps: {
-                    style: {
-                      maxHeight: isMobile ? 250 : 300,
-                    },
-                  },
-                }}
-              >
-                {skillOptions
-                  .filter(
-                    (skill) =>
-                      !formik.values.primary_skills_ids.includes(skill.id)
-                  ) // exclude secondary skills
-                  .map((skill) => (
-                    <MenuItem key={skill.id} value={skill.id}>
-                      {skill.name}
-                    </MenuItem>
-                  ))}
-              </Select>
-              {formik.touched.secondary_skills_ids &&
-                formik.errors.secondary_skills_ids && (
-                  <Box sx={{ color: "red", fontSize: 12, mt: 0.5 }}>
-                    {formik.errors.secondary_skills_ids}
-                  </Box>
-                )}
-            </FormControl>
+          {isSelf && (
+            <Typography sx={{ color: "red", fontSize: 14, mt: 1 }}>
+              You cannot update your own medium of education.
+            </Typography>
+          )}
+        </Box>
 
-            {/* Status */}
-            <Paper
-              variant="outlined"
-              sx={{ p: 2, mt: 2, borderRadius: 2, borderColor: "grey.300" }}
-            >
-              <FormLabel component="legend" sx={{ mb: 1, fontWeight: 600 }}>
-                Account Status
-              </FormLabel>
-              <RadioGroup
-                name="is_active"
-                value={formik.values.is_active}
-                onChange={(e) =>
-                  formik.setFieldValue("is_active", e.target.value === "true")
-                }
-                row
-              >
-                <FormControlLabel
-                  value={true}
-                  control={<Radio />}
-                  label="Active"
-                />
-                <FormControlLabel
-                  value={false}
-                  control={<Radio />}
-                  label="Inactive"
-                />
-              </RadioGroup>
-            </Paper>
-          </Box>
+        <Box mt={4} display="flex" justifyContent="flex-end" gap={1}>
+          <Button onClick={onClose} variant="outlined">
+            Cancel
+          </Button>
 
-          <Box mt={4} display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={onClose}>Cancel</Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={formik.isSubmitting}
-              aria-label="Save"
-            >
-              {formik.isSubmitting ? (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CircularProgress
-                    size={20}
-                    sx={{ color: muiTheme.palette.common.white }}
-                  />
-                  <Typography sx={{ textTransform: "none" }}>
-                    Updating User...
-                  </Typography>
-                </Box>
-              ) : (
-                "Save"
-              )}
-            </Button>
-          </Box>
-        </form>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={isSubmitting || isSaveDisabled}
+          >
+            {isSubmitting ? (
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, color: "#fff" }}
+              >
+                <CircularProgress size={20} sx={{ color: theme.palette.common.white }} />
+                <Typography sx={{ color: theme.palette.common.white, textTransform: "none" }}>
+                  Saving...
+                </Typography>
+              </Box>
+            ) : (
+              "Save Changes"
+            )}
+          </Button>
+        </Box>
       </Box>
     </Modal>
   );
