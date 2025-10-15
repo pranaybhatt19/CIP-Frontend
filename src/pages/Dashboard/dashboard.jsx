@@ -63,6 +63,7 @@ export const Dashboard = () => {
   const [educationalLanguage, setEducationalLanguage] = useState("");
   const [otherLanguageValue, setOtherLanguageValue] = useState("");
   const [userId, setUserId] = useState(null);
+  const [userRM, setUserRM] = useState(null);
   const navigate = useNavigate();
   const [userDesignation, setUserDesignation] = useState("");
   const [order, setOrder] = useState("asc");
@@ -73,6 +74,7 @@ export const Dashboard = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isPM, setIsPM] = useState(false);
+  const [filters, setFilters] = useState({});
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
@@ -80,7 +82,7 @@ export const Dashboard = () => {
   const [editUserModalOpen, setEditUserModalOpen] = useState(false);
   const [editUserData, setEditUserData] = useState(null);
 
-  const [currentUserId, setCurrentUserId] = useState(0)
+  const [currentUserId, setCurrentUserId] = useState(0);
 
   // Filters
   const [searchName, setSearchName] = useState("");
@@ -113,7 +115,6 @@ export const Dashboard = () => {
     setEditUserData(user);
     setEditUserModalOpen(true);
   };
-
 
   const fetchData = async () => {
     try {
@@ -203,6 +204,7 @@ export const Dashboard = () => {
     if (decodedToken?.designation)
       setUserDesignation(decodedToken.designation?.name);
     if (decodedToken?.sub) setUserId(decodedToken.sub);
+    if (decodedToken?.reportingPerson) setUserRM(decodedToken?.reportingPerson);
     fetchDesignations();
     fetchReportingPersons();
     fetchEducationMedium();
@@ -280,6 +282,11 @@ export const Dashboard = () => {
       setClearTriggered(false);
     }
   }, [clearTriggered]);
+
+  const handleApplyFilters = (newFilters) => {
+    setFilters(newFilters);
+    fetchData(newFilters);
+  };
 
   const SubmitUpdateUser = async () => {
     try {
@@ -587,7 +594,7 @@ export const Dashboard = () => {
           reportingPersonList={reportingPersonList}
           languageList={languageList}
           onClear={handleClearFilters}
-          onApply={fetchData}
+          onApply={handleApplyFilters}
           userId={userId}
         />
       </Box>
@@ -609,7 +616,12 @@ export const Dashboard = () => {
       />
 
       {openTreeView ? (
-        <UserTreeView treeData={Array.isArray(rows) ? rows : [rows]} />
+        <UserTreeView
+          key={JSON.stringify(rows)}
+          treeData={Array.isArray(rows) ? rows : [rows]}
+          userId={userId}
+          userRM={userRM}
+        />
       ) : (
         <Paper sx={{ width: "100%", mb: 2, mt: 2, p: "8px 16px", pb: 0 }}>
           <TableContainer>
@@ -659,13 +671,13 @@ export const Dashboard = () => {
                           <span style={{ cursor: "pointer" }}>
                             {row.full_name
                               ? row.full_name
-                                .split(" ")
-                                .map((word, idx, arr) =>
-                                  idx > 0 && idx < arr.length - 1
-                                    ? word[0]
-                                    : word
-                                )
-                                .join(" ")
+                                  .split(" ")
+                                  .map((word, idx, arr) =>
+                                    idx > 0 && idx < arr.length - 1
+                                      ? word[0]
+                                      : word
+                                  )
+                                  .join(" ")
                               : "-"}
                           </span>
                         </Tooltip>
@@ -679,22 +691,21 @@ export const Dashboard = () => {
                       <TableCell sx={{ pl: "5px", width: "250px" }}>
                         {row.reporting_person?.name
                           ? row.reporting_person?.name
-                            .split(" ")
-                            .map((word, idx, arr) =>
-                              idx > 0 && idx < arr.length - 1 ? "" : word
-                            )
-                            .join(" ")
+                              .split(" ")
+                              .map((word, idx, arr) =>
+                                idx > 0 && idx < arr.length - 1 ? "" : word
+                              )
+                              .join(" ")
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "220px" }}>
                         {row.education_medium
                           ? row.education_medium.charAt(0).toUpperCase() +
-                          row.education_medium.slice(1)
+                            row.education_medium.slice(1)
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "300px" }}>
                         {row.last_communication_date ? (
-
                           <Link
                             href={row.link || "#"}
                             target="_blank"
@@ -725,7 +736,12 @@ export const Dashboard = () => {
                         {row.attempts ?? "-"}
                       </TableCell>
                       <TableCell align="center">
-                        <Box display="flex" justifyContent="flex-end" alignItems="center" gap={1.2}>
+                        <Box
+                          display="flex"
+                          justifyContent="flex-end"
+                          alignItems="center"
+                          gap={1.2}
+                        >
                           {row.user_id !== currentUserId && (
                             <Tooltip title="Edit User">
                               <IconButton
@@ -741,7 +757,9 @@ export const Dashboard = () => {
                           <Tooltip title="View Details">
                             <IconButton
                               aria-label="view"
-                              onClick={() => navigate(`/user-practices/${row.user_id}`)}
+                              onClick={() =>
+                                navigate(`/user-practices/${row.user_id}`)
+                              }
                               size="small"
                             >
                               <VisibilityIcon color="primary" />
