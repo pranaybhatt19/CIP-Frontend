@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -81,6 +81,60 @@ const renderLink = (url) => {
 };
 
 const CommunicationListDashboard = () => {
+  const COMMUNICATION_DASHBOARD_FILTERS_STORAGE_KEY =
+    "cip_communication_dashboard_filters";
+
+  const getDefaultFilterState = () => ({
+    exactDate: null,
+    fromDate: null,
+    toDate: null,
+    page: 0,
+    rowsPerPage: 25,
+    order: "asc",
+    orderBy: "date",
+    totalCount: 0,
+  });
+  const getInitialFilterState = () => {
+    try {
+      const savedFilters = sessionStorage.getItem(
+        COMMUNICATION_DASHBOARD_FILTERS_STORAGE_KEY
+      );
+      if (savedFilters) {
+        const parsedFilters = JSON.parse(savedFilters);
+        if (parsedFilters?.exactDate) {
+          parsedFilters.exactDate = dayjs(parsedFilters.exactDate);
+        }
+        if (parsedFilters?.fromDate) {
+          parsedFilters.fromDate = dayjs(parsedFilters.fromDate);
+        }
+        if (parsedFilters?.toDate) {
+          parsedFilters.toDate = dayjs(parsedFilters.toDate);
+        }
+        return parsedFilters;
+      }
+      return getDefaultFilterState();
+    } catch (error) {
+      console.error(
+        "Failed to parse saved filters from session storage",
+        error
+      );
+      sessionStorage.removeItem(COMMUNICATION_DASHBOARD_FILTERS_STORAGE_KEY);
+      return getDefaultFilterState();
+    }
+  };
+  const saveFilterStateToSession = useCallback((currentFilters) => {
+    const serializableFilters = {
+      ...currentFilters,
+      exactDate: currentFilters?.exactDate?.toString() || null,
+      fromDate: currentFilters?.fromDate?.toString() || null,
+      toDate: currentFilters?.toDate?.toString() || null,
+    };
+    sessionStorage.setItem(
+      COMMUNICATION_DASHBOARD_FILTERS_STORAGE_KEY,
+      JSON.stringify(serializableFilters)
+    );
+  }, []);
+  const storedFilters = getInitialFilterState();
   const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -89,17 +143,19 @@ const CommunicationListDashboard = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState({});
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(25);
-  const [order, setOrder] = useState("desc");
-  const [orderBy, setOrderBy] = useState("date");
+  const [page, setPage] = useState(storedFilters?.page ?? 0);
+  const [rowsPerPage, setRowsPerPage] = useState(
+    storedFilters?.rowsPerPage ?? 25
+  );
+  const [order, setOrder] = useState(storedFilters?.order ?? "asc");
+  const [orderBy, setOrderBy] = useState(storedFilters?.orderBy ?? "date");
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  const [exactDate, setExactDate] = useState(null);
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+  const [exactDate, setExactDate] = useState(storedFilters.exactDate);
+  const [fromDate, setFromDate] = useState(storedFilters.fromDate);
+  const [toDate, setToDate] = useState(storedFilters.toDate);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedDeleteId, setSelectedDeleteId] = useState(null);
@@ -107,16 +163,17 @@ const CommunicationListDashboard = () => {
   // ------------------ FETCH DATA ------------------
   const fetchData = async () => {
     try {
+      const currentValues = setValuesToStates();
       setLoading(true);
 
       const payload = {
         id: +id,
-        offset: page * rowsPerPage,
-        limit: rowsPerPage,
-        order: [[orderBy, order.toUpperCase()]],
-        ...(exactDate && { dateExact: exactDate }),
-        ...(fromDate && { dateFrom: fromDate }),
-        ...(toDate && { dateTo: toDate }),
+        offset: currentValues.page * currentValues.rowsPerPage,
+        limit: currentValues.rowsPerPage,
+        order: [[currentValues.orderBy, currentValues.order.toUpperCase()]],
+        ...(currentValues.exactDate && { dateExact: currentValues.exactDate }),
+        ...(currentValues.fromDate && { dateFrom: currentValues.fromDate }),
+        ...(currentValues.toDate && { dateTo: currentValues.toDate }),
       };
 
       const response = await getPracticeDetailsByUserId(payload);
@@ -144,6 +201,21 @@ const CommunicationListDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const setValuesToStates = () => {
+    const updatedFilterState = {
+      exactDate: exactDate,
+      fromDate: fromDate,
+      toDate: toDate,
+      page: page,
+      rowsPerPage: rowsPerPage,
+      order: order,
+      orderBy: orderBy,
+      totalCount: totalCount,
+    };
+    saveFilterStateToSession(updatedFilterState);
+    return updatedFilterState;
   };
 
   useEffect(() => {
@@ -272,19 +344,36 @@ const CommunicationListDashboard = () => {
           ) : (
             ""
           )}
-          <Button
-            variant="outlined"
-            sx={{
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              fontWeight: "bold",
-              height: "40px",
-            }}
-            startIcon={<FilterListIcon />}
-            onClick={() => setFilterOpen(true)}
-          >
-            Filters
-          </Button>
+          <Box position="relative" display="inline-block">
+            <Button
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                fontWeight: "bold",
+                height: "40px",
+                width: { sm: "auto" },
+              }}
+              startIcon={<FilterListIcon color="primary" />}
+              onClick={() => setFilterOpen(true)}
+            >
+              Filters
+            </Button>
+
+            {(exactDate != null || fromDate != null || toDate != null) && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: -3,
+                  right: -3,
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  backgroundColor: theme.palette.primary.main,
+                }}
+              />
+            )}
+          </Box>
         </Box>
 
         <PracticeFilterDrawer
@@ -334,15 +423,19 @@ const CommunicationListDashboard = () => {
                       },
                     }}
                   >
-                    <TableCell sx={ { width: "250px"}}>
+                    <TableCell sx={{ width: "250px" }}>
                       {dayjs(row.date_of_practice).format("DD/MM/YYYY")}
                     </TableCell>
-                    <TableCell sx={ { width: "250px"}}>
+                    <TableCell sx={{ width: "250px" }}>
                       {dayjs(row.date_of_practice).format("hh:mm A")}
                     </TableCell>
-                    <TableCell sx={ { width: "450px"}}>{renderLink(row.link)}</TableCell>
-                    <TableCell sx={ { width: "450px"}}>{renderWithTooltip(row.feedback)}</TableCell>
-                    <TableCell align="center" sx={ { width: "250px"}}>
+                    <TableCell sx={{ width: "450px" }}>
+                      {renderLink(row.link)}
+                    </TableCell>
+                    <TableCell sx={{ width: "450px" }}>
+                      {renderWithTooltip(row.feedback)}
+                    </TableCell>
+                    <TableCell align="center" sx={{ width: "250px" }}>
                       <IconButton
                         aria-label="delete"
                         onClick={() => handleDeleteOpen(row.id)}
