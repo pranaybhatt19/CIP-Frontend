@@ -23,7 +23,6 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
-
     if (!error.response) {
       return Promise.reject({
         success: false,
@@ -31,6 +30,7 @@ api.interceptors.response.use(
         data: null,
       });
     }
+    sessionStorage.removeItem("cip_dashboard_filters");
 
     let errorObj = error.response.data;
     

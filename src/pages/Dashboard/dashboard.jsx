@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Box,
   Button,
@@ -54,10 +60,61 @@ import EditIcon from "@mui/icons-material/Edit";
 import EditUserModal from "../../components/editUser";
 
 export const Dashboard = () => {
+  const DASHBOARD_FILTERS_STORAGE_KEY = "cip_dashboard_filters";
+
+  const getDefaultFilterState = () => ({
+    searchName: "",
+    selectedDesignation: [],
+    selectedExperience: { type: "EQUALS", value: "" },
+    selectedReportingPerson: [],
+    selectedMediumOfEducation: [],
+    selectedAttempts: { type: "EQUALS", value: "" },
+    lastAttemptedDate: { exactDate: null, fromDate: null, toDate: null },
+    page: 0,
+    rowsPerPage: 25,
+    order: "asc",
+    orderBy: "full_name",
+    totalCount: 0,
+    isTreeView: true,
+  });
+  const getInitialFilterState = () => {
+    try {
+      const savedFilters = sessionStorage.getItem(
+        DASHBOARD_FILTERS_STORAGE_KEY
+      );
+      if (savedFilters) {
+        const parsedFilters = JSON.parse(savedFilters);
+        if (parsedFilters.lastAttemptedDate?.exactDate) {
+          parsedFilters.lastAttemptedDate.exactDate = dayjs(
+            parsedFilters.lastAttemptedDate.exactDate
+          );
+        }
+        if (parsedFilters.lastAttemptedDate?.fromDate) {
+          parsedFilters.lastAttemptedDate.fromDate = dayjs(
+            parsedFilters.lastAttemptedDate.fromDate
+          );
+        }
+        if (parsedFilters.lastAttemptedDate?.toDate) {
+          parsedFilters.lastAttemptedDate.toDate = dayjs(
+            parsedFilters.lastAttemptedDate.toDate
+          );
+        }
+        return parsedFilters;
+      }
+      return getDefaultFilterState();
+    } catch (error) {
+      console.error(
+        "Failed to parse saved filters from session storage",
+        error
+      );
+      sessionStorage.removeItem(DASHBOARD_FILTERS_STORAGE_KEY);
+      return getDefaultFilterState();
+    }
+  };
+  const storedFilters = getInitialFilterState();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.up("sm"));
   const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
-  const [isTreeView, setIsTreeView] = useState(false);
   const [openTreeView, setOpenTreeView] = useState(false);
   const [languageModelOpen, setLanguageModalOpen] = useState(false);
   const [educationalLanguage, setEducationalLanguage] = useState("");
@@ -66,10 +123,15 @@ export const Dashboard = () => {
   const [userRM, setUserRM] = useState(null);
   const navigate = useNavigate();
   const [userDesignation, setUserDesignation] = useState("");
-  const [order, setOrder] = useState("asc");
-  const [orderBy, setOrderBy] = useState("full_name");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [page, setPage] = useState(storedFilters?.page ?? 0);
+  const [rowsPerPage, setRowsPerPage] = useState(
+    storedFilters?.rowsPerPage ?? 25
+  );
+  const [order, setOrder] = useState(storedFilters?.order ?? "asc");
+  const [orderBy, setOrderBy] = useState(storedFilters?.orderBy ?? "full_name");
+  const [isTreeView, setIsTreeView] = useState(
+    storedFilters?.isTreeView ?? false
+  );
   const [totalCount, setTotalCount] = useState(0);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -85,64 +147,115 @@ export const Dashboard = () => {
   const [currentUserId, setCurrentUserId] = useState(0);
 
   // Filters
-  const [searchName, setSearchName] = useState("");
-  const [selectedDesignation, setSelectedDesignation] = useState([]);
-  const [selectedExperience, setSelectedExperience] = useState({
-    type: "EQUALS",
-    value: "",
-  });
-  const [selectedReportingPerson, setSelectedReportingPerson] = useState([]);
-  const [selectedMediumOfEducation, setSelectedMediumOfEducation] = useState(
-    []
+  const [searchName, setSearchName] = useState(storedFilters?.searchName ?? "");
+  const [selectedDesignation, setSelectedDesignation] = useState(
+    storedFilters?.selectedDesignation ?? []
   );
-  const [selectedAttempts, setSelectedAttempts] = useState({
-    type: "EQUALS",
-    value: "",
-  });
+  const [selectedExperience, setSelectedExperience] = useState(
+    storedFilters?.selectedExperience ?? { type: "EQUALS", value: "" }
+  );
+  const [selectedReportingPerson, setSelectedReportingPerson] = useState(
+    storedFilters?.selectedReportingPerson ?? []
+  );
+  const [selectedMediumOfEducation, setSelectedMediumOfEducation] = useState(
+    storedFilters?.selectedMediumOfEducation ?? []
+  );
+  const [selectedAttempts, setSelectedAttempts] = useState(
+    storedFilters?.selectedAttempts ?? { type: "EQUALS", value: "" }
+  );
 
-  const [lastAttemptedDate, setLastAttemptedDate] = useState({
-    exactDate: null,
-    fromDate: null,
-    toDate: null,
-  });
+  const [lastAttemptedDate, setLastAttemptedDate] = useState(
+    storedFilters?.lastAttemptedDate ?? {
+      exactDate: null,
+      fromDate: null,
+      toDate: null,
+    }
+  );
 
   const [designationList, setDesignationList] = useState([]);
   const [reportingPersonList, setReportingPersonList] = useState([]);
   const [languageList, setLanguageList] = useState([]);
   const [clearTriggered, setClearTriggered] = useState(false);
 
+  const saveFilterStateToSession = useCallback((currentFilters) => {
+    const serializableFilters = {
+      ...currentFilters,
+      lastAttemptedDate: {
+        exactDate:
+          currentFilters.lastAttemptedDate?.exactDate?.toString() || null,
+        fromDate:
+          currentFilters.lastAttemptedDate?.fromDate?.toString() || null,
+        toDate: currentFilters.lastAttemptedDate?.toDate?.toString() || null,
+      },
+    };
+    sessionStorage.setItem(
+      DASHBOARD_FILTERS_STORAGE_KEY,
+      JSON.stringify(serializableFilters)
+    );
+  }, []);
+
   const handleEditUserClick = (user) => {
     setEditUserData(user);
     setEditUserModalOpen(true);
   };
+  const setValuesToStates = () => {
+    const updatedFilterState = {
+      searchName: searchName,
+      selectedDesignation: selectedDesignation,
+      selectedExperience: selectedExperience,
+      selectedReportingPerson: selectedReportingPerson,
+      selectedMediumOfEducation: selectedMediumOfEducation,
+      selectedAttempts: selectedAttempts,
+      lastAttemptedDate: lastAttemptedDate,
+      page: page,
+      rowsPerPage: rowsPerPage,
+      order: order,
+      orderBy: orderBy,
+      totalCount: totalCount,
+      isTreeView: isTreeView,
+    };
+    saveFilterStateToSession(updatedFilterState);
+    return updatedFilterState;
+  };
 
   const fetchData = async () => {
     try {
+      const currentValues = setValuesToStates();
+      console.log("currentValues:::", currentValues);
       const payload = {
-        isTreeView: isTreeView,
+        isTreeView: currentValues.isTreeView,
       };
 
       if (!isTreeView) {
-        payload.limit = rowsPerPage;
-        payload.offset = page * rowsPerPage;
-        payload.order = [[orderBy, order.toUpperCase()]];
+        payload.limit = currentValues.rowsPerPage;
+        payload.offset = currentValues.page * currentValues.rowsPerPage;
+        payload.order = [
+          [currentValues.orderBy, currentValues.order.toUpperCase()],
+        ];
       }
 
-      if (searchName?.trim()) payload.full_name = searchName.trim();
-      if (selectedDesignation?.length > 0)
-        payload.designation_ids = selectedDesignation;
-      if (selectedExperience?.value) payload.experience = selectedExperience;
-      if (selectedReportingPerson?.length > 0)
-        payload.reporting_persons_ids = selectedReportingPerson;
-      if (selectedMediumOfEducation?.length > 0)
-        payload.education_medium = selectedMediumOfEducation.map((item) =>
-          item.toLowerCase()
+      if (currentValues.searchName?.trim())
+        payload.full_name = currentValues.searchName.trim();
+      if (currentValues.selectedDesignation?.length > 0)
+        payload.designation_ids = currentValues.selectedDesignation;
+      if (currentValues.selectedExperience?.value)
+        payload.experience = currentValues.selectedExperience;
+      if (currentValues.selectedReportingPerson?.length > 0)
+        payload.reporting_persons_ids = currentValues.selectedReportingPerson;
+      if (currentValues.selectedMediumOfEducation?.length > 0)
+        payload.education_medium = currentValues.selectedMediumOfEducation.map(
+          (item) => item.toLowerCase()
         );
-      if (selectedAttempts?.value) payload.attempts = selectedAttempts;
+      if (currentValues.selectedAttempts?.value)
+        payload.attempts = currentValues.selectedAttempts;
 
-      const dateFilter = lastAttemptedDate;
-      if (dateFilter?.exactDate || dateFilter?.fromDate || dateFilter?.toDate) {
-        payload.last_communication_date = dateFilter;
+      const dateFilter = currentValues.lastAttemptedDate;
+      if (
+        currentValues.lastAttemptedDate?.exactDate ||
+        currentValues.lastAttemptedDate?.fromDate ||
+        currentValues.lastAttemptedDate?.toDate
+      ) {
+        payload.last_communication_date = currentValues.lastAttemptedDate;
       }
 
       setLoading(true);
@@ -341,6 +454,7 @@ export const Dashboard = () => {
     });
     setPage(0);
     setClearTriggered(true);
+    sessionStorage.removeItem(DASHBOARD_FILTERS_STORAGE_KEY);
   };
 
   // ====================== Render ======================
@@ -557,20 +671,42 @@ export const Dashboard = () => {
             )}
 
             {reportingPersonList.length > 0 && (
-              <Button
-                variant="outlined"
-                sx={{
-                  borderColor: theme.palette.primary.main,
-                  color: theme.palette.primary.main,
-                  fontWeight: "bold",
-                  height: "40px",
-                  width: { sm: "auto" },
-                }}
-                startIcon={<FilterListIcon color="primary" />}
-                onClick={() => setFilterOpen(true)}
-              >
-                Filters
-              </Button>
+              <Box position="relative" display="inline-block">
+                <Button
+                  variant="outlined"
+                  sx={{
+                    borderColor: theme.palette.primary.main,
+                    color: theme.palette.primary.main,
+                    fontWeight: "bold",
+                    height: "40px",
+                    width: { sm: "auto" },
+                  }}
+                  startIcon={<FilterListIcon color="primary" />}
+                  onClick={() => setFilterOpen(true)}
+                >
+                  Filters
+                </Button>
+
+                {(selectedExperience.length > 0 ||
+                  selectedReportingPerson.length > 0 ||
+                  selectedMediumOfEducation.length > 0 ||
+                  selectedAttempts.length > 0 ||
+                  lastAttemptedDate.exactDate != null ||
+                  lastAttemptedDate.fromDate != null ||
+                  lastAttemptedDate.toDate != null) && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: -3,
+                      right: -3,
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      backgroundColor: theme.palette.primary.main,
+                    }}
+                  />
+                )}
+              </Box>
             )}
           </Box>
         </Box>
