@@ -120,6 +120,7 @@ export const Dashboard = () => {
   const [educationalLanguage, setEducationalLanguage] = useState("");
   const [otherLanguageValue, setOtherLanguageValue] = useState("");
   const [userId, setUserId] = useState(null);
+  const [userRM, setUserRM] = useState(null);
   const navigate = useNavigate();
   const [userDesignation, setUserDesignation] = useState("");
   const [page, setPage] = useState(storedFilters?.page ?? 0);
@@ -135,6 +136,7 @@ export const Dashboard = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isPM, setIsPM] = useState(false);
+  const [filters, setFilters] = useState({});
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
@@ -315,6 +317,7 @@ export const Dashboard = () => {
     if (decodedToken?.designation)
       setUserDesignation(decodedToken.designation?.name);
     if (decodedToken?.sub) setUserId(decodedToken.sub);
+    if (decodedToken?.reportingPerson) setUserRM(decodedToken?.reportingPerson);
     fetchDesignations();
     fetchReportingPersons();
     fetchEducationMedium();
@@ -392,6 +395,11 @@ export const Dashboard = () => {
       setClearTriggered(false);
     }
   }, [clearTriggered]);
+
+  const handleApplyFilters = (newFilters) => {
+    setFilters(newFilters);
+    fetchData(newFilters);
+  };
 
   const SubmitUpdateUser = async () => {
     try {
@@ -722,7 +730,7 @@ export const Dashboard = () => {
           reportingPersonList={reportingPersonList}
           languageList={languageList}
           onClear={handleClearFilters}
-          onApply={fetchData}
+          onApply={handleApplyFilters}
           userId={userId}
         />
       </Box>
@@ -744,7 +752,12 @@ export const Dashboard = () => {
       />
 
       {openTreeView ? (
-        <UserTreeView treeData={Array.isArray(rows) ? rows : [rows]} />
+        <UserTreeView
+          key={JSON.stringify(rows)}
+          treeData={Array.isArray(rows) ? rows : [rows]}
+          userId={userId}
+          userRM={userRM}
+        />
       ) : (
         <Paper sx={{ width: "100%", mb: 2, mt: 2, p: "8px 16px", pb: 0 }}>
           <TableContainer>
