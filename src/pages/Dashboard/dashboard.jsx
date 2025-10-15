@@ -103,10 +103,6 @@ export const Dashboard = () => {
       }
       return getDefaultFilterState();
     } catch (error) {
-      console.error(
-        "Failed to parse saved filters from session storage",
-        error
-      );
       sessionStorage.removeItem(DASHBOARD_FILTERS_STORAGE_KEY);
       return getDefaultFilterState();
     }
@@ -221,7 +217,6 @@ export const Dashboard = () => {
   const fetchData = async () => {
     try {
       const currentValues = setValuesToStates();
-      console.log("currentValues:::", currentValues);
       const payload = {
         isTreeView: currentValues.isTreeView,
       };

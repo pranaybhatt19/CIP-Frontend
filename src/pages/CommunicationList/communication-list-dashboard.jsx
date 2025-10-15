@@ -114,10 +114,6 @@ const CommunicationListDashboard = () => {
       }
       return getDefaultFilterState();
     } catch (error) {
-      console.error(
-        "Failed to parse saved filters from session storage",
-        error
-      );
       sessionStorage.removeItem(COMMUNICATION_DASHBOARD_FILTERS_STORAGE_KEY);
       return getDefaultFilterState();
     }
