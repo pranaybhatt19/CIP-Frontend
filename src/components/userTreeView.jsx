@@ -467,26 +467,6 @@ export default function UserTreeView({ treeData, userId, userRM, designation, fe
           </Cell>
         </Column>
 
-        <Column flexGrow={0.6}>
-          <HeaderCell
-            style={{
-              padding: "5px",
-              fontWeight: "bold",
-              color: "#333",
-              fontSize: "16px",
-            }}
-          >
-            Designation
-          </HeaderCell>
-          <Cell
-            dataKey="designation"
-            style={{
-              padding: "16px 8px",
-              display: "flex",
-              alignItems: "center",
-            }}
-          />
-        </Column>
         <Column flexGrow={0.8}>
           <HeaderCell
             style={{
@@ -557,6 +537,26 @@ export default function UserTreeView({ treeData, userId, userRM, designation, fe
               )
             }
           </Cell>
+        </Column>
+        <Column flexGrow={0.6}>
+          <HeaderCell
+            style={{
+              padding: "5px",
+              fontWeight: "bold",
+              color: "#333",
+              fontSize: "16px",
+            }}
+          >
+            Designation
+          </HeaderCell>
+          <Cell
+            dataKey="designation"
+            style={{
+              padding: "16px 8px",
+              display: "flex",
+              alignItems: "center",
+            }}
+          />
         </Column>
 
         <Column flexGrow={0.5}>

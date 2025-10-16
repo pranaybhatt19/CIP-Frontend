@@ -884,9 +884,6 @@ export const Dashboard = () => {
                           </span>
                         </Tooltip>
                       </TableCell>
-                      <TableCell sx={{ pl: "5px", width: "200px" }}>
-                        {row.designation?.name ?? "-"}
-                      </TableCell>
                       {isManager && <TableCell align="left">
                         {row.tags?.length > 0 ? (
                           <Tooltip
@@ -937,6 +934,9 @@ export const Dashboard = () => {
                           "-"
                         )}
                       </TableCell>}
+                      <TableCell sx={{ pl: "5px", width: "200px" }}>
+                        {row.designation?.name ?? "-"}
+                      </TableCell>
                       <TableCell sx={{ pl: "5px", width: "200px" }}>
                         {row.experience ?? "-"}
                       </TableCell>
