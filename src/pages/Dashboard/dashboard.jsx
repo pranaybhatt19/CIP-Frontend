@@ -417,7 +417,7 @@ export const Dashboard = () => {
       setReportingPersonList(res.data || []);
     } catch (err) {
       if (err.status != 409) {
-        toast.error(err.message || "Failed to fetch reporting managers");
+        toast.error(err.message || "Failed to fetch reporting officers");
       } else {
         setLanguageModalOpen(true);
       }

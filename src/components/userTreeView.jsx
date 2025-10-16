@@ -588,7 +588,7 @@ export default function UserTreeView({ treeData, userId, userRM, designation, fe
               fontSize: "16px",
             }}
           >
-            Reporting Manager
+            Reporting Officer
           </HeaderCell>
           <Cell
             dataKey="reporting_person"

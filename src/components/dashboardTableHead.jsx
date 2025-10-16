@@ -30,7 +30,7 @@ const headCells = [
     id: "reporting_person_name",
     numeric: false,
     disablePadding: false,
-    label: "Reporting Manager",
+    label: "Reporting Officer",
   },
   {
     id: "education_medium",
