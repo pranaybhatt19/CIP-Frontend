@@ -344,7 +344,7 @@ const Profile = () => {
               </Box>
             </Box>
 
-            {/* Reporting Manager Info */}
+            {/* Reporting Officer Info */}
             {userInfo?.reportingPerson?.id && (
               <Box>
                 <Box
@@ -352,7 +352,7 @@ const Profile = () => {
                 >
                   <SupervisorIcon color="primary" />
                   <Typography variant="h6" fontWeight="600">
-                    Reporting Manager Information
+                    Reporting Officer Information
                   </Typography>
                 </Box>
 

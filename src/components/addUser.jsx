@@ -20,6 +20,7 @@ import {
   MenuItem,
   CircularProgress,
   Typography,
+  Autocomplete,
 } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -121,8 +122,8 @@ const validationSchema = Yup.object({
 
   reportingPerson: Yup.number()
     .nullable()
-    .required("Reporting Manager is required")
-    .typeError("Please select a valid reporting manager"),
+    .required("Reporting Officer is required")
+    .typeError("Please select a valid reporting officer"),
 });
 
 export const AddUserModal = ({ open, onClose }) => {
@@ -197,9 +198,7 @@ export const AddUserModal = ({ open, onClose }) => {
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
-        <Typography variant='h3'>
-          Add New User
-        </Typography>
+        <Typography variant="h3">Add New User</Typography>
 
         <form onSubmit={formik.handleSubmit}>
           <Box sx={scrollbarStyles}>
@@ -364,58 +363,40 @@ export const AddUserModal = ({ open, onClose }) => {
               )}
             </FormControl>
 
-            <FormControl fullWidth margin="normal">
-              <InputLabel
-                id="reporting-person-label"
-                shrink={Boolean(formik.values.reportingPerson)}
-              >
-                Reporting Manager
-              </InputLabel>
-
-              <Select
-                labelId="reporting-person-label"
-                name="reportingPerson"
-                value={formik.values.reportingPerson || ""}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={
-                  formik.touched.reportingPerson &&
-                  Boolean(formik.errors.reportingPerson)
+            <FormControl fullWidth margin="normal" size="small">
+              <Autocomplete
+                options={reportingPersonList}
+                getOptionLabel={(option) => option.name || ""}
+                value={
+                  reportingPersonList.find(
+                    (item) => item.id === formik.values.reportingPerson
+                  ) || null
                 }
-                input={
-                  <OutlinedInput
-                    label="Reporting Manager"
-                    notched={Boolean(formik.values.reportingPerson)}
-                  />
-                }
-                MenuProps={{
-                  PaperProps: {
-                    style: {
-                      maxHeight: isMobile ? 250 : 300,
-                    },
-                  },
+                onChange={(event, newValue) => {
+                  formik.setFieldValue(
+                    "reportingPerson",
+                    newValue ? newValue.id : ""
+                  );
                 }}
-              >
-                {reportingPersonList.map((item) => (
-                  <MenuItem key={item.user_id} value={item.user_id}>
-                    {item.name}
-                  </MenuItem>
-                ))}
-              </Select>
-
-              {formik.touched.reportingPerson &&
-                formik.errors.reportingPerson && (
-                  <Box
-                    sx={{
-                      color: "#d32f2f",
-                      fontSize: 12,
-                      mt: 0.5,
-                      marginLeft: 0,
-                    }}
-                  >
-                    {formik.errors.reportingPerson}
-                  </Box>
+                onBlur={() => formik.setFieldTouched("reportingPerson", true)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Reporting Officer"
+                    error={
+                      formik.touched.reportingPerson &&
+                      Boolean(formik.errors.reportingPerson)
+                    }
+                    helperText={
+                      formik.touched.reportingPerson &&
+                      formik.errors.reportingPerson
+                    }
+                  />
                 )}
+                ListboxProps={{
+                  style: { maxHeight: isMobile ? 250 : 300, overflowY: "auto" },
+                }}
+              />
             </FormControl>
           </Box>
 
@@ -435,16 +416,21 @@ export const AddUserModal = ({ open, onClose }) => {
                     display: "flex",
                     alignItems: "center",
                     gap: 1,
-                    color: "#fff", 
+                    color: "#fff",
                   }}
                 >
                   <CircularProgress
                     size={20}
                     sx={{
-                      color: theme.palette.common.white, 
+                      color: theme.palette.common.white,
                     }}
                   />
-                  <Typography sx={{ color: theme.palette.common.white, textTransform: "none" }}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.common.white,
+                      textTransform: "none",
+                    }}
+                  >
                     Creating User...
                   </Typography>
                 </Box>

@@ -3,19 +3,15 @@ import {
   Box,
   TextField,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  OutlinedInput,
   Chip,
   Button,
   IconButton,
   Typography,
   useMediaQuery,
   useTheme,
-  FormHelperText,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import Autocomplete from "@mui/material/Autocomplete";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -84,7 +80,6 @@ export default function FilterDrawer({
 
   const hasChanges = useMemo(() => {
     if (!initialValues) return false;
-
     return (
       JSON.stringify(selectedExperience) !==
         JSON.stringify(initialValues.selectedExperience) ||
@@ -108,30 +103,23 @@ export default function FilterDrawer({
 
   const validateDateRange = (fromDate, toDate) => {
     const errors = { fromDate: "", toDate: "", range: "" };
-
     if (fromDate && toDate) {
       const from = dayjs(fromDate);
       const to = dayjs(toDate);
-
       if (from.isAfter(to)) {
         errors.range = "From Date must be before or equal to To Date";
       } else if (from.isSame(to, "day")) {
         errors.range = "From Date and To Date cannot be the same";
       }
     }
-
     return errors;
   };
 
   const handleDateChange = (key, value) => {
     let newValue = value ? dayjs(value).utc(true).startOf("day") : null;
-
-    if (newValue && !newValue.isValid()) {
-      newValue = null;
-    }
+    if (newValue && !newValue.isValid()) newValue = null;
 
     const today = dayjs().utc(true).startOf("day");
-
     if (newValue && newValue.isAfter(today)) {
       setDateErrors((prev) => ({
         ...prev,
@@ -139,10 +127,7 @@ export default function FilterDrawer({
       }));
       return;
     } else {
-      setDateErrors((prev) => ({
-        ...prev,
-        [key]: "",
-      }));
+      setDateErrors((prev) => ({ ...prev, [key]: "" }));
     }
 
     const newDate = {
@@ -155,10 +140,7 @@ export default function FilterDrawer({
         key === "fromDate" ? newValue?.toISOString() : newDate.fromDate,
         key === "toDate" ? newValue?.toISOString() : newDate.toDate
       );
-      setDateErrors((prev) => ({
-        ...prev,
-        ...rangeErrors,
-      }));
+      setDateErrors((prev) => ({ ...prev, ...rangeErrors }));
     }
 
     setLastAttemptedDate(newDate);
@@ -166,7 +148,6 @@ export default function FilterDrawer({
 
   const handleManualDateInput = (key, value) => {
     if (!value) return;
-
     const parsed = dayjs(value, "DD/MM/YYYY", true);
     if (parsed.isValid()) {
       const today = dayjs().startOf("day");
@@ -207,12 +188,8 @@ export default function FilterDrawer({
       onClose();
       return;
     }
+    if (hasValidationErrors) return;
 
-    if (hasValidationErrors) {
-      return;
-    }
-
-    // Prepare payload
     const payload = {
       selectedExperience,
       selectedReportingPerson,
@@ -265,69 +242,84 @@ export default function FilterDrawer({
           </IconButton>
         </Box>
 
+        {/* 🔹 Reporting Officer (Autocomplete) */}
         <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="reporting-label">Reporting Manager</InputLabel>
-          <Select
-            labelId="reporting-label"
+          <Autocomplete
             multiple
-            value={selectedReportingPerson}
-            onChange={(e) => setSelectedReportingPerson(e.target.value)}
-            input={<OutlinedInput label="Reporting Manager" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.4 }}>
-                {selected.map((id) => {
-                  const person = reportingPersonList.find(
-                    (item) => item.user_id === id
-                  );
-                  return (
-                    <Chip key={id} label={person?.name ?? id} size="small" />
-                  );
-                })}
-              </Box>
+            options={reportingPersonList.filter((item) => item.id !== userId)}
+            getOptionLabel={(option) =>
+              option.name
+                ? option.name
+                    .split(" ")
+                    .map((word, idx, arr) =>
+                      idx > 0 && idx < arr.length - 1 ? word[0] : word
+                    )
+                    .join(" ")
+                : "-"
+            }
+            value={reportingPersonList.filter((item) =>
+              selectedReportingPerson.includes(item.id)
             )}
-            MenuProps={{
-              PaperProps: {
-                style: { maxHeight: isMobile ? 250 : 300 },
-              },
+            onChange={(event, newValue) =>
+              setSelectedReportingPerson(newValue.map((item) => item.id))
+            }
+            disableCloseOnSelect
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => (
+                <Chip
+                  key={option.id}
+                  label={
+                    option.name
+                      ? option.name
+                          .split(" ")
+                          .map((word, idx, arr) =>
+                            idx > 0 && idx < arr.length - 1 ? word[0] : word
+                          )
+                          .join(" ")
+                      : "-"
+                  }
+                  size="small"
+                  {...getTagProps({ index })}
+                />
+              ))
+            }
+            renderInput={(params) => (
+              <TextField {...params} label="Reporting Officer" />
+            )}
+            ListboxProps={{
+              style: { maxHeight: 250, overflowY: "auto" },
             }}
-          >
-            {reportingPersonList
-              .filter((item) => item.user_id !== userId)
-              .map((item) => (
-                <MenuItem key={item.user_id} value={item.user_id}>
-                  {item.name}
-                </MenuItem>
-              ))}
-          </Select>
+          />
         </FormControl>
 
+        {/* 🔹 Medium of Education (Autocomplete) */}
         <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="language-label">Medium of Education</InputLabel>
-          <Select
-            labelId="language-label"
+          <Autocomplete
             multiple
+            disableCloseOnSelect
+            options={languageList}
+            getOptionLabel={(option) => option}
             value={selectedMediumOfEducation}
-            onChange={(e) => setSelectedMediumOfEducation(e.target.value)}
-            input={<OutlinedInput label="Medium of Education" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.4 }}>
-                {selected.map((id) => {
-                  return <Chip key={id} label={id} size="small" />;
-                })}
-              </Box>
+            onChange={(event, newValue) =>
+              setSelectedMediumOfEducation(newValue)
+            }
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => (
+                <Chip
+                  key={option}
+                  label={option}
+                  size="small"
+                  {...getTagProps({ index })}
+                />
+              ))
+            }
+            renderInput={(params) => (
+              <TextField {...params} label="Medium of Education" />
             )}
-            MenuProps={{
-              PaperProps: {
-                style: { maxHeight: isMobile ? 250 : 300 },
-              },
+            PaperProps={{
+              style: { maxHeight: isMobile ? 250 : 300 },
             }}
-          >
-            {languageList.map((item) => (
-              <MenuItem key={item} value={item}>
-                {item}
-              </MenuItem>
-            ))}
-          </Select>
+          />
         </FormControl>
 
         <ScoreFilter
@@ -363,9 +355,6 @@ export default function FilterDrawer({
                 onBlur: (e) => {
                   handleManualDateInput("exactDate", e.target.value);
                 },
-                FormHelperTextProps: {
-                  sx: { ml: 0, mr: 0 },
-                },
               },
             }}
             maxDate={dayjs()}
@@ -389,9 +378,6 @@ export default function FilterDrawer({
                 onBlur: (e) => {
                   handleManualDateInput("fromDate", e.target.value);
                 },
-                FormHelperTextProps: {
-                  sx: { ml: 0, mr: 0 },
-                },
               },
             }}
             maxDate={dayjs()}
@@ -414,9 +400,6 @@ export default function FilterDrawer({
                 helperText: dateErrors.toDate,
                 onBlur: (e) => {
                   handleManualDateInput("toDate", e.target.value);
-                },
-                FormHelperTextProps: {
-                  sx: { ml: 0, mr: 0 },
                 },
               },
             }}
