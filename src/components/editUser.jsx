@@ -9,6 +9,7 @@ import {
   Radio,
   Typography,
   CircularProgress,
+  Switch,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
@@ -32,9 +33,7 @@ const scrollbarStyles = {
   pr: 1.5,
   maxHeight: "62vh",
   overflowY: "auto",
-  "&::-webkit-scrollbar": {
-    width: "5px",
-  },
+  "&::-webkit-scrollbar": { width: "5px" },
   "&::-webkit-scrollbar-track": {
     backgroundColor: "#f5f5f5",
     borderRadius: "10px",
@@ -43,9 +42,7 @@ const scrollbarStyles = {
     backgroundColor: "#d6d6d6",
     borderRadius: "10px",
   },
-  "&::-webkit-scrollbar-thumb:hover": {
-    backgroundColor: "#555",
-  },
+  "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#555" },
 };
 
 const EditUserModal = ({
@@ -58,10 +55,11 @@ const EditUserModal = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const [educationMedium, setEducationMedium] = useState(""); // 'gujarati' | 'english' | 'others'
-  const [otherValue, setOtherValue] = useState(""); // only for others
+  const [educationMedium, setEducationMedium] = useState("");
+  const [otherValue, setOtherValue] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   const isSelf = userData?.user_id === currentUserId;
 
@@ -78,6 +76,10 @@ const EditUserModal = ({
       setEducationMedium("");
       setOtherValue("");
     }
+
+    // set active/inactive status
+    setIsActive(userData.is_active ?? true);
+
     setError("");
   }, [userData]);
 
@@ -90,6 +92,7 @@ const EditUserModal = ({
         id: userData.user_id,
         educationLanguage:
           educationMedium === "others" ? otherValue : educationMedium,
+        status: isActive,
       };
 
       await updateUser(payload);
@@ -107,7 +110,6 @@ const EditUserModal = ({
 
   const languageRegex = /^[A-Za-z]+$/;
 
-  // Disable Save if "Others" is selected and input is empty or invalid
   const isSaveDisabled =
     educationMedium === "others" &&
     (!otherValue || !languageRegex.test(otherValue) || otherValue.length < 3);
@@ -123,7 +125,7 @@ const EditUserModal = ({
           <TextField
             fullWidth
             label="Full Name"
-            value={userData.full_name || ""}
+            value={userData.full_name || userData.label || ""}
             disabled
             margin="normal"
             autoComplete="off"
@@ -133,12 +135,31 @@ const EditUserModal = ({
           <TextField
             fullWidth
             label="Designation"
-            value={userData.designation?.name || ""}
+            value={userData.designation?.name || userData.designation || ""}
             disabled
             margin="normal"
             autoComplete="off"
             sx={{ marginBottom: 0 }}
           />
+
+          <Box
+            mt={2}
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Typography variant="subtitle1">Status</Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  disabled={isSelf}
+                />
+              }
+              label={isActive ? "Active" : "Inactive"}
+            />
+          </Box>
 
           <Typography variant="subtitle1" mt={2} mb={1}>
             Medium of Education
@@ -197,9 +218,11 @@ const EditUserModal = ({
             />
           )}
 
+
+
           {isSelf && (
             <Typography sx={{ color: "red", fontSize: 14, mt: 1 }}>
-              You cannot update your own medium of education.
+              You cannot update your own details or status.
             </Typography>
           )}
         </Box>
@@ -216,10 +239,15 @@ const EditUserModal = ({
           >
             {isSubmitting ? (
               <Box
-                sx={{ display: "flex", alignItems: "center", gap: 1, color: "#fff" }}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  color: "#fff",
+                }}
               >
-                <CircularProgress size={20} sx={{ color: theme.palette.common.white }} />
-                <Typography sx={{ color: theme.palette.common.white, textTransform: "none" }}>
+                <CircularProgress size={20} sx={{ color: "#fff" }} />
+                <Typography sx={{ textTransform: "none" }}>
                   Saving...
                 </Typography>
               </Box>

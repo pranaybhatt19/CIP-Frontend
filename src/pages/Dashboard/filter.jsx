@@ -30,6 +30,8 @@ export default function FilterDrawer({
   setSelectedExperience,
   selectedReportingPerson,
   setSelectedReportingPerson,
+  selectedTags,
+  setSelectedTags,
   selectedMediumOfEducation,
   setSelectedMediumOfEducation,
   selectedAttempts,
@@ -38,6 +40,7 @@ export default function FilterDrawer({
   setLastAttemptedDate,
   reportingPersonList,
   languageList,
+  tagsList,
   onClear,
   onApply,
   userId,
@@ -45,7 +48,6 @@ export default function FilterDrawer({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const safeLastAttemptedDate = lastAttemptedDate || {};
-
   const [initialValues, setInitialValues] = useState(null);
   const [dateErrors, setDateErrors] = useState({
     exactDate: "",
@@ -59,6 +61,7 @@ export default function FilterDrawer({
       setInitialValues({
         selectedExperience: { ...selectedExperience },
         selectedReportingPerson: [...selectedReportingPerson],
+        selectedTags: [...selectedTags],
         selectedMediumOfEducation: [...selectedMediumOfEducation],
         selectedAttempts: { ...selectedAttempts },
         lastAttemptedDate: { ...lastAttemptedDate },
@@ -82,20 +85,23 @@ export default function FilterDrawer({
     if (!initialValues) return false;
     return (
       JSON.stringify(selectedExperience) !==
-        JSON.stringify(initialValues.selectedExperience) ||
+      JSON.stringify(initialValues.selectedExperience) ||
       JSON.stringify(selectedReportingPerson) !==
-        JSON.stringify(initialValues.selectedReportingPerson) ||
+      JSON.stringify(initialValues.selectedReportingPerson) ||
+      JSON.stringify(selectedTags) !==
+      JSON.stringify(initialValues.selectedTags) ||
       JSON.stringify(selectedMediumOfEducation) !==
-        JSON.stringify(initialValues.selectedMediumOfEducation) ||
+      JSON.stringify(initialValues.selectedMediumOfEducation) ||
       JSON.stringify(selectedAttempts) !==
-        JSON.stringify(initialValues.selectedAttempts) ||
+      JSON.stringify(initialValues.selectedAttempts) ||
       JSON.stringify(lastAttemptedDate) !==
-        JSON.stringify(initialValues.lastAttemptedDate)
+      JSON.stringify(initialValues.lastAttemptedDate)
     );
   }, [
     initialValues,
     selectedExperience,
     selectedReportingPerson,
+    selectedTags,
     selectedMediumOfEducation,
     selectedAttempts,
     lastAttemptedDate,
@@ -193,11 +199,11 @@ export default function FilterDrawer({
     const payload = {
       selectedExperience,
       selectedReportingPerson,
+      selectedTags,
       selectedAttempts,
       selectedMediumOfEducation,
       last_communication_date: lastAttemptedDate,
     };
-
     onApply(payload);
     onClose();
   };
@@ -291,6 +297,43 @@ export default function FilterDrawer({
             }}
           />
         </FormControl>
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel id="tags-label">Tags</InputLabel>
+          <Select
+            labelId="tags-label"
+            multiple
+            value={selectedTags}
+            onChange={(e) => {
+              // Ensure no duplicates
+              const value = Array.from(new Set(e.target.value));
+              setSelectedTags(value.map(v => String(v).toLowerCase()));
+            }}
+            input={<OutlinedInput label="Tags" />}
+            renderValue={(selected) => (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip
+                    key={value}
+                    label={value}
+                    size="small"
+                  />
+                ))}
+              </Box>
+            )}
+            MenuProps={{
+              PaperProps: {
+                style: { maxHeight: isMobile ? 250 : 300 },
+              },
+            }}
+          >
+            {tagsList?.map((tag) => (
+              <MenuItem key={tag} value={tag}>
+                {tag}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
 
         {/* 🔹 Medium of Education (Autocomplete) */}
         <FormControl fullWidth sx={{ mb: 2 }}>
