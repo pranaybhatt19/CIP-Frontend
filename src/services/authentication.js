@@ -63,3 +63,10 @@ export const addPractice = async (details) => {
 export const deletePractice = async (id) => {
   return api.patch(`/api/auth/users/delete-practice/${id}`);
 };
+
+export const getTags = async () => {
+  return api.get("api/auth/users/get-tags");
+};
+export const addUserTags = async (details) => {
+  return api.post("/api/auth/users/add-user-tags", details);
+};

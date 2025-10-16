@@ -15,6 +15,12 @@ const headCells = [
     label: "Designation",
   },
   {
+    id: "tags",
+    numeric: false,
+    disablePadding: false,
+    label: "Tags",
+  },
+  {
     id: "experience_years",
     numeric: false,
     disablePadding: false,
@@ -48,68 +54,76 @@ const headCells = [
 ];
 
 export function DashboardTableHead(props) {
-  const { order, orderBy, onRequestSort, setPage } = props;
+  const { order, orderBy, onRequestSort, setPage, designation } = props;
   const createSortHandler = (property) => (event) => {
     setPage(0);
     onRequestSort(event, property);
   };
-
+  const isManager = ["PM", "APM", "STL", "TL"].includes(designation);
   return (
     <TableHead>
       <TableRow>
-        {headCells.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            align={
-              headCell.id === "actions"
-                ? "center"
-                : headCell.numeric
-                ? "right"
-                : "left"
-            }
-            padding={headCell.disablePadding ? "none" : "normal"}
-            sortDirection={orderBy === headCell.id ? order : false}
-            sx={{
-              padding: "5px",
-              fontWeight: "bold",
-              fontSize: "16px",
-              ...(headCell.id === "full_name" && { width: 260 }),
-            }}
-          >
-            {headCell.id === "actions" ||
-            headCell.id === "full_name" ||
-            headCell.id === "reporting_person_name" ? (
-              headCell.label
-            ) : (
-              <TableSortLabel
-                active={orderBy === headCell.id}
-                direction={orderBy === headCell.id ? order : "asc"}
-                onClick={createSortHandler(headCell.id)}
-                sx={{
-                  display: "flex",
-                  justifyContent:
-                    headCell.id === "actions" ? "center" : "flex-start",
-                  "& .MuiTableSortLabel-icon": {
-                    opacity: 0.3,
-                  },
-                  "&:hover .MuiTableSortLabel-icon, &.Mui-active .MuiTableSortLabel-icon":
+        {headCells.map((headCell) => {
+          if (headCell.id === "tags" && !isManager) {
+            return;
+          }
+          return (
+            <TableCell
+              key={headCell.id}
+              align={
+                headCell.id === "actions"
+                  ? "center"
+                  : headCell.numeric
+                    ? "right"
+                    : "left"
+              }
+              padding={headCell.disablePadding ? "none" : "normal"}
+              sortDirection={orderBy === headCell.id ? order : false}
+              sx={{
+                padding: "5px",
+                fontWeight: "bold",
+                fontSize: "16px",
+                ...(headCell.id === "full_name" && { width: 260 }),
+              }}
+            >
+              {headCell.id === "actions" ||
+                headCell.id === "full_name" ||
+                headCell.id === "tags" ||
+                headCell.id === "reporting_person_name" ? (
+                headCell.label
+              ) : (
+                <TableSortLabel
+                  active={orderBy === headCell.id}
+                  direction={orderBy === headCell.id ? order : "asc"}
+                  onClick={createSortHandler(headCell.id)}
+                  sx={{
+                    display: "flex",
+                    justifyContent:
+                      headCell.id === "actions" ? "center" : "flex-start",
+                    "& .MuiTableSortLabel-icon": {
+                      opacity: 0.3,
+                    },
+                    "&:hover .MuiTableSortLabel-icon, &.Mui-active .MuiTableSortLabel-icon":
                     {
                       opacity: 1,
                     },
-                }}
-              >
-                {headCell.label}
-                {orderBy === headCell.id ? (
-                  <Box component="span" sx={visuallyHidden}>
-                    {order === "desc"
-                      ? "sorted descending"
-                      : "sorted ascending"}
-                  </Box>
-                ) : null}
-              </TableSortLabel>
-            )}
-          </TableCell>
-        ))}
+                  }}
+                >
+                  {headCell.label}
+                  {orderBy === headCell.id ? (
+                    <Box component="span" sx={visuallyHidden}>
+                      {order === "desc"
+                        ? "sorted descending"
+                        : "sorted ascending"}
+                    </Box>
+                  ) : null}
+                </TableSortLabel>
+              )}
+            </TableCell>
+          )
+        }
+
+        )}
       </TableRow>
     </TableHead>
   );

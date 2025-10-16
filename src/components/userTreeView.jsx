@@ -7,6 +7,7 @@ import {
   useTheme,
   Breadcrumbs,
   Typography,
+  Chip,
 } from "@mui/material";
 import "rsuite/dist/rsuite.min.css";
 import dayjs from "dayjs";
@@ -14,6 +15,12 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useNavigate } from "react-router-dom";
 import LinkSharpIcon from "@mui/icons-material/LinkSharp";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import LabelIcon from "@mui/icons-material/Label";
+import { Menu, MenuItem, Tooltip } from "@mui/material";
+import EditUserModal from "./editUser";
+import EditTagsModal from "./editTags";
 
 const { Column, HeaderCell, Cell } = Table;
 
@@ -21,30 +28,32 @@ const transformToTree = (node) => ({
   id: node.user_id,
   label: node.full_name
     ? node.full_name
-        .split(" ")
-        .map((word, idx, arr) =>
-          idx > 0 && idx < arr.length - 1 ? word[0] : word
-        )
-        .join(" ")
+      .split(" ")
+      .map((word, idx, arr) =>
+        idx > 0 && idx < arr.length - 1 ? word[0] : word
+      )
+      .join(" ")
     : "-",
   designation: node.designation?.name ?? "-",
+
   experience: node.experience ?? "-",
   reporting_person: node.reporting_person?.name
     ? node.reporting_person?.name
-        .split(" ")
-        .map((word, idx, arr) => (idx > 0 && idx < arr.length - 1 ? "" : word))
-        .join(" ")
+      .split(" ")
+      .map((word, idx, arr) => (idx > 0 && idx < arr.length - 1 ? "" : word))
+      .join(" ")
     : "-",
   reporting_person_data: node.reporting_person,
   education_medium: node.education_medium
     ? node.education_medium.charAt(0).toUpperCase() +
-      node.education_medium.slice(1)
+    node.education_medium.slice(1)
     : "-",
   last_attempt_date: node.last_communication_date
     ? dayjs(node.last_communication_date).format("DD/MM/YYYY hh:mm A")
     : "-",
   link: node.link ?? "-",
   attempts: node.attempts ?? "-",
+  tags: node.tags || [],
   children: Array.isArray(node.childrens)
     ? node.childrens.map(transformToTree)
     : [],
@@ -62,8 +71,8 @@ const calculateInitialState = (treeData, userId, userRM) => {
   const dataArray = Array.isArray(treeData)
     ? treeData
     : Array.isArray(treeData?.data)
-    ? treeData.data
-    : [];
+      ? treeData.data
+      : [];
   const fullTree = dataArray.map(transformToTree);
   const referenceNode = fullTree[0];
 
@@ -151,7 +160,7 @@ const calculateInitialState = (treeData, userId, userRM) => {
   };
 };
 
-export default function UserTreeView({ treeData, userId, userRM }) {
+export default function UserTreeView({ treeData, userId, userRM, designation, fetchData }) {
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -167,8 +176,16 @@ export default function UserTreeView({ treeData, userId, userRM }) {
   const [currentData, setCurrentData] = useState(initialState.calculatedData);
   const [isSelfViewMode] = useState(initialState.calculatedSelfViewMode);
   const [fullTreeData, setFullTreeData] = useState(initialState.fullTree);
-
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [editUserModalOpen, setEditUserModalOpen] = useState(false);
+  const [editTagsModalOpen, setEditTagsModalOpen] = useState(false);
   const selfManagerNode = useRef(initialState.selfManagerNode);
+  const [editUserData, setEditUserData] = useState(null);
+  const [languageList, setLanguageList] = useState([]);
+  const [editTagsData, setEditTagsData] = useState(null);
+
+
 
   useEffect(() => {
     if (!isMounted.current) {
@@ -225,7 +242,40 @@ export default function UserTreeView({ treeData, userId, userRM }) {
       }
     }
   };
+  const handleMenuOpen = (event, row) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedRow(row);
+  };
 
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedRow(null);
+  };
+
+  const handleViewClick = () => {
+    if (selectedRow) navigate(`/user-practices/${selectedRow.id}`);
+    handleMenuClose();
+  };
+
+  const handleEditUserClick = () => {
+    if (selectedRow) {
+      setEditUserData(selectedRow);
+      setEditUserModalOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const handleEditTagsClick = () => {
+    if (selectedRow) {
+      setEditTagsData({
+        user_id: selectedRow.id,
+        name: selectedRow.label,
+        tags: selectedRow.tags || [],
+      });
+      setEditTagsModalOpen(true);
+    }
+    handleMenuClose();
+  };
   const handleBreadcrumbClick = (index) => {
     if (index === breadcrumb.length - 1) return;
 
@@ -252,7 +302,7 @@ export default function UserTreeView({ treeData, userId, userRM }) {
       setBreadcrumb(newBreadcrumb);
     }
   };
-
+  const isManager = ["PM", "APM", "STL", "TL"].includes(designation);
   return (
     <Box
       sx={{
@@ -437,6 +487,78 @@ export default function UserTreeView({ treeData, userId, userRM }) {
             }}
           />
         </Column>
+        <Column flexGrow={0.8}>
+          <HeaderCell
+            style={{
+              padding: "5px",
+              fontWeight: "bold",
+              color: "#333",
+              fontSize: "16px",
+            }}
+          >
+            Tags
+          </HeaderCell>
+          <Cell
+            style={{
+              padding: "16px 8px",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              flexWrap: "wrap",
+            }}
+          >
+            {(rowData) =>
+              rowData.tags && rowData.tags.length > 0 ? (
+                <Tooltip
+                  title={
+                    <Box sx={{ p: 1 }}>
+                      {rowData.tags.map((tag) => (
+                        <Typography key={tag} variant="body2">
+                          • {tag}
+                        </Typography>
+                      ))}
+                    </Box>
+                  }
+                  arrow
+                  placement="bottom-start"
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexWrap: "nowrap",
+                      alignItems: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {/* Show first tag */}
+                    <Chip
+                      label={rowData.tags[0]}
+                      size="small"
+                      sx={{ fontSize: "0.75rem", mr: 0.5 }}
+                    />
+
+                    {/* Show +N more if there are extra tags */}
+                    {rowData.tags.length > 1 && (
+                      <Chip
+                        label={`+${rowData.tags.length - 1} more`}
+                        size="small"
+                        sx={{
+                          bgcolor: "grey.200",
+                          fontSize: "0.65rem",
+                        }}
+                      />
+                    )}
+                  </Box>
+                </Tooltip>
+              ) : (
+                <Typography variant="body2" color="textSecondary">
+                  -
+                </Typography>
+              )
+            }
+          </Cell>
+        </Column>
+
         <Column flexGrow={0.5}>
           <HeaderCell
             style={{
@@ -594,17 +716,69 @@ export default function UserTreeView({ treeData, userId, userRM }) {
             }}
           >
             {(rowData) => (
-              <IconButton
-                aria-label={`View details for ${rowData.label}`}
-                size="small"
-                onClick={() => navigate(`/user-practices/${rowData.id}`)}
-              >
-                <VisibilityIcon color="primary" fontSize="small" />
-              </IconButton>
+              <Box display="flex" justifyContent="center">
+                <Tooltip title="Actions">
+                  <IconButton
+                    id="action-button"
+                    aria-label="actions"
+                    aria-controls={Boolean(anchorEl) ? "action-menu" : undefined}
+                    aria-haspopup="true"
+                    aria-expanded={Boolean(anchorEl) ? "true" : undefined}
+                    onClick={(e) => handleMenuOpen(e, rowData)}
+                    size="small"
+                  >
+                    <MoreVertIcon color="primary" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             )}
           </Cell>
         </Column>
+
       </Table>
+      <Menu
+        id="action-menu"
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        MenuListProps={{ "aria-labelledby": "action-button" }}
+      >
+        <MenuItem onClick={handleViewClick}>
+          <VisibilityIcon sx={{ mr: 1, fontSize: 20 }} />
+          View
+        </MenuItem>
+        {isManager && selectedRow && selectedRow.id !== userId && (
+          <>
+            <MenuItem onClick={handleEditUserClick}>
+              <EditIcon sx={{ mr: 1, fontSize: 20 }} />
+              Edit User
+            </MenuItem>
+            <MenuItem onClick={handleEditTagsClick}>
+              <LabelIcon sx={{ mr: 1, fontSize: 20 }} />
+              Edit Tags
+            </MenuItem>
+          </>
+        )}
+      </Menu>
+      <EditUserModal
+        open={editUserModalOpen}
+        onClose={() => setEditUserModalOpen(false)}
+        userData={editUserData}
+        languageList={languageList}
+        currentUserId={userId}
+        onUpdated={fetchData}
+      />
+
+      {/* Edit Tags Modal */}
+      <EditTagsModal
+        open={editTagsModalOpen}
+        onClose={() => {
+          setEditTagsModalOpen(false);
+          fetchData();
+        }}
+        userData={editTagsData}
+      />
+
     </Box>
   );
 }

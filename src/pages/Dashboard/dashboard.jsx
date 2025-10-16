@@ -30,10 +30,14 @@ import {
   Chip,
   useMediaQuery,
   Link,
+  Menu,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import LabelIcon from "@mui/icons-material/Label";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useTheme } from "@mui/material/styles";
@@ -44,6 +48,7 @@ import {
   getDesignations,
   getEducationMedium,
   getReportingPersons,
+  getTags,
   searchDashboard,
   updateUser,
 } from "../../services/authentication";
@@ -56,8 +61,8 @@ import Cookie from "js-cookie";
 import Cookies from "js-cookie";
 import { debounce } from "lodash";
 import LinkSharpIcon from "@mui/icons-material/LinkSharp";
-import EditIcon from "@mui/icons-material/Edit";
 import EditUserModal from "../../components/editUser";
+import EditTagsModal from "../../components/editTags";
 
 export const Dashboard = () => {
   const DASHBOARD_FILTERS_STORAGE_KEY = "cip_dashboard_filters";
@@ -67,6 +72,7 @@ export const Dashboard = () => {
     selectedDesignation: [],
     selectedExperience: { type: "EQUALS", value: "" },
     selectedReportingPerson: [],
+    selectedTags: [],
     selectedMediumOfEducation: [],
     selectedAttempts: { type: "EQUALS", value: "" },
     lastAttemptedDate: { exactDate: null, fromDate: null, toDate: null },
@@ -114,6 +120,7 @@ export const Dashboard = () => {
   const [openTreeView, setOpenTreeView] = useState(false);
   const [languageModelOpen, setLanguageModalOpen] = useState(false);
   const [educationalLanguage, setEducationalLanguage] = useState("");
+  const [selectedTags, setSelectedTags] = useState([]);
   const [otherLanguageValue, setOtherLanguageValue] = useState("");
   const [userId, setUserId] = useState(null);
   const [userRM, setUserRM] = useState(null);
@@ -140,7 +147,14 @@ export const Dashboard = () => {
   const [editUserModalOpen, setEditUserModalOpen] = useState(false);
   const [editUserData, setEditUserData] = useState(null);
 
+  const [editTagsModalOpen, setEditTagsModalOpen] = useState(false);
+  const [editTagsData, setEditTagsData] = useState(null);
+
   const [currentUserId, setCurrentUserId] = useState(0);
+
+  // Menu state
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedRow, setSelectedRow] = useState(null);
 
   // Filters
   const [searchName, setSearchName] = useState(storedFilters?.searchName ?? "");
@@ -159,7 +173,7 @@ export const Dashboard = () => {
   const [selectedAttempts, setSelectedAttempts] = useState(
     storedFilters?.selectedAttempts ?? { type: "EQUALS", value: "" }
   );
-
+  const [tagsList, setTagsList] = useState([]);
   const [lastAttemptedDate, setLastAttemptedDate] = useState(
     storedFilters?.lastAttemptedDate ?? {
       exactDate: null,
@@ -190,16 +204,51 @@ export const Dashboard = () => {
     );
   }, []);
 
-  const handleEditUserClick = (user) => {
-    setEditUserData(user);
-    setEditUserModalOpen(true);
+  // Menu handlers
+  const handleMenuOpen = (event, row) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedRow(row);
   };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedRow(null);
+  };
+
+  const handleViewClick = () => {
+    if (selectedRow) {
+      navigate(`/user-practices/${selectedRow.user_id}`);
+    }
+    handleMenuClose();
+  };
+
+  const handleEditUserClick = () => {
+    if (selectedRow) {
+      setEditUserData(selectedRow);
+      setEditUserModalOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const handleEditTagsClick = () => {
+    if (selectedRow) {
+      setEditTagsData({
+        user_id: selectedRow.user_id,
+        name: selectedRow.full_name,
+        tags: selectedRow.tags || [],
+      });
+      setEditTagsModalOpen(true);
+    }
+    handleMenuClose();
+  };
+
   const setValuesToStates = () => {
     const updatedFilterState = {
       searchName: searchName,
       selectedDesignation: selectedDesignation,
       selectedExperience: selectedExperience,
       selectedReportingPerson: selectedReportingPerson,
+      selectedTags: selectedTags,
       selectedMediumOfEducation: selectedMediumOfEducation,
       selectedAttempts: selectedAttempts,
       lastAttemptedDate: lastAttemptedDate,
@@ -237,6 +286,8 @@ export const Dashboard = () => {
         payload.experience = currentValues.selectedExperience;
       if (currentValues.selectedReportingPerson?.length > 0)
         payload.reporting_persons_ids = currentValues.selectedReportingPerson;
+      if (currentValues.selectedTags?.length > 0)
+        payload.tags_filter = currentValues.selectedTags;
       if (currentValues.selectedMediumOfEducation?.length > 0)
         payload.education_medium = currentValues.selectedMediumOfEducation.map(
           (item) => item.toLowerCase()
@@ -317,6 +368,7 @@ export const Dashboard = () => {
     fetchDesignations();
     fetchReportingPersons();
     fetchEducationMedium();
+    fetchTagsList();
   }, []);
 
   useEffect(() => {
@@ -384,7 +436,15 @@ export const Dashboard = () => {
       }
     }
   };
-
+  const fetchTagsList = async () => {
+    try {
+      const response = await getTags();
+      const formattedTags = (response.data || []).map(tag => tag);
+      setTagsList(formattedTags);
+    } catch (error) {
+      console.error("Failed to load tags list:", error);
+    }
+  };
   useEffect(() => {
     if (clearTriggered) {
       fetchData();
@@ -413,6 +473,7 @@ export const Dashboard = () => {
       fetchReportingPersons();
       fetchDesignations();
       fetchEducationMedium();
+      fetchTagsList()
     } catch (err) {
       toast.error(err.message || "Failed to update language");
       setLanguageModalOpen(open);
@@ -442,6 +503,7 @@ export const Dashboard = () => {
     setSelectedExperience({ type: "EQUALS", value: "" });
     setSelectedReportingPerson([]);
     setSelectedMediumOfEducation([]);
+    setSelectedTags([]);
     setSelectedAttempts({ type: "EQUALS", value: "" });
     setLastAttemptedDate({
       exactDate: null,
@@ -452,6 +514,8 @@ export const Dashboard = () => {
     setClearTriggered(true);
     sessionStorage.removeItem(DASHBOARD_FILTERS_STORAGE_KEY);
   };
+
+  const isManager = ["PM", "APM", "STL", "TL"].includes(userDesignation);
 
   // ====================== Render ======================
   return (
@@ -648,7 +712,7 @@ export const Dashboard = () => {
               </Tabs>
             )}
 
-            {["PM", "APM", "STL", "TL"].includes(userDesignation) && (
+            {isManager && (
               <Button
                 variant="outlined"
                 sx={{
@@ -690,18 +754,18 @@ export const Dashboard = () => {
                   lastAttemptedDate.exactDate != null ||
                   lastAttemptedDate.fromDate != null ||
                   lastAttemptedDate.toDate != null) && (
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: -3,
-                      right: -3,
-                      width: 10,
-                      height: 10,
-                      borderRadius: "50%",
-                      backgroundColor: theme.palette.primary.main,
-                    }}
-                  />
-                )}
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: -3,
+                        right: -3,
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        backgroundColor: theme.palette.primary.main,
+                      }}
+                    />
+                  )}
               </Box>
             )}
           </Box>
@@ -717,6 +781,8 @@ export const Dashboard = () => {
           setSelectedExperience={setSelectedExperience}
           selectedReportingPerson={selectedReportingPerson}
           setSelectedReportingPerson={setSelectedReportingPerson}
+          selectedTags={selectedTags}
+          setSelectedTags={setSelectedTags}
           selectedMediumOfEducation={selectedMediumOfEducation}
           setSelectedMediumOfEducation={setSelectedMediumOfEducation}
           selectedAttempts={selectedAttempts}
@@ -724,6 +790,7 @@ export const Dashboard = () => {
           lastAttemptedDate={lastAttemptedDate}
           setLastAttemptedDate={setLastAttemptedDate}
           reportingPersonList={reportingPersonList}
+          tagsList={tagsList}
           languageList={languageList}
           onClear={handleClearFilters}
           onApply={handleApplyFilters}
@@ -753,6 +820,8 @@ export const Dashboard = () => {
           treeData={Array.isArray(rows) ? rows : [rows]}
           userId={userId}
           userRM={userRM}
+          designation={userDesignation}
+          fetchData={fetchData}
         />
       ) : (
         <Paper sx={{ width: "100%", mb: 2, mt: 2, p: "8px 16px", pb: 0 }}>
@@ -763,6 +832,7 @@ export const Dashboard = () => {
                 orderBy={orderBy}
                 onRequestSort={handleRequestSort}
                 setPage={setPage}
+                designation={userDesignation}
               />
               <TableBody>
                 {rows.length > 0 ? (
@@ -803,13 +873,13 @@ export const Dashboard = () => {
                           <span style={{ cursor: "pointer" }}>
                             {row.full_name
                               ? row.full_name
-                                  .split(" ")
-                                  .map((word, idx, arr) =>
-                                    idx > 0 && idx < arr.length - 1
-                                      ? word[0]
-                                      : word
-                                  )
-                                  .join(" ")
+                                .split(" ")
+                                .map((word, idx, arr) =>
+                                  idx > 0 && idx < arr.length - 1
+                                    ? word[0]
+                                    : word
+                                )
+                                .join(" ")
                               : "-"}
                           </span>
                         </Tooltip>
@@ -817,23 +887,73 @@ export const Dashboard = () => {
                       <TableCell sx={{ pl: "5px", width: "200px" }}>
                         {row.designation?.name ?? "-"}
                       </TableCell>
+                      {isManager && <TableCell align="left">
+                        {row.tags?.length > 0 ? (
+                          <Tooltip
+                            title={
+                              <Box sx={{ p: 1 }}>
+                                {row.tags.map((tag) => (
+                                  <Typography key={tag} variant="body2">
+                                    • {tag}
+                                  </Typography>
+                                ))}
+                              </Box>
+                            }
+                            arrow
+                            placement="bottom-end"
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexWrap: "nowrap",
+                                alignItems: "center",
+                              }}
+                            >
+                              {row.tags.slice(0, 1).map((tag) => (
+                                <Chip
+                                  key={tag}
+                                  label={tag}
+                                  sx={{
+                                    mr: 0.5,
+                                    fontSize: "11px",
+                                  }}
+                                />
+                              ))}
+
+                              {row.tags.length > 1 && (
+                                <Chip
+                                  label={`+${row.tags.length - 1} more`}
+                                  size="small"
+                                  sx={{
+                                    bgcolor: "grey.200",
+                                    cursor: "pointer",
+                                    fontSize: "10px",
+                                  }}
+                                />
+                              )}
+                            </Box>
+                          </Tooltip>
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>}
                       <TableCell sx={{ pl: "5px", width: "200px" }}>
                         {row.experience ?? "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "250px" }}>
                         {row.reporting_person?.name
                           ? row.reporting_person?.name
-                              .split(" ")
-                              .map((word, idx, arr) =>
-                                idx > 0 && idx < arr.length - 1 ? "" : word
-                              )
-                              .join(" ")
+                            .split(" ")
+                            .map((word, idx, arr) =>
+                              idx > 0 && idx < arr.length - 1 ? "" : word
+                            )
+                            .join(" ")
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "220px" }}>
                         {row.education_medium
                           ? row.education_medium.charAt(0).toUpperCase() +
-                            row.education_medium.slice(1)
+                          row.education_medium.slice(1)
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "300px" }}>
@@ -870,40 +990,35 @@ export const Dashboard = () => {
                       <TableCell align="center">
                         <Box
                           display="flex"
-                          justifyContent="flex-end"
+                          justifyContent="center"
                           alignItems="center"
-                          gap={1.2}
                         >
-                          {row.user_id !== currentUserId && (
-                            <Tooltip title="Edit User">
-                              <IconButton
-                                color="primary"
-                                onClick={() => handleEditUserClick(row)}
-                                size="small"
-                              >
-                                <EditIcon />
-                              </IconButton>
-                            </Tooltip>
-                          )}
 
-                          <Tooltip title="View Details">
+                          <Tooltip title="Actions">
                             <IconButton
-                              aria-label="view"
-                              onClick={() =>
-                                navigate(`/user-practices/${row.user_id}`)
+                              id="action-button"
+                              aria-label="actions"
+                              aria-controls={
+                                Boolean(anchorEl) ? "action-menu" : undefined
                               }
+                              aria-haspopup="true"
+                              aria-expanded={
+                                Boolean(anchorEl) ? "true" : undefined
+                              }
+                              onClick={(e) => handleMenuOpen(e, row)}
                               size="small"
                             >
-                              <VisibilityIcon color="primary" />
+                              <MoreVertIcon color="primary" />
                             </IconButton>
                           </Tooltip>
+
                         </Box>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                    <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
                       {loading ? (
                         <CircularProgress
                           size="2rem"
@@ -918,6 +1033,38 @@ export const Dashboard = () => {
               </TableBody>
             </Table>
           </TableContainer>
+
+          {/* Actions Menu */}
+          <Menu
+            id="action-menu"
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            MenuListProps={{
+              "aria-labelledby": "action-button",
+            }}
+          >
+            <MenuItem onClick={handleViewClick}>
+              <VisibilityIcon sx={{ mr: 1, fontSize: 20 }} />
+              View
+            </MenuItem>
+            {isManager && (
+              (selectedRow?.user_id !== currentUserId || userRM === null) && (
+                <>
+                  <MenuItem onClick={handleEditUserClick}>
+                    <EditIcon sx={{ mr: 1, fontSize: 20 }} />
+                    Edit User
+                  </MenuItem>
+                  <MenuItem onClick={handleEditTagsClick}>
+                    <LabelIcon sx={{ mr: 1, fontSize: 20 }} />
+                    Edit Tags
+                  </MenuItem>
+                </>
+              )
+            )}
+          </Menu>
+
+          {/* Edit User Modal */}
           <EditUserModal
             open={editUserModalOpen}
             onClose={() => setEditUserModalOpen(false)}
@@ -925,6 +1072,16 @@ export const Dashboard = () => {
             languageList={languageList}
             currentUserId={userId}
             onUpdated={fetchData}
+          />
+
+          {/* Edit Tags Modal */}
+          <EditTagsModal
+            open={editTagsModalOpen}
+            onClose={() => {
+              setEditTagsModalOpen(false);
+              fetchData();
+            }}
+            userData={editTagsData}
           />
 
           <TablePagination
