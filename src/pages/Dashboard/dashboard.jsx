@@ -297,6 +297,7 @@ export const Dashboard = () => {
   const debouncedSearch = useMemo(
     () =>
       debounce(() => {
+        setPage(0);
         fetchDataRef.current();
       }, 1000),
     []
