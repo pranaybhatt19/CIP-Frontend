@@ -28,25 +28,25 @@ const transformToTree = (node) => ({
   id: node.user_id,
   label: node.full_name
     ? node.full_name
-      .split(" ")
-      .map((word, idx, arr) =>
-        idx > 0 && idx < arr.length - 1 ? word[0] : word
-      )
-      .join(" ")
+        .split(" ")
+        .map((word, idx, arr) =>
+          idx > 0 && idx < arr.length - 1 ? word[0] : word
+        )
+        .join(" ")
     : "-",
   designation: node.designation?.name ?? "-",
 
   experience: node.experience ?? "-",
   reporting_person: node.reporting_person?.name
     ? node.reporting_person?.name
-      .split(" ")
-      .map((word, idx, arr) => (idx > 0 && idx < arr.length - 1 ? "" : word))
-      .join(" ")
+        .split(" ")
+        .map((word, idx, arr) => (idx > 0 && idx < arr.length - 1 ? "" : word))
+        .join(" ")
     : "-",
   reporting_person_data: node.reporting_person,
   education_medium: node.education_medium
     ? node.education_medium.charAt(0).toUpperCase() +
-    node.education_medium.slice(1)
+      node.education_medium.slice(1)
     : "-",
   last_attempt_date: node.last_communication_date
     ? dayjs(node.last_communication_date).format("DD/MM/YYYY hh:mm A")
@@ -71,8 +71,8 @@ const calculateInitialState = (treeData, userId, userRM) => {
   const dataArray = Array.isArray(treeData)
     ? treeData
     : Array.isArray(treeData?.data)
-      ? treeData.data
-      : [];
+    ? treeData.data
+    : [];
   const fullTree = dataArray.map(transformToTree);
   const referenceNode = fullTree[0];
 
@@ -160,7 +160,13 @@ const calculateInitialState = (treeData, userId, userRM) => {
   };
 };
 
-export default function UserTreeView({ treeData, userId, userRM, designation, fetchData }) {
+export default function UserTreeView({
+  treeData,
+  userId,
+  userRM,
+  designation,
+  fetchData,
+}) {
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -184,8 +190,6 @@ export default function UserTreeView({ treeData, userId, userRM, designation, fe
   const [editUserData, setEditUserData] = useState(null);
   const [languageList, setLanguageList] = useState([]);
   const [editTagsData, setEditTagsData] = useState(null);
-
-
 
   useEffect(() => {
     if (!isMounted.current) {
@@ -466,78 +470,79 @@ export default function UserTreeView({ treeData, userId, userRM, designation, fe
             }}
           </Cell>
         </Column>
-
-        <Column flexGrow={0.8}>
-          <HeaderCell
-            style={{
-              padding: "5px",
-              fontWeight: "bold",
-              color: "#333",
-              fontSize: "16px",
-            }}
-          >
-            Tags
-          </HeaderCell>
-          <Cell
-            style={{
-              padding: "16px 8px",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-              flexWrap: "wrap",
-            }}
-          >
-            {(rowData) =>
-              rowData.tags && rowData.tags.length > 0 ? (
-                <Tooltip
-                  title={
-                    <Box sx={{ p: 1 }}>
-                      {rowData.tags.map((tag) => (
-                        <Typography key={tag} variant="body2">
-                          • {tag}
-                        </Typography>
-                      ))}
-                    </Box>
-                  }
-                  arrow
-                  placement="bottom-start"
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexWrap: "nowrap",
-                      alignItems: "center",
-                      cursor: "pointer",
-                    }}
+        {isManager && (
+          <Column flexGrow={0.8}>
+            <HeaderCell
+              style={{
+                padding: "5px",
+                fontWeight: "bold",
+                color: "#333",
+                fontSize: "16px",
+              }}
+            >
+              Tags
+            </HeaderCell>
+            <Cell
+              style={{
+                padding: "16px 8px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                flexWrap: "wrap",
+              }}
+            >
+              {(rowData) =>
+                rowData.tags && rowData.tags.length > 0 ? (
+                  <Tooltip
+                    title={
+                      <Box sx={{ p: 1 }}>
+                        {rowData.tags.map((tag) => (
+                          <Typography key={tag} variant="body2">
+                            • {tag}
+                          </Typography>
+                        ))}
+                      </Box>
+                    }
+                    arrow
+                    placement="bottom-start"
                   >
-                    {/* Show first tag */}
-                    <Chip
-                      label={rowData.tags[0]}
-                      size="small"
-                      sx={{ fontSize: "0.75rem", mr: 0.5 }}
-                    />
-
-                    {/* Show +N more if there are extra tags */}
-                    {rowData.tags.length > 1 && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexWrap: "nowrap",
+                        alignItems: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {/* Show first tag */}
                       <Chip
-                        label={`+${rowData.tags.length - 1} more`}
+                        label={rowData.tags[0]}
                         size="small"
-                        sx={{
-                          bgcolor: "grey.200",
-                          fontSize: "0.65rem",
-                        }}
+                        sx={{ fontSize: "0.75rem", mr: 0.5 }}
                       />
-                    )}
-                  </Box>
-                </Tooltip>
-              ) : (
-                <Typography variant="body2" color="textSecondary">
-                  -
-                </Typography>
-              )
-            }
-          </Cell>
-        </Column>
+
+                      {/* Show +N more if there are extra tags */}
+                      {rowData.tags.length > 1 && (
+                        <Chip
+                          label={`+${rowData.tags.length - 1} more`}
+                          size="small"
+                          sx={{
+                            bgcolor: "grey.200",
+                            fontSize: "0.65rem",
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </Tooltip>
+                ) : (
+                  <Typography variant="body2" color="textSecondary">
+                    -
+                  </Typography>
+                )
+              }
+            </Cell>
+          </Column>
+        )}
         <Column flexGrow={0.6}>
           <HeaderCell
             style={{
@@ -721,7 +726,9 @@ export default function UserTreeView({ treeData, userId, userRM, designation, fe
                   <IconButton
                     id="action-button"
                     aria-label="actions"
-                    aria-controls={Boolean(anchorEl) ? "action-menu" : undefined}
+                    aria-controls={
+                      Boolean(anchorEl) ? "action-menu" : undefined
+                    }
                     aria-haspopup="true"
                     aria-expanded={Boolean(anchorEl) ? "true" : undefined}
                     onClick={(e) => handleMenuOpen(e, rowData)}
@@ -734,7 +741,6 @@ export default function UserTreeView({ treeData, userId, userRM, designation, fe
             )}
           </Cell>
         </Column>
-
       </Table>
       <Menu
         id="action-menu"
@@ -778,7 +784,6 @@ export default function UserTreeView({ treeData, userId, userRM, designation, fe
         }}
         userData={editTagsData}
       />
-
     </Box>
   );
 }
