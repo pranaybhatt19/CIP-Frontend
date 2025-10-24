@@ -9,16 +9,16 @@ import Box from "@mui/material/Box";
 const headCells = [
   { id: "full_name", numeric: false, disablePadding: false, label: "Name" },
   {
-    id: "designation_name",
-    numeric: false,
-    disablePadding: false,
-    label: "Designation",
-  },
-  {
     id: "tags",
     numeric: false,
     disablePadding: false,
     label: "Tags",
+  },
+  {
+    id: "designation_name",
+    numeric: false,
+    disablePadding: false,
+    label: "Designation",
   },
   {
     id: "experience_years",

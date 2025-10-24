@@ -262,7 +262,7 @@ export const Dashboard = () => {
     saveFilterStateToSession(updatedFilterState);
     return updatedFilterState;
   };
-
+  const isEndUser = decodeToken()?.isEndUser ?? true;
   const fetchData = async () => {
     try {
       const currentValues = setValuesToStates();
@@ -439,7 +439,7 @@ export const Dashboard = () => {
   const fetchTagsList = async () => {
     try {
       const response = await getTags();
-      const formattedTags = (response.data || []).map(tag => tag);
+      const formattedTags = (response.data || []).map((tag) => tag);
       setTagsList(formattedTags);
     } catch (error) {
       console.error("Failed to load tags list:", error);
@@ -473,7 +473,7 @@ export const Dashboard = () => {
       fetchReportingPersons();
       fetchDesignations();
       fetchEducationMedium();
-      fetchTagsList()
+      fetchTagsList();
     } catch (err) {
       toast.error(err.message || "Failed to update language");
       setLanguageModalOpen(open);
@@ -558,7 +558,7 @@ export const Dashboard = () => {
           }}
         >
           {/* Left Side: Filters */}
-          {reportingPersonList.length > 0 && (
+          {isEndUser && (
             <Box
               sx={{
                 display: "flex",
@@ -676,7 +676,7 @@ export const Dashboard = () => {
               width: { xs: "100%", sm: "auto" },
             }}
           >
-            {reportingPersonList.length > 0 && (
+            {isEndUser && (
               <Tabs
                 value={isTreeView ? 1 : 0}
                 onChange={handlePrefChange}
@@ -730,7 +730,7 @@ export const Dashboard = () => {
               </Button>
             )}
 
-            {reportingPersonList.length > 0 && (
+            {isEndUser && (
               <Box position="relative" display="inline-block">
                 <Button
                   variant="outlined"
@@ -754,18 +754,18 @@ export const Dashboard = () => {
                   lastAttemptedDate.exactDate != null ||
                   lastAttemptedDate.fromDate != null ||
                   lastAttemptedDate.toDate != null) && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: -3,
-                        right: -3,
-                        width: 10,
-                        height: 10,
-                        borderRadius: "50%",
-                        backgroundColor: theme.palette.primary.main,
-                      }}
-                    />
-                  )}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: -3,
+                      right: -3,
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      backgroundColor: theme.palette.primary.main,
+                    }}
+                  />
+                )}
               </Box>
             )}
           </Box>
@@ -873,87 +873,89 @@ export const Dashboard = () => {
                           <span style={{ cursor: "pointer" }}>
                             {row.full_name
                               ? row.full_name
-                                .split(" ")
-                                .map((word, idx, arr) =>
-                                  idx > 0 && idx < arr.length - 1
-                                    ? word[0]
-                                    : word
-                                )
-                                .join(" ")
+                                  .split(" ")
+                                  .map((word, idx, arr) =>
+                                    idx > 0 && idx < arr.length - 1
+                                      ? word[0]
+                                      : word
+                                  )
+                                  .join(" ")
                               : "-"}
                           </span>
                         </Tooltip>
                       </TableCell>
+                      {isManager && (
+                        <TableCell align="left">
+                          {row.tags?.length > 0 ? (
+                            <Tooltip
+                              title={
+                                <Box sx={{ p: 1 }}>
+                                  {row.tags.map((tag) => (
+                                    <Typography key={tag} variant="body2">
+                                      • {tag}
+                                    </Typography>
+                                  ))}
+                                </Box>
+                              }
+                              arrow
+                              placement="bottom-end"
+                            >
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  flexWrap: "nowrap",
+                                  alignItems: "center",
+                                }}
+                              >
+                                {row.tags.slice(0, 1).map((tag) => (
+                                  <Chip
+                                    key={tag}
+                                    label={tag}
+                                    sx={{
+                                      mr: 0.5,
+                                      fontSize: "11px",
+                                    }}
+                                  />
+                                ))}
+
+                                {row.tags.length > 1 && (
+                                  <Chip
+                                    label={`+${row.tags.length - 1} more`}
+                                    size="small"
+                                    sx={{
+                                      bgcolor: "grey.200",
+                                      cursor: "pointer",
+                                      fontSize: "10px",
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                            </Tooltip>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell sx={{ pl: "5px", width: "200px" }}>
                         {row.designation?.name ?? "-"}
                       </TableCell>
-                      {isManager && <TableCell align="left">
-                        {row.tags?.length > 0 ? (
-                          <Tooltip
-                            title={
-                              <Box sx={{ p: 1 }}>
-                                {row.tags.map((tag) => (
-                                  <Typography key={tag} variant="body2">
-                                    • {tag}
-                                  </Typography>
-                                ))}
-                              </Box>
-                            }
-                            arrow
-                            placement="bottom-end"
-                          >
-                            <Box
-                              sx={{
-                                display: "flex",
-                                flexWrap: "nowrap",
-                                alignItems: "center",
-                              }}
-                            >
-                              {row.tags.slice(0, 1).map((tag) => (
-                                <Chip
-                                  key={tag}
-                                  label={tag}
-                                  sx={{
-                                    mr: 0.5,
-                                    fontSize: "11px",
-                                  }}
-                                />
-                              ))}
-
-                              {row.tags.length > 1 && (
-                                <Chip
-                                  label={`+${row.tags.length - 1} more`}
-                                  size="small"
-                                  sx={{
-                                    bgcolor: "grey.200",
-                                    cursor: "pointer",
-                                    fontSize: "10px",
-                                  }}
-                                />
-                              )}
-                            </Box>
-                          </Tooltip>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>}
                       <TableCell sx={{ pl: "5px", width: "200px" }}>
                         {row.experience ?? "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "250px" }}>
                         {row.reporting_person?.name
                           ? row.reporting_person?.name
-                            .split(" ")
-                            .map((word, idx, arr) =>
-                              idx > 0 && idx < arr.length - 1 ? "" : word
-                            )
-                            .join(" ")
+                              .split(" ")
+                              .map((word, idx, arr) =>
+                                idx > 0 && idx < arr.length - 1 ? "" : word
+                              )
+                              .join(" ")
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "220px" }}>
                         {row.education_medium
                           ? row.education_medium.charAt(0).toUpperCase() +
-                          row.education_medium.slice(1)
+                            row.education_medium.slice(1)
                           : "-"}
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "300px" }}>
@@ -993,7 +995,6 @@ export const Dashboard = () => {
                           justifyContent="center"
                           alignItems="center"
                         >
-
                           <Tooltip title="Actions">
                             <IconButton
                               id="action-button"
@@ -1011,7 +1012,6 @@ export const Dashboard = () => {
                               <MoreVertIcon color="primary" />
                             </IconButton>
                           </Tooltip>
-
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -1048,7 +1048,7 @@ export const Dashboard = () => {
               <VisibilityIcon sx={{ mr: 1, fontSize: 20 }} />
               View
             </MenuItem>
-            {isManager && (
+            {isManager &&
               (selectedRow?.user_id !== currentUserId || userRM === null) && (
                 <>
                   <MenuItem onClick={handleEditUserClick}>
@@ -1060,8 +1060,7 @@ export const Dashboard = () => {
                     Edit Tags
                   </MenuItem>
                 </>
-              )
-            )}
+              )}
           </Menu>
 
           {/* Edit User Modal */}

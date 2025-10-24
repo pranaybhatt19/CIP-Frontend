@@ -28,15 +28,19 @@ import {
   Work as WorkIcon,
   SupervisorAccount as SupervisorIcon,
   LockReset as LockResetIcon,
-  Close as CloseIcon,
   Visibility,
   VisibilityOff,
+  School as SchoolIcon,
+  Check,
 } from "@mui/icons-material";
 import { decodeToken } from "../../util/commonFunction";
 import { getUserInfo, updateUser } from "../../services/authentication";
 import { toast } from "react-toastify";
 import ChangePasswordDialog from "../../components/changePasswordModal";
 import { useNavigate } from "react-router-dom";
+import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
+import CloseIcon from "@mui/icons-material/Close";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -91,6 +95,7 @@ const Profile = () => {
             designation: user.reporting_person?.designation?.name || "",
           },
         });
+        setMediumValue(user?.medium_of_education || "");
       } catch (err) {
         if (err.status === 409) {
           navigate("/dashboard");
@@ -123,6 +128,70 @@ const Profile = () => {
     const first = parts[0]?.[0] || "";
     const last = parts.length > 1 ? parts[parts.length - 1]?.[0] : "";
     return (first + last).toUpperCase();
+  };
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [mediumValue, setMediumValue] = useState(
+    userInfo?.mediumOfEducation || ""
+  );
+  const [mediumError, setMediumError] = useState("");
+
+  const handleEdit = () => setIsEditing(true);
+
+  const handleCancel = () => {
+    setMediumValue(userInfo?.mediumOfEducation || "");
+    setMediumError("");
+    setIsEditing(false);
+  };
+
+  const handleMediumChange = (e) => {
+    const val = e.target.value;
+
+    if (val === "" || /^[A-Za-z]+$/.test(val)) {
+      setMediumValue(val);
+
+      if (val.length > 0 && val.length < 3) {
+        setMediumError("Enter at least 3 letters");
+      } else {
+        setMediumError("");
+      }
+    } else {
+      setMediumError("Only letters are allowed");
+    }
+  };
+
+  const handleSave = async () => {
+    if (!mediumValue) {
+      setMediumError("Medium of Education is required");
+      toast.error("Medium of Education is required");
+      return;
+    }
+
+    if (mediumValue.length < 3) {
+      setMediumError("Enter at least 3 letters");
+      toast.error("Enter at least 3 letters");
+      return;
+    }
+
+    if (mediumError) {
+      toast.error(mediumError);
+      return;
+    }
+
+    try {
+      await updateUser({ id: userInfo.id, educationLanguage: mediumValue });
+
+      setUserInfo((prev) => ({
+        ...prev,
+        mediumOfEducation: mediumValue,
+      }));
+
+      toast.success("Medium of Education updated successfully");
+      setIsEditing(false);
+      setMediumError("");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to update");
+    }
   };
 
   if (loading) {
@@ -233,6 +302,7 @@ const Profile = () => {
 
             {/* Professional Info */}
             <Box sx={{ mb: 4 }}>
+              {/* Header */}
               <Box
                 sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}
               >
@@ -242,6 +312,7 @@ const Profile = () => {
                 </Typography>
               </Box>
 
+              {/* Full Name + Email */}
               <Box
                 sx={{
                   display: "grid",
@@ -274,6 +345,7 @@ const Profile = () => {
                 />
               </Box>
 
+              {/* Designation + Experience */}
               <Box
                 sx={{
                   display: "grid",
@@ -306,6 +378,7 @@ const Profile = () => {
                 />
               </Box>
 
+              {/* Joining Date + Medium of Education */}
               <Box
                 sx={{
                   display: "grid",
@@ -330,17 +403,108 @@ const Profile = () => {
                     },
                   }}
                 />
-                <TextField
-                  fullWidth
-                  label="Medium of Education"
-                  value={String(userInfo?.mediumOfEducation) || ""}
-                  InputProps={{ readOnly: true }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: theme.palette.grey[50],
-                    },
-                  }}
-                />
+
+                {/* Editable Medium of Education Field */}
+                <Box sx={{ position: "relative" }}>
+                  <TextField
+                    fullWidth
+                    label="Medium of Education"
+                    value={mediumValue}
+                    onChange={handleMediumChange}
+                    error={!!mediumError}
+                    helperText={mediumError}
+                    InputProps={{
+                      readOnly: !isEditing,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SchoolIcon
+                            color={mediumError ? "error" : "action"}
+                          />
+                        </InputAdornment>
+                      ),
+                      endAdornment: !isEditing && (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            onClick={handleEdit}
+                            sx={{
+                              opacity: 1,
+                              backgroundColor: theme.palette.primary.main,
+                              "&:hover": {
+                                backgroundColor: theme.palette.primary.main,
+                                boxShadow: "0px 1px 6px 0px",
+                              },
+                            }}
+                          >
+                            <EditIcon
+                              fontSize="small"
+                              sx={{
+                                color: "white",
+                              }}
+                            />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: isEditing
+                          ? theme.palette.background.paper
+                          : theme.palette.grey[50],
+                      },
+                    }}
+                  />
+
+                  {/* Action Icons - Only in Edit Mode */}
+                  {isEditing && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: `${mediumError ? "36%" : "50%"}`,
+                        right: 12,
+                        transform: "translateY(-50%)",
+                        display: "flex",
+                        gap: 0.8,
+                        alignItems: "center",
+                        zIndex: 2,
+                      }}
+                    >
+                      <IconButton
+                        size="small"
+                        color="success"
+                        onClick={handleSave}
+                        disabled={!!mediumError}
+                        sx={{
+                          backgroundColor: "success.main",
+                          color: "white",
+                          "&:hover": { backgroundColor: "success.dark" },
+                          "&.Mui-disabled": {
+                            backgroundColor: "action.disabledBackground",
+                            color: "action.disabled",
+                          },
+                          width: 28,
+                          height: 28,
+                        }}
+                      >
+                        <Check fontSize="small" />
+                      </IconButton>
+
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={handleCancel}
+                        sx={{
+                          backgroundColor: "error.main",
+                          "&:hover": { backgroundColor: "error.dark" },
+                          width: 28,
+                          height: 28,
+                        }}
+                      >
+                        <CloseIcon fontSize="small" sx={{ color: "white" }} />
+                      </IconButton>
+                    </Box>
+                  )}
+                </Box>
               </Box>
             </Box>
 
