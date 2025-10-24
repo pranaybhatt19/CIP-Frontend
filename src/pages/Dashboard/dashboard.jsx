@@ -120,7 +120,7 @@ export const Dashboard = () => {
   const [openTreeView, setOpenTreeView] = useState(false);
   const [languageModelOpen, setLanguageModalOpen] = useState(false);
   const [educationalLanguage, setEducationalLanguage] = useState("");
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState(storedFilters?.selectedTags ?? []);
   const [otherLanguageValue, setOtherLanguageValue] = useState("");
   const [userId, setUserId] = useState(null);
   const [userRM, setUserRM] = useState(null);
