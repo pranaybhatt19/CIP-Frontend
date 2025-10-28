@@ -38,6 +38,8 @@ export default function FilterDrawer({
   setSelectedTags,
   selectedMediumOfEducation,
   setSelectedMediumOfEducation,
+  selectedStatus,
+  setSelectedStatus,
   selectedAttempts,
   setSelectedAttempts,
   lastAttemptedDate,
@@ -67,6 +69,7 @@ export default function FilterDrawer({
         selectedReportingPerson: [...selectedReportingPerson],
         selectedTags: [...selectedTags],
         selectedMediumOfEducation: [...selectedMediumOfEducation],
+        selectedStatus: [selectedStatus],
         selectedAttempts: { ...selectedAttempts },
         lastAttemptedDate: { ...lastAttemptedDate },
       });
@@ -89,17 +92,19 @@ export default function FilterDrawer({
     if (!initialValues) return false;
     return (
       JSON.stringify(selectedExperience) !==
-      JSON.stringify(initialValues.selectedExperience) ||
+        JSON.stringify(initialValues.selectedExperience) ||
       JSON.stringify(selectedReportingPerson) !==
-      JSON.stringify(initialValues.selectedReportingPerson) ||
+        JSON.stringify(initialValues.selectedReportingPerson) ||
       JSON.stringify(selectedTags) !==
-      JSON.stringify(initialValues.selectedTags) ||
+        JSON.stringify(initialValues.selectedTags) ||
       JSON.stringify(selectedMediumOfEducation) !==
-      JSON.stringify(initialValues.selectedMediumOfEducation) ||
+        JSON.stringify(initialValues.selectedMediumOfEducation) ||
+      JSON.stringify(selectedStatus) !==
+        JSON.stringify(initialValues.selectedStatus) ||
       JSON.stringify(selectedAttempts) !==
-      JSON.stringify(initialValues.selectedAttempts) ||
+        JSON.stringify(initialValues.selectedAttempts) ||
       JSON.stringify(lastAttemptedDate) !==
-      JSON.stringify(initialValues.lastAttemptedDate)
+        JSON.stringify(initialValues.lastAttemptedDate)
     );
   }, [
     initialValues,
@@ -107,6 +112,7 @@ export default function FilterDrawer({
     selectedReportingPerson,
     selectedTags,
     selectedMediumOfEducation,
+    selectedStatus,
     selectedAttempts,
     lastAttemptedDate,
   ]);
@@ -301,43 +307,33 @@ export default function FilterDrawer({
             }}
           />
         </FormControl>
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="tags-label">Tags</InputLabel>
-          <Select
-            labelId="tags-label"
-            multiple
-            value={selectedTags}
-            onChange={(e) => {
-              // Ensure no duplicates
-              const value = Array.from(new Set(e.target.value));
-              setSelectedTags(value.map(v => String(v).toLowerCase()));
-            }}
-            input={<OutlinedInput label="Tags" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip
-                    key={value}
-                    label={value}
-                    size="small"
-                  />
-                ))}
-              </Box>
-            )}
-            MenuProps={{
-              PaperProps: {
-                style: { maxHeight: isMobile ? 250 : 300 },
-              },
-            }}
-          >
-            {tagsList?.map((tag) => (
-              <MenuItem key={tag} value={tag}>
-                {tag}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
 
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <Autocomplete
+            multiple
+            options={tagsList}
+            getOptionLabel={(option) => option}
+            value={tagsList.filter((item) => selectedTags.includes(item))}
+            onChange={(event, newValue) =>
+              setSelectedTags(newValue.map((item) => item))
+            }
+            disableCloseOnSelect
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => (
+                <Chip
+                  key={option}
+                  label={option}
+                  size="small"
+                  {...getTagProps({ index })}
+                />
+              ))
+            }
+            renderInput={(params) => <TextField {...params} label="Tags" />}
+            ListboxProps={{
+              style: { maxHeight: 250, overflowY: "auto" },
+            }}
+          />
+        </FormControl>
 
         {/* 🔹 Medium of Education (Autocomplete) */}
         <FormControl fullWidth sx={{ mb: 2 }}>
@@ -365,6 +361,39 @@ export default function FilterDrawer({
             )}
             PaperProps={{
               style: { maxHeight: isMobile ? 250 : 300 },
+            }}
+          />
+        </FormControl>
+
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <Autocomplete
+            options={[
+              { label: "Active", value: true },
+              { label: "In Active", value: false },
+            ]}
+            getOptionLabel={(option) => option.label}
+            value={
+              selectedStatus === true
+                ? { label: "Active", value: true }
+                : selectedStatus === false
+                ? { label: "In Active", value: false }
+                : null
+            }
+            onChange={(event, newValue) =>
+              setSelectedStatus(newValue ? newValue.value : null)
+            }
+            renderInput={(params) => (
+              <TextField {...params} label="Active Status" />
+            )}
+            clearOnEscape
+            isOptionEqualToValue={(option, value) =>
+              option.value === value.value
+            }
+            ListboxProps={{
+              style: {
+                maxHeight: isMobile ? 250 : 300,
+                overflowY: "auto",
+              },
             }}
           />
         </FormControl>

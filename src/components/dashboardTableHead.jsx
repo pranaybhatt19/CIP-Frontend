@@ -39,6 +39,12 @@ const headCells = [
     label: "Medium",
   },
   {
+    id: "active_status",
+    numeric: false,
+    disablePadding: false,
+    label: "Active Status",
+  },
+  {
     id: "last_communication_date",
     numeric: false,
     disablePadding: false,
@@ -74,8 +80,8 @@ export function DashboardTableHead(props) {
                 headCell.id === "actions"
                   ? "center"
                   : headCell.numeric
-                    ? "right"
-                    : "left"
+                  ? "right"
+                  : "left"
               }
               padding={headCell.disablePadding ? "none" : "normal"}
               sortDirection={orderBy === headCell.id ? order : false}
@@ -87,9 +93,9 @@ export function DashboardTableHead(props) {
               }}
             >
               {headCell.id === "actions" ||
-                headCell.id === "full_name" ||
-                headCell.id === "tags" ||
-                headCell.id === "reporting_person_name" ? (
+              headCell.id === "full_name" ||
+              headCell.id === "tags" ||
+              headCell.id === "reporting_person_name" ? (
                 headCell.label
               ) : (
                 <TableSortLabel
@@ -104,9 +110,9 @@ export function DashboardTableHead(props) {
                       opacity: 0.3,
                     },
                     "&:hover .MuiTableSortLabel-icon, &.Mui-active .MuiTableSortLabel-icon":
-                    {
-                      opacity: 1,
-                    },
+                      {
+                        opacity: 1,
+                      },
                   }}
                 >
                   {headCell.label}
@@ -120,10 +126,8 @@ export function DashboardTableHead(props) {
                 </TableSortLabel>
               )}
             </TableCell>
-          )
-        }
-
-        )}
+          );
+        })}
       </TableRow>
     </TableHead>
   );

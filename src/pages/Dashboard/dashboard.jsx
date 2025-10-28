@@ -64,6 +64,11 @@ import LinkSharpIcon from "@mui/icons-material/LinkSharp";
 import EditUserModal from "../../components/editUser";
 import EditTagsModal from "../../components/editTags";
 
+const ratingColor = {
+  true: "#4caf50",
+  false: "#f44336",
+};
+
 export const Dashboard = () => {
   const DASHBOARD_FILTERS_STORAGE_KEY = "cip_dashboard_filters";
 
@@ -74,6 +79,7 @@ export const Dashboard = () => {
     selectedReportingPerson: [],
     selectedTags: [],
     selectedMediumOfEducation: [],
+    selectedStatus: true,
     selectedAttempts: { type: "EQUALS", value: "" },
     lastAttemptedDate: { exactDate: null, fromDate: null, toDate: null },
     page: 0,
@@ -120,7 +126,9 @@ export const Dashboard = () => {
   const [openTreeView, setOpenTreeView] = useState(false);
   const [languageModelOpen, setLanguageModalOpen] = useState(false);
   const [educationalLanguage, setEducationalLanguage] = useState("");
-  const [selectedTags, setSelectedTags] = useState(storedFilters?.selectedTags ?? []);
+  const [selectedTags, setSelectedTags] = useState(
+    storedFilters?.selectedTags ?? []
+  );
   const [otherLanguageValue, setOtherLanguageValue] = useState("");
   const [userId, setUserId] = useState(null);
   const [userRM, setUserRM] = useState(null);
@@ -169,6 +177,9 @@ export const Dashboard = () => {
   );
   const [selectedMediumOfEducation, setSelectedMediumOfEducation] = useState(
     storedFilters?.selectedMediumOfEducation ?? []
+  );
+  const [selectedStatus, setSelectedStatus] = useState(
+    storedFilters?.selectedStatus ?? null
   );
   const [selectedAttempts, setSelectedAttempts] = useState(
     storedFilters?.selectedAttempts ?? { type: "EQUALS", value: "" }
@@ -250,6 +261,7 @@ export const Dashboard = () => {
       selectedReportingPerson: selectedReportingPerson,
       selectedTags: selectedTags,
       selectedMediumOfEducation: selectedMediumOfEducation,
+      selectedStatus: selectedStatus,
       selectedAttempts: selectedAttempts,
       lastAttemptedDate: lastAttemptedDate,
       page: page,
@@ -303,6 +315,7 @@ export const Dashboard = () => {
       ) {
         payload.last_communication_date = currentValues.lastAttemptedDate;
       }
+      payload.active_status = currentValues.selectedStatus;
 
       setLoading(true);
       const currentUserId = decodeToken()?.sub;
@@ -503,6 +516,7 @@ export const Dashboard = () => {
     setSelectedExperience({ type: "EQUALS", value: "" });
     setSelectedReportingPerson([]);
     setSelectedMediumOfEducation([]);
+    setSelectedStatus(true);
     setSelectedTags([]);
     setSelectedAttempts({ type: "EQUALS", value: "" });
     setLastAttemptedDate({
@@ -785,6 +799,8 @@ export const Dashboard = () => {
           setSelectedTags={setSelectedTags}
           selectedMediumOfEducation={selectedMediumOfEducation}
           setSelectedMediumOfEducation={setSelectedMediumOfEducation}
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
           selectedAttempts={selectedAttempts}
           setSelectedAttempts={setSelectedAttempts}
           lastAttemptedDate={lastAttemptedDate}
@@ -957,6 +973,19 @@ export const Dashboard = () => {
                           ? row.education_medium.charAt(0).toUpperCase() +
                             row.education_medium.slice(1)
                           : "-"}
+                      </TableCell>
+                      <TableCell sx={{ pl: "5px", width: "200px" }}>
+                        <Chip
+                          label={
+                            row.active_status == true ? "Active" : "In Active"
+                          }
+                          sx={{
+                            backgroundColor: ratingColor[row.active_status],
+                            color: "white",
+                            fontWeight: "bold",
+                            width: "120px",
+                          }}
+                        />
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "300px" }}>
                         {row.last_communication_date ? (
