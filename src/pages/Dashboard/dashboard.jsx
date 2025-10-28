@@ -867,7 +867,27 @@ export const Dashboard = () => {
                     >
                       <TableCell
                         align="left"
-                        sx={{ pl: "5px", width: "250px" }}
+                        sx={{
+                          position: "relative",
+                          pl: "32px",
+                          width: "250px",
+                          "&::before": {
+                            content: '""',
+                            position: "absolute",
+                            left: 0,                     
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            width: 6,                    
+                            height: 48,                   
+                            pointerEvents: "none",       
+                            backgroundColor: ratingColor[String(row.active_status)],
+                            clipPath:"polygon(0 0, 5% 0, 15% 0, 30% 0, 200% 50%, 30% 100%, 15% 100%, 5% 100%, 0 100%);",
+                            zIndex: 1,
+                          },
+                          "& .MuiTooltip-tooltip": {
+                            fontSize: "0.8rem",
+                          },
+                        }}
                       >
                         <Tooltip
                           title={
