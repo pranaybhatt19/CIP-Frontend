@@ -39,12 +39,6 @@ const headCells = [
     label: "Medium",
   },
   {
-    id: "active_status",
-    numeric: false,
-    disablePadding: false,
-    label: "Active Status",
-  },
-  {
     id: "last_communication_date",
     numeric: false,
     disablePadding: false,
