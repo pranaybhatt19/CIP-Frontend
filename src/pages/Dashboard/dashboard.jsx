@@ -874,14 +874,14 @@ export const Dashboard = () => {
                           "&::before": {
                             content: '""',
                             position: "absolute",
-                            left: 0,                     
+                            left: 0,
                             top: "50%",
                             transform: "translateY(-50%)",
-                            width: 6,                    
-                            height: 48,                   
-                            pointerEvents: "none",       
-                            backgroundColor: ratingColor[String(row.active_status)],
-                            clipPath:"polygon(0 0, 5% 0, 15% 0, 30% 0, 200% 50%, 30% 100%, 15% 100%, 5% 100%, 0 100%);",
+                            width: 6,
+                            height: 48,
+                            pointerEvents: "none",
+                            backgroundColor:
+                              ratingColor[String(row.active_status)],
                             zIndex: 1,
                           },
                           "& .MuiTooltip-tooltip": {
@@ -993,19 +993,6 @@ export const Dashboard = () => {
                           ? row.education_medium.charAt(0).toUpperCase() +
                             row.education_medium.slice(1)
                           : "-"}
-                      </TableCell>
-                      <TableCell sx={{ pl: "5px", width: "200px" }}>
-                        <Chip
-                          label={
-                            row.active_status == true ? "Active" : "In Active"
-                          }
-                          sx={{
-                            backgroundColor: ratingColor[row.active_status],
-                            color: "white",
-                            fontWeight: "bold",
-                            width: "120px",
-                          }}
-                        />
                       </TableCell>
                       <TableCell sx={{ pl: "5px", width: "300px" }}>
                         {row.last_communication_date ? (
