@@ -78,7 +78,7 @@ const EditUserModal = ({
     }
 
     // set active/inactive status
-    setIsActive(userData.is_active ?? true);
+    setIsActive(userData.active_status ?? true);
 
     setError("");
   }, [userData]);
@@ -217,8 +217,6 @@ const EditUserModal = ({
               disabled={isSelf}
             />
           )}
-
-
 
           {isSelf && (
             <Typography sx={{ color: "red", fontSize: 14, mt: 1 }}>
