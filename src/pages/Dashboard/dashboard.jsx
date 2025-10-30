@@ -1102,7 +1102,10 @@ export const Dashboard = () => {
           {/* Edit User Modal */}
           <EditUserModal
             open={editUserModalOpen}
-            onClose={() => setEditUserModalOpen(false)}
+            onClose={() => {
+              setEditUserModalOpen(false);
+              fetchData();
+            }}
             userData={editUserData}
             languageList={languageList}
             currentUserId={userId}

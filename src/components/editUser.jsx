@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -12,9 +12,23 @@ import {
   Switch,
   useTheme,
   useMediaQuery,
+  FormControl,
+  InputLabel,
+  Select,
+  OutlinedInput,
+  MenuItem,
+  Autocomplete,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import { updateUser } from "../services/authentication";
+import {
+  getDesignations,
+  getReportingPersons,
+  updateUser,
+} from "../services/authentication";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { decodeToken } from "../util/commonFunction";
+import { filter } from "lodash";
 
 const style = {
   position: "absolute",
@@ -45,6 +59,45 @@ const scrollbarStyles = {
   "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#555" },
 };
 
+const validationSchema = Yup.object({
+  firstName: Yup.string()
+    .trim()
+    .matches(
+      /^[A-Za-z]+$/,
+      "First Name must contain only alphabets and no spaces"
+    )
+    .max(50, "First Name must be at most 50 characters long")
+    .required("First Name is required"),
+
+  middleName: Yup.string()
+    .trim()
+    .matches(
+      /^[A-Za-z]+$/,
+      "Middle Name must contain only alphabets and no spaces"
+    )
+    .max(50, "Middle Name must be at most 50 characters long")
+    .required("Middle Name is required"),
+
+  lastName: Yup.string()
+    .trim()
+    .matches(
+      /^[A-Za-z]+$/,
+      "Last Name must contain only alphabets and no spaces"
+    )
+    .max(50, "Last Name must be at most 50 characters long")
+    .required("Last Name is required"),
+
+  designation: Yup.number()
+    .nullable()
+    .required("Designation is required")
+    .typeError("Please select a valid designation"),
+
+  reportingPerson: Yup.number()
+    .nullable()
+    .required("Reporting Officer is required")
+    .typeError("Please select a valid reporting officer"),
+});
+
 const EditUserModal = ({
   open,
   onClose,
@@ -54,7 +107,9 @@ const EditUserModal = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
+  const [userId, setUserId] = useState(null);
+  const [designationList, setDesignationList] = useState([]);
+  const [reportingPersonList, setReportingPersonList] = useState([]);
   const [educationMedium, setEducationMedium] = useState("");
   const [otherValue, setOtherValue] = useState("");
   const [error, setError] = useState("");
@@ -63,7 +118,39 @@ const EditUserModal = ({
 
   const isSelf = userData?.user_id === currentUserId;
 
+  const fetchDesignations = async () => {
+    try {
+      await getDesignations().then((res) => {
+        setDesignationList(res.data || []);
+      });
+    } catch (err) {
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch data");
+      }
+    }
+  };
+
+  const fetchReportingPersons = async () => {
+    try {
+      await getReportingPersons().then((res) => {
+        console.log("user", userId);
+        const filtered = (res.data || []).filter(
+          (item) => item.id !== userData?.user_id
+        );
+        setReportingPersonList(filtered);
+      });
+    } catch (err) {
+      if (err.status != 409) {
+        toast.error(err.message || "Failed to fetch data");
+      }
+    }
+  };
+
   useEffect(() => {
+    const decodedToken = decodeToken();
+    fetchDesignations();
+    fetchReportingPersons();
+    if (decodedToken?.sub) setUserId(decodedToken.sub);
     if (!userData) return;
     const medium = userData.education_medium?.toLowerCase() || "";
     if (medium === "gujarati" || medium === "english") {
@@ -71,40 +158,60 @@ const EditUserModal = ({
       setOtherValue("");
     } else if (medium) {
       setEducationMedium("others");
-      setOtherValue(medium);
+      setOtherValue(medium.charAt(0).toUpperCase() + medium.slice(1));
     } else {
       setEducationMedium("");
       setOtherValue("");
     }
 
     // set active/inactive status
-    setIsActive(userData.is_active ?? true);
+    setIsActive(userData.active_status ?? true);
 
     setError("");
   }, [userData]);
 
-  const handleSubmit = async () => {
-    try {
-      if (!userData) return;
-      setIsSubmitting(true);
-
-      const payload = {
-        id: userData.user_id,
-        educationLanguage:
-          educationMedium === "others" ? otherValue : educationMedium,
-        status: isActive,
-      };
-
-      await updateUser(payload);
-      toast.success("User updated successfully!");
-      onUpdated?.();
-      onClose();
-    } catch (err) {
-      toast.error(err.message || "Failed to update user");
-    } finally {
-      setIsSubmitting(false);
+  useEffect(() => {
+    if (userData) {
+      formik.resetForm({ values: initialValues });
     }
-  };
+  }, [userData]);
+
+  const initialValues = useMemo(
+    () => ({
+      id: userData?.user_id,
+      firstName: userData?.first_name || "",
+      middleName: userData?.middle_name || "",
+      lastName: userData?.last_name || "",
+      designation: userData?.designation?.id || "",
+      reportingPerson: userData?.reporting_person?.id,
+    }),
+    [userData]
+  );
+
+  const formik = useFormik({
+    initialValues,
+    validationSchema,
+    validateOnChange: true,
+    validateOnBlur: true,
+    onSubmit: async (values, { resetForm, setSubmitting }) => {
+      try {
+        const res = await updateUser({
+          ...values,
+          educationLanguage:
+            educationMedium === "others" ? otherValue : educationMedium,
+          status: isActive,
+        });
+        toast.success("User updated successfully!");
+        resetForm();
+        onClose();
+      } catch (err) {
+        toast.error(err.message || "Failed to add user");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    enableReinitialize: true,
+  });
 
   if (!userData) return null;
 
@@ -120,142 +227,262 @@ const EditUserModal = ({
         <Typography variant="h3" mb={1.5}>
           Edit User
         </Typography>
-
-        <Box sx={scrollbarStyles}>
-          <TextField
-            fullWidth
-            label="Full Name"
-            value={userData.full_name || userData.label || ""}
-            disabled
-            margin="normal"
-            autoComplete="off"
-            sx={{ marginBottom: 0 }}
-          />
-
-          <TextField
-            fullWidth
-            label="Designation"
-            value={userData.designation?.name || userData.designation || ""}
-            disabled
-            margin="normal"
-            autoComplete="off"
-            sx={{ marginBottom: 0 }}
-          />
-
-          <Box
-            mt={2}
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Typography variant="subtitle1">Status</Typography>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
-                  disabled={isSelf}
-                />
-              }
-              label={isActive ? "Active" : "Inactive"}
-            />
-          </Box>
-
-          <Typography variant="subtitle1" mt={2} mb={1}>
-            Medium of Education
-          </Typography>
-
-          <RadioGroup
-            value={educationMedium}
-            onChange={(e) => {
-              setEducationMedium(e.target.value);
-              setError("");
-              if (e.target.value !== "others") setOtherValue("");
-            }}
-          >
-            <FormControlLabel
-              value="gujarati"
-              control={<Radio />}
-              label="Gujarati"
-              disabled={isSelf}
-            />
-            <FormControlLabel
-              value="english"
-              control={<Radio />}
-              label="English"
-              disabled={isSelf}
-            />
-            <FormControlLabel
-              value="others"
-              control={<Radio />}
-              label="Others"
-              disabled={isSelf}
-            />
-          </RadioGroup>
-
-          {educationMedium === "others" && (
+        <form onSubmit={formik.handleSubmit}>
+          <Box sx={scrollbarStyles}>
             <TextField
-              label="Enter Language"
-              value={otherValue}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val === "" || languageRegex.test(val)) {
-                  setOtherValue(val);
-                  if (val.length > 0 && val.length < 3) {
-                    setError("Enter at least 3 letters");
-                  } else {
-                    setError("");
-                  }
-                } else {
-                  setError("Only letters are allowed");
-                }
-              }}
               fullWidth
+              label="First Name"
               margin="normal"
-              error={!!error}
-              helperText={error}
-              disabled={isSelf}
+              name="firstName"
+              value={formik.values.firstName}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched.firstName && Boolean(formik.errors.firstName)
+              }
+              helperText={formik.touched.firstName && formik.errors.firstName}
+              autoComplete="off"
+              FormHelperTextProps={{
+                sx: {
+                  marginLeft: 0,
+                  marginRight: 0,
+                },
+              }}
+              sx={{ marginBottom: 0 }}
             />
-          )}
 
+            <TextField
+              fullWidth
+              label="Middle Name"
+              margin="normal"
+              name="middleName"
+              value={formik.values.middleName}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched.middleName && Boolean(formik.errors.middleName)
+              }
+              helperText={formik.touched.middleName && formik.errors.middleName}
+              autoComplete="off"
+              FormHelperTextProps={{
+                sx: {
+                  marginLeft: 0,
+                  marginRight: 0,
+                },
+              }}
+              sx={{ marginBottom: 0 }}
+            />
 
+            <TextField
+              fullWidth
+              label="Last Name"
+              margin="normal"
+              name="lastName"
+              value={formik.values.lastName}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.lastName && Boolean(formik.errors.lastName)}
+              helperText={formik.touched.lastName && formik.errors.lastName}
+              autoComplete="off"
+              FormHelperTextProps={{
+                sx: {
+                  marginLeft: 0,
+                  marginRight: 0,
+                },
+              }}
+              sx={{ marginBottom: 0 }}
+            />
 
-          {isSelf && (
-            <Typography sx={{ color: "red", fontSize: 14, mt: 1 }}>
-              You cannot update your own details or status.
-            </Typography>
-          )}
-        </Box>
-
-        <Box mt={4} display="flex" justifyContent="flex-end" gap={1}>
-          <Button onClick={onClose} variant="outlined">
-            Cancel
-          </Button>
-
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={isSubmitting || isSaveDisabled}
-          >
-            {isSubmitting ? (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  color: "#fff",
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="designation-label">Designation</InputLabel>
+              <Select
+                labelId="designation-label"
+                name="designation"
+                value={formik.values.designation || ""}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={
+                  formik.touched.designation &&
+                  Boolean(formik.errors.designation)
+                }
+                input={<OutlinedInput label="Designation" />}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: isMobile ? 250 : 300,
+                    },
+                  },
                 }}
               >
-                <CircularProgress size={20} sx={{ color: "#fff" }} />
-                <Typography sx={{ textTransform: "none" }}>
-                  Saving...
-                </Typography>
-              </Box>
-            ) : (
-              "Save Changes"
+                {designationList.map((item) => (
+                  <MenuItem key={item.id} value={item.id}>
+                    {item.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {formik.touched.designation && formik.errors.designation && (
+                <Box
+                  sx={{
+                    color: "#d32f2f",
+                    fontSize: 12,
+                    mt: 0.5,
+                    marginLeft: 0,
+                  }}
+                >
+                  {formik.errors.designation}
+                </Box>
+              )}
+            </FormControl>
+
+            <FormControl fullWidth margin="normal" size="small">
+              <Autocomplete
+                options={reportingPersonList}
+                getOptionLabel={(option) => option.name || ""}
+                value={
+                  reportingPersonList.find(
+                    (item) => item.id === formik.values.reportingPerson
+                  ) || null
+                }
+                onChange={(event, newValue) => {
+                  formik.setFieldValue(
+                    "reportingPerson",
+                    newValue ? newValue.id : ""
+                  );
+                }}
+                onBlur={() => formik.setFieldTouched("reportingPerson", true)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Reporting Officer"
+                    error={
+                      formik.touched.reportingPerson &&
+                      Boolean(formik.errors.reportingPerson)
+                    }
+                    helperText={
+                      formik.touched.reportingPerson &&
+                      formik.errors.reportingPerson
+                    }
+                  />
+                )}
+                ListboxProps={{
+                  style: { maxHeight: isMobile ? 250 : 300, overflowY: "auto" },
+                }}
+              />
+            </FormControl>
+
+            <Box
+              mt={2}
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <Typography variant="subtitle1">Status</Typography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                    disabled={isSelf}
+                  />
+                }
+                label={isActive ? "Active" : "Inactive"}
+              />
+            </Box>
+
+            <Typography variant="subtitle1" mt={2} mb={1}>
+              Medium of Education
+            </Typography>
+
+            <RadioGroup
+              value={educationMedium}
+              onChange={(e) => {
+                setEducationMedium(e.target.value);
+                setError("");
+                if (e.target.value !== "others") setOtherValue("");
+              }}
+            >
+              <FormControlLabel
+                value="gujarati"
+                control={<Radio />}
+                label="Gujarati"
+                disabled={isSelf}
+              />
+              <FormControlLabel
+                value="english"
+                control={<Radio />}
+                label="English"
+                disabled={isSelf}
+              />
+              <FormControlLabel
+                value="others"
+                control={<Radio />}
+                label="Others"
+                disabled={isSelf}
+              />
+            </RadioGroup>
+
+            {educationMedium === "others" && (
+              <TextField
+                label="Enter Language"
+                value={otherValue}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "" || languageRegex.test(val)) {
+                    setOtherValue(val);
+                    if (val.length > 0 && val.length < 3) {
+                      setError("Enter at least 3 letters");
+                    } else {
+                      setError("");
+                    }
+                  } else {
+                    setError("Only letters are allowed");
+                  }
+                }}
+                fullWidth
+                margin="normal"
+                error={!!error}
+                helperText={error}
+                disabled={isSelf}
+              />
             )}
-          </Button>
-        </Box>
+
+            {isSelf && (
+              <Typography sx={{ color: "red", fontSize: 14, mt: 1 }}>
+                You cannot update your own details or status.
+              </Typography>
+            )}
+          </Box>
+
+          <Box mt={4} display="flex" justifyContent="flex-end" gap={1}>
+            <Button onClick={onClose} variant="outlined">
+              Cancel
+            </Button>
+
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isSubmitting || isSaveDisabled}
+            >
+              {formik.isSubmitting ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    color: "#fff",
+                  }}
+                >
+                  <CircularProgress size={20} sx={{ color: "#fff" }} />
+                  <Typography sx={{ textTransform: "none" }}>
+                    Saving...
+                  </Typography>
+                </Box>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </Box>
+        </form>
       </Box>
     </Modal>
   );
